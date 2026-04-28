@@ -1,0 +1,5 @@
+package com.aibert.dosw.engineplanning.config;
+
+public class PersistenceConfig {
+
+}
