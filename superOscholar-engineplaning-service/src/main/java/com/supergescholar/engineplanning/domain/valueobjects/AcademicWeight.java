@@ -1,0 +1,5 @@
+package com.supergescholar.engineplanning.domain.valueobjects;
+
+public class AcademicWeight {
+
+}
