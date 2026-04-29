@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: engineplanning-service
+
+ai:
+  provider: gemini
