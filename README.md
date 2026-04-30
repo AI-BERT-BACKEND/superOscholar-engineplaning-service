@@ -148,7 +148,7 @@ score =
 
 | Área         | Tecnología       |
 | ------------ | ---------------- |
-| Lenguaje     | Java 17          |
+| Lenguaje     | Java 21          |
 | Framework    | Spring Boot      |
 | Seguridad    | JWT              |
 | Persistencia | JPA + PostgreSQL |
