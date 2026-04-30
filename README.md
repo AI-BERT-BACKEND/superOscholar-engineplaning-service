@@ -1,7 +1,3 @@
-Aquí tienes el README completamente limpio, en un solo nivel, sin bloques `markdown` innecesarios y listo para usarse directamente en GitHub:
-
----
-
 # superOscholar-engineplanning-service
 
 > Microservicio del Motor de Planificación Inteligente de A.IBERT — ECI Planner.
@@ -257,13 +253,3 @@ mvn spring-boot:run
 * Gemini API
 * Groq API
 
----
-
-Si quieres, el siguiente paso puedo hacerlo mucho más pro (nivel senior):
-
-* README estilo **empresa (tipo Netflix / Uber)**
-* Badges, métricas, CI/CD
-* Separación en `/docs`
-* Diagramas en Mermaid integrados
-
-Solo dime.
