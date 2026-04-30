@@ -66,15 +66,13 @@ Problemas que resuelve:
 | Microservicio           | Puerto | Responsabilidad        |
 | ----------------------- | ------ | ---------------------- |
 | planning-engine-service | 8004   | Motor de planificación |
-| recommendation-service  | 8005   | Recomendaciones con IA |
 
 ### Comunicación
 
 ```
 planning-engine-service
  ├── task-service
- ├── user-service
- └── recommendation-service (Feign)
+ └── user-service
 ```
 
 ---
@@ -153,8 +151,7 @@ score =
 | Framework    | Spring Boot      |
 | Seguridad    | JWT              |
 | Persistencia | JPA + PostgreSQL |
-| Comunicación | OpenFeign        |
-| IA           | Gemini + Groq    |
+| Comunicación | HTTP REST        |
 | Testing      | JUnit + Mockito  |
 | Contenedores | Docker           |
 
@@ -181,7 +178,6 @@ src/
 | GET    | /planning/balance         |
 | POST   | /planning/distribution    |
 | POST   | /planning/rebalance       |
-| GET    | /planning/recommendations |
 
 ---
 
@@ -249,8 +245,4 @@ mvn spring-boot:run
 * Spring Boot
 * Spring Security
 * JPA
-* OpenFeign
-* Resilience4j
-* Gemini API
-* Groq API
 

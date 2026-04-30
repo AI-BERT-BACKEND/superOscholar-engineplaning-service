@@ -8,24 +8,3 @@ spring:
 		password: postgres
 	jpa:
 		show-sql: true
-
-ai:
-	provider: gemini
-	gemini:
-		api-key: ${GEMINI_API_KEY:tu-api-key-aqui}
-		model: gemini-2.5-flash
-	groq:
-		api-key: ${GROQ_API_KEY:tu-api-key-aqui}
-		model: llama-3.1-8b-instant
-
-resilience4j:
-	circuitbreaker:
-		instances:
-			aiProvider:
-				failure-rate-threshold: 50
-				wait-duration-in-open-state: 30s
-				sliding-window-size: 10
-	timelimiter:
-		instances:
-			aiProvider:
-				timeout-duration: 5s

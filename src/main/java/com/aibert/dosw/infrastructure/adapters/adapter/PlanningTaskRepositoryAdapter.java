@@ -50,6 +50,20 @@ public class PlanningTaskRepositoryAdapter
     }
 
     @Override
+    public List<PlanningTask> findByUserIdAndDueDateBetween(
+            String userId,
+            LocalDate startDate,
+            LocalDate endDate) {
+        return repository.findByUserIdAndDueDateBetween(
+                userId,
+                startDate,
+                endDate)
+                .stream()
+                .map(mapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<PlanningTask> findById(String taskId) {
         return repository.findById(taskId)
                 .map(mapper::toDomain);

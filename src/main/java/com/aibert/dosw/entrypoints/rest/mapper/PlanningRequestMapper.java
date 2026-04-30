@@ -4,7 +4,6 @@ import com.aibert.dosw.application.dto.request.BalanceRequest;
 import com.aibert.dosw.application.dto.request.DistributeTasksRequest;
 import com.aibert.dosw.application.dto.request.PrioritizeRequest;
 import com.aibert.dosw.application.dto.request.RebalanceRequest;
-import com.aibert.dosw.application.dto.request.RecommendationRequest;
 import java.time.LocalDate;
 import org.springframework.stereotype.Component;
 
@@ -18,72 +17,60 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlanningRequestMapper {
 
-    /**
-     * Builds a PrioritizeRequest from HTTP parameters.
-     */
-    public PrioritizeRequest toPrioritizeRequest(
-            String userId,
-            int totalCredits,
-            boolean forceRecalculate) {
+        /**
+         * Builds a PrioritizeRequest from HTTP parameters.
+         */
+        public PrioritizeRequest toPrioritizeRequest(
+                        String userId,
+                        int totalCredits,
+                        boolean forceRecalculate) {
 
-        return PrioritizeRequest.builder()
-                .userId(userId)
-                .totalCredits(totalCredits)
-                .forceRecalculate(forceRecalculate)
-                .build();
-    }
+                return PrioritizeRequest.builder()
+                                .userId(userId)
+                                .totalCredits(totalCredits)
+                                .forceRecalculate(forceRecalculate)
+                                .build();
+        }
 
-    /**
-     * Builds a BalanceRequest from HTTP parameters.
-     */
-    public BalanceRequest toBalanceRequest(
-            String userId,
-            LocalDate weekStart) {
+        /**
+         * Builds a BalanceRequest from HTTP parameters.
+         */
+        public BalanceRequest toBalanceRequest(
+                        String userId,
+                        LocalDate weekStart) {
 
-        return BalanceRequest.builder()
-                .userId(userId)
-                .weekStart(weekStart != null ? weekStart : LocalDate.now())
-                .build();
-    }
+                return BalanceRequest.builder()
+                                .userId(userId)
+                                .weekStart(weekStart != null ? weekStart : LocalDate.now())
+                                .build();
+        }
 
-    /**
-     * Builds a DistributeTasksRequest from HTTP parameters.
-     */
-    public DistributeTasksRequest toDistributeRequest(
-            String userId,
-            int totalCredits,
-            boolean respectPersonalTime) {
+        /**
+         * Builds a DistributeTasksRequest from HTTP parameters.
+         */
+        public DistributeTasksRequest toDistributeRequest(
+                        String userId,
+                        int totalCredits,
+                        boolean respectPersonalTime) {
 
-        return DistributeTasksRequest.builder()
-                .userId(userId)
-                .totalCredits(totalCredits)
-                .respectPersonalTime(respectPersonalTime)
-                .build();
-    }
+                return DistributeTasksRequest.builder()
+                                .userId(userId)
+                                .totalCredits(totalCredits)
+                                .respectPersonalTime(respectPersonalTime)
+                                .build();
+        }
 
-    /**
-     * Enriches a RebalanceRequest with the path userId.
-     */
-    public RebalanceRequest toRebalanceRequest(
-            String userId,
-            RebalanceRequest body) {
+        /**
+         * Enriches a RebalanceRequest with the path userId.
+         */
+        public RebalanceRequest toRebalanceRequest(
+                        String userId,
+                        RebalanceRequest body) {
 
-        return RebalanceRequest.builder()
-                .userId(userId)
-                .trigger(body.getTrigger())
-                .build();
-    }
+                return RebalanceRequest.builder()
+                                .userId(userId)
+                                .trigger(body.getTrigger())
+                                .build();
+        }
 
-    /**
-     * Builds a RecommendationRequest from HTTP parameters.
-     */
-    public RecommendationRequest toRecommendationRequest(
-            String userId,
-            int limit) {
-
-        return RecommendationRequest.builder()
-                .userId(userId)
-                .limit(limit > 0 ? limit : 5)
-                .build();
-    }
 }

@@ -11,9 +11,8 @@ import lombok.Getter;
 /**
  * Full student context for a given moment.
  * Aggregates the data needed to:
- * - generate AI recommendations
- * - build prompts with precomputed data
- * - apply Java planning rules
+ * - compute priorities and balance
+ * - apply planning rules in Java
  */
 @Getter
 @Builder
@@ -29,7 +28,7 @@ public class PlanningContext {
     private final UserProfile userProfile;
 
     /**
-     * Summary of at-risk subjects for the prompt.
+     * Summary of at-risk subjects.
      * Example: "Calculus (needs 4.2 in period 3)".
      *
      * @return summary text or a default message
@@ -70,7 +69,7 @@ public class PlanningContext {
     }
 
     /**
-     * Summary of the daily plan for the prompt.
+     * Summary of the daily plan.
      * Example: "2.0h Calculus, 1.5h Programming, 0.5h English".
      *
      * @return daily plan summary
@@ -100,7 +99,7 @@ public class PlanningContext {
     }
 
     /**
-     * Summary of overloaded days for the prompt.
+     * Summary of overloaded days.
      *
      * @return day names or "None"
      */
