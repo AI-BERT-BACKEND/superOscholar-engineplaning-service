@@ -37,6 +37,7 @@
 | Juan Esteban Sánchez García   |
 | Juan Carlos Bohórquez Monroy  |
 | Jeyder Nicolay Leon Lancheros |
+| Nicolás Guillermo Ibañez León |
 
 ---
 
