@@ -1,6 +1,5 @@
 package com.aibert.dosw.domain.valueobjects;
 
-import com.aibert.dosw.domain.model.context.NoteRiskCalculator.RiskLevel;
 import com.aibert.dosw.domain.model.task.TaskPriority;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -10,11 +9,10 @@ import lombok.Getter;
  * Immutable value object representing a calculated priority score
  * for an academic task.
  *
- * Formula:
- * score = (noteFactor * 0.35)
- * + (proximityFactor * 0.35)
- * + (weightFactor * 0.20)
- * + (creditsFactor * 0.10)
+ * The priority is calculated based on:
+ * 1. Deadline proximity (Proximity Factor)
+ * 2. Subject weight (Weight Factor)
+ * 3. Estimated time (Time Factor)
  */
 @Getter
 public final class PriorityScore {
@@ -28,33 +26,26 @@ public final class PriorityScore {
     }
 
     /**
-     * Creates a PriorityScore by applying the formula.
+     * Calculates the priority score based on weight, deadline, and estimated time.
      *
-     * @param riskLevel         subject risk level
-     * @param dueDate           task due date
-     * @param taskWeightInGrade task weight in the subject grade (0-100)
-     * @param subjectCredits    subject credits
-     * @param totalCredits      total semester credits
-     * @return calculated PriorityScore
+     * @param dueDate           Task deadline
+     * @param subjectWeight     Weight of the subject or task (0-100)
+     * @param estimatedHours    Estimated hours required to complete the task
+     * @return Calculated PriorityScore
      */
-    public static PriorityScore of(
-            RiskLevel riskLevel,
+    public static PriorityScore calculate(
             LocalDate dueDate,
-            double taskWeightInGrade,
-            int subjectCredits,
-            int totalCredits) {
+            double subjectWeight,
+            double estimatedHours) {
 
-        double noteFactor = riskLevel.getPriorityFactor();
         double proximityFactor = calculateProximityFactor(dueDate);
-        double weightFactor = taskWeightInGrade / 100.0;
-        double creditsFactor = totalCredits > 0
-                ? (double) subjectCredits / totalCredits
-                : 0.0;
+        double weightFactor = Math.min(subjectWeight / 100.0, 1.0);
+        double timeFactor = calculateTimeFactor(estimatedHours);
 
-        double rawScore = (noteFactor * 0.35)
-                + (proximityFactor * 0.35)
-                + (weightFactor * 0.20)
-                + (creditsFactor * 0.10);
+        // Mathematical logic: 40% proximity, 35% weight, 25% estimated time
+        double rawScore = (proximityFactor * 0.40)
+                + (weightFactor * 0.35)
+                + (timeFactor * 0.25);
 
         double finalScore = Math.min(rawScore * 100.0, 100.0);
         finalScore = Math.round(finalScore * 100.0) / 100.0;
@@ -65,54 +56,36 @@ public final class PriorityScore {
     }
 
     /**
-     * Creates a PriorityScore from a known score.
-     * Useful for tests or reconstruction from persistence.
-     *
-     * @param score score between 0 and 100
-     * @return PriorityScore with an assigned level
+     * Calculates the proximity factor based on remaining days.
+     * Closer deadlines yield higher factors.
      */
-    public static PriorityScore fromScore(double score) {
-        double clamped = Math.min(Math.max(score, 0.0), 100.0);
-        return new PriorityScore(clamped, assignLevel(clamped));
-    }
-
     private static double calculateProximityFactor(LocalDate dueDate) {
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
-        if (daysLeft <= 0)
-            return 1.00;
-        if (daysLeft <= 1)
-            return 0.95;
-        if (daysLeft <= 3)
-            return 0.80;
-        if (daysLeft <= 7)
-            return 0.60;
-        if (daysLeft <= 14)
-            return 0.30;
+        if (daysLeft <= 0) return 1.00;
+        if (daysLeft <= 1) return 0.95;
+        if (daysLeft <= 3) return 0.80;
+        if (daysLeft <= 7) return 0.60;
+        if (daysLeft <= 14) return 0.30;
         return 0.10;
     }
 
-    private static TaskPriority assignLevel(double score) {
-        if (score >= 75)
-            return TaskPriority.CRITICAL;
-        if (score >= 50)
-            return TaskPriority.HIGH;
-        if (score >= 25)
-            return TaskPriority.MEDIUM;
-        return TaskPriority.LOW;
+    /**
+     * Calculates the time factor.
+     * Longer tasks yield a higher priority factor to ensure they are started early.
+     * Assumes a 20-hour task represents the maximum effort (factor 1.0).
+     */
+    private static double calculateTimeFactor(double estimatedHours) {
+        double factor = estimatedHours / 20.0;
+        return Math.min(factor, 1.0);
     }
 
     /**
-     * Checks if the score is critical.
-     *
-     * @return true if level is CRITICAL
+     * Assigns the categorical priority level based on the numerical score.
      */
-    public boolean isCritical() {
-        return this.level == TaskPriority.CRITICAL;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("PriorityScore{score=%.2f, level=%s}",
-                finalScore, level);
+    private static TaskPriority assignLevel(double score) {
+        if (score >= 75) return TaskPriority.CRITICAL;
+        if (score >= 50) return TaskPriority.HIGH;
+        if (score >= 25) return TaskPriority.MEDIUM;
+        return TaskPriority.LOW;
     }
 }

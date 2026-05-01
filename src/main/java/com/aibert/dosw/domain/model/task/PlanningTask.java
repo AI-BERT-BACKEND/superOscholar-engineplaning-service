@@ -5,6 +5,7 @@ import com.aibert.dosw.domain.model.context.NoteRiskCalculator.RiskLevel;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -28,13 +29,8 @@ public class PlanningTask {
 
     private final String subjectName;
     private final int subjectCredits;
-    private final double taskWeightInGrade; // 0-100
-
-    private final Double gradePeriod1;
-    private final Double gradePeriod2;
-    private final double weightPeriod1;
-    private final double weightPeriod2;
-    private final double weightPeriod3;
+    private final Double taskWeightInGrade; // optional weight of this specific task
+    private final List<NoteRiskCalculator.CutProgress> evaluationCuts; // Dynamic cuts
 
     private TaskStatus status;
     private TaskPriority priorityLevel;
@@ -101,23 +97,18 @@ public class PlanningTask {
      * @return subject risk level
      */
     public RiskLevel getSubjectRiskLevel() {
-        double requiredGrade = NoteRiskCalculator.calculateRequiredGrade(
-                this.gradePeriod1, this.weightPeriod1,
-                this.gradePeriod2, this.weightPeriod2,
-                this.weightPeriod3);
+        if (this.evaluationCuts == null || this.evaluationCuts.isEmpty()) {
+            return RiskLevel.LOW;
+        }
+        double requiredGrade = NoteRiskCalculator.calculateRequiredGrade(this.evaluationCuts);
         return NoteRiskCalculator.calculateRiskLevel(requiredGrade);
     }
 
-    /**
-     * Calculates the minimum grade required in period 3.
-     *
-     * @return required minimum grade
-     */
-    public double getRequiredGradePeriod3() {
-        return NoteRiskCalculator.calculateRequiredGrade(
-                this.gradePeriod1, this.weightPeriod1,
-                this.gradePeriod2, this.weightPeriod2,
-                this.weightPeriod3);
+    public double getRequiredGradeForRemainingCuts() {
+        if (this.evaluationCuts == null || this.evaluationCuts.isEmpty()) {
+            return 0.0;
+        }
+        return NoteRiskCalculator.calculateRequiredGrade(this.evaluationCuts);
     }
 
     /**

@@ -39,7 +39,7 @@ public class DifferentialBalance {
             double scheduledHours) {
 
         double differential = availableHours - scheduledHours;
-        BalanceStatus status = computeStatus(differential);
+        BalanceStatus status = computeStatus(availableHours, scheduledHours);
 
         return DifferentialBalance.builder()
                 .date(date)
@@ -51,16 +51,21 @@ public class DifferentialBalance {
     }
 
     /**
-     * Determines the balance status based on the differential.
-     *
-     * @param differential difference between available and scheduled
-     * @return balance status
+     * Determines the balance status based on the workload percentage.
+     * Overloaded = > 80%
+     * Free = < 20%
      */
-    private static BalanceStatus computeStatus(double differential) {
-        if (differential < -1.0)
+    private static BalanceStatus computeStatus(double availableHours, double scheduledHours) {
+        if (availableHours <= 0.0) {
+            return scheduledHours > 0.0 ? BalanceStatus.OVERLOADED : BalanceStatus.FREE;
+        }
+        double ratio = scheduledHours / availableHours;
+        if (ratio >= 0.8) {
             return BalanceStatus.OVERLOADED;
-        if (differential > 2.0)
+        }
+        if (ratio <= 0.2) {
             return BalanceStatus.FREE;
+        }
         return BalanceStatus.BALANCED;
     }
 

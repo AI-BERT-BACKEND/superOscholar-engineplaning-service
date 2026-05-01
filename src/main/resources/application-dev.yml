@@ -2,9 +2,3 @@ spring:
 	config:
 		activate:
 			on-profile: dev
-	datasource:
-		url: jdbc:postgresql://localhost:5432/planning_dev
-		username: postgres
-		password: postgres
-	jpa:
-		show-sql: true
