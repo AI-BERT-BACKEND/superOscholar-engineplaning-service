@@ -16,4 +16,12 @@ public interface ScheduleProviderPort {
      * @return List of daily schedules containing available hours
      */
     List<DailySchedule> getWeeklySchedule(String studentId);
+
+    /**
+     * Retrieves the time blocks explicitly marked as unavailable by the student.
+     *
+     * @param studentId The ID of the student
+     * @return List of unavailable blocks
+     */
+    List<UnavailableBlock> getUnavailableBlocks(String studentId);
 }

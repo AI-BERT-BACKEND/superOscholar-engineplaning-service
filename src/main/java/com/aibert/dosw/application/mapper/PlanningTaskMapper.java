@@ -1,6 +1,10 @@
 package com.aibert.dosw.application.mapper;
 
+import com.aibert.dosw.application.dto.response.DistributionPlanResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
+import com.aibert.dosw.application.dto.response.ScheduledBlockResponse;
+import com.aibert.dosw.domain.model.schedule.ScheduledBlock;
+import com.aibert.dosw.domain.model.schedule.WeeklyDistributionPlan;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -23,4 +27,10 @@ public interface PlanningTaskMapper {
     @Mapping(target = "estimatedDurationMinutes", expression = "java((int) Math.round(task.getEstimatedHours() * 60))")
     @Mapping(target = "deadline", expression = "java(task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : null)")
     PrioritizedTaskResponse toPrioritizedResponse(PlanningTask task);
+
+    @Mapping(target = "durationHours", expression = "java(block.getDurationHours())")
+    ScheduledBlockResponse toScheduledBlockResponse(ScheduledBlock block);
+
+    @Mapping(target = "fullyAssigned", expression = "java(plan.isFullyAssigned())")
+    DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
 }
