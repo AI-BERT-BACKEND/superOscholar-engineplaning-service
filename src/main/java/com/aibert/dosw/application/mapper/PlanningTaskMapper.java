@@ -32,5 +32,6 @@ public interface PlanningTaskMapper {
     ScheduledBlockResponse toScheduledBlockResponse(ScheduledBlock block);
 
     @Mapping(target = "fullyAssigned", expression = "java(plan.isFullyAssigned())")
+    @Mapping(target = "criticalAlerts", expression = "java(plan.getCriticalTasks().stream().map(this::toPrioritizedResponse).collect(java.util.stream.Collectors.toList()))")
     DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
 }

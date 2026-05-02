@@ -22,4 +22,23 @@ public class WeeklyDistributionPlan {
     public boolean isFullyAssigned() {
         return unassignedTasks == null || unassignedTasks.isEmpty();
     }
+
+    /**
+     * Returns a distinct list of all tasks that are currently marked as CRITICAL.
+     */
+    public List<PlanningTask> getCriticalTasks() {
+        List<PlanningTask> criticals = new java.util.ArrayList<>();
+        if (assignedBlocks != null) {
+            assignedBlocks.stream()
+                .map(ScheduledBlock::getTask)
+                .filter(t -> t.getPriorityLevel() == com.aibert.dosw.domain.model.task.TaskPriority.CRITICAL)
+                .forEach(criticals::add);
+        }
+        if (unassignedTasks != null) {
+            unassignedTasks.stream()
+                .filter(t -> t.getPriorityLevel() == com.aibert.dosw.domain.model.task.TaskPriority.CRITICAL)
+                .forEach(criticals::add);
+        }
+        return criticals.stream().distinct().collect(java.util.stream.Collectors.toList());
+    }
 }

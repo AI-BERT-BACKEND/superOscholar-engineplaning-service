@@ -31,4 +31,15 @@ public interface TaskProviderPort {
      * @param tasks The prioritized tasks to update
      */
     void updateTaskPriorities(List<PlanningTask> tasks);
+
+    /**
+     * Reports a failed study block to the task-service so it can 
+     * restore the pending hours or mark the task as incomplete.
+     *
+     * @param studentId   The ID of the student
+     * @param taskId      The ID of the task
+     * @param hoursMissed The hours not completed
+     * @param reason      The reason for the failure
+     */
+    void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason);
 }

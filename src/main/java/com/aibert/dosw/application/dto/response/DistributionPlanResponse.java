@@ -24,5 +24,11 @@ public class DistributionPlanResponse {
      */
     private final List<PrioritizedTaskResponse> unassignedTasks;
     
+    /**
+     * Tasks affected by rebalancing that have a deadline in less than 24h.
+     * Flagged specifically to alert the frontend/user.
+     */
+    private final List<PrioritizedTaskResponse> criticalAlerts;
+    
     private final boolean fullyAssigned;
 }

@@ -2,3 +2,12 @@ spring:
 	config:
 		activate:
 			on-profile: dev
+
+jwt:
+  secret: "VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24="
+
+feign:
+  task-service:
+    url: "http://localhost:8081" # Update this with the real task-service host or gateway
+  profile-service:
+    url: "http://localhost:8082" # Update this with the real profile-service host or gateway

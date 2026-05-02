@@ -120,4 +120,12 @@ public class PlanningTask {
         return this.priorityLevel == TaskPriority.CRITICAL
                 || this.priorityLevel == TaskPriority.HIGH;
     }
+
+    /**
+     * Marks the task as a critical alert when its deadline is imminent.
+     */
+    public void markAsCriticalAlert() {
+        this.priorityLevel = TaskPriority.CRITICAL;
+        this.priorityScore = Math.max(this.priorityScore, 99.0); // Boost score
+    }
 }
