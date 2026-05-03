@@ -1,6 +1,7 @@
 package com.aibert.dosw.application.usecase;
 
 import com.aibert.dosw.domain.model.schedule.WeeklyDistributionPlan;
+import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.DistributeTasksUseCase;
 import com.aibert.dosw.domain.ports.in.RebalanceTasksUseCase;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;

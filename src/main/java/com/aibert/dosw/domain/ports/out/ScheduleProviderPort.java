@@ -1,6 +1,7 @@
 package com.aibert.dosw.domain.ports.out;
 
 import com.aibert.dosw.domain.model.schedule.DailySchedule;
+import com.aibert.dosw.domain.model.schedule.UnavailableBlock;
 import java.util.List;
 
 /**
