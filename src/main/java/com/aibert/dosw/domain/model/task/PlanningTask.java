@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Primary entity for the planning engine.
@@ -16,6 +17,7 @@ import lombok.Getter;
  */
 @Getter
 @Builder
+@Jacksonized
 public class PlanningTask {
 
     private final String id;

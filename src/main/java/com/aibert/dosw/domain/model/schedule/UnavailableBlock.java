@@ -4,13 +4,15 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.jackson.Jacksonized;
 
 /**
- * Represents a time block that is explicitly marked as "not available" by the student.
- * E.g., personal events, doctor appointments, or rest periods.
+ * Represents a specific block of time marked as unavailable by the student.
+ * (e.g., Doctor appointment, lunch break, class).
  */
 @Getter
 @Builder
+@Jacksonized
 public class UnavailableBlock {
     private final LocalDate date;
     private final LocalTime startTime;

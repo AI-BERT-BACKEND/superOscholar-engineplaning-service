@@ -1,0 +1,12 @@
+.git
+.github
+target/
+*.class
+*.jar
+*.war
+.idea/
+.vscode/
+*.iml
+.mvn/
+mvnw
+mvnw.cmd

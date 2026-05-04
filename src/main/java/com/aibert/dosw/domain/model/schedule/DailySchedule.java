@@ -4,13 +4,15 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.jackson.Jacksonized;
 
 /**
- * Availability schedule for a student on a specific day.
- * Contains the free time blocks available for studying.
+ * Represents the available time for a student on a specific day.
+ * Retreived from the profile-service.
  */
 @Getter
 @Builder
+@Jacksonized
 public class DailySchedule {
 
     private final String userId;
