@@ -6,7 +6,6 @@ import com.aibert.dosw.domain.ports.out.TaskProviderPort;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,7 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
     @Override
     public List<PlanningTask> prioritize(String studentId, boolean forceRecalculate) {
-        
+
         // 1. Fetch pending tasks from the task-service (via Feign output port)
         List<PlanningTask> pendingTasks = taskProviderPort.getPendingTasksByUser(studentId);
 
@@ -33,18 +32,17 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
         // 2. Apply mathematical algorithm to calculate PriorityScore for each task
         for (PlanningTask task : pendingTasks) {
-            
+
             // Only recalculate if forced or if the task has no score
-            if (forceRecalculate || task.getPriorityScore() == 0.0) {
-                
+            if (forceRecalculate || task.getPriorityLevel() == null) {
+
                 double weight = task.getTaskWeightInGrade() != null ? task.getTaskWeightInGrade() : 0.0;
-                
+
                 PriorityScore score = PriorityScore.calculate(
                         task.getDueDate(),
                         weight,
-                        task.getEstimatedHours()
-                );
-                
+                        task.getEstimatedHours());
+
                 task.assignPriority(score);
             }
         }
@@ -52,7 +50,7 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
         // 3. Sort the tasks based on the calculated priority score (Descending order)
         List<PlanningTask> prioritizedTasks = pendingTasks.stream()
                 .sorted(Comparator.comparingDouble(PlanningTask::getPriorityScore).reversed())
-                .collect(Collectors.toList());
+                .toList();
 
         // 4. Send the updated priorities back to the task-service
         taskProviderPort.updateTaskPriorities(prioritizedTasks);

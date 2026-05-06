@@ -3,6 +3,7 @@ package com.aibert.dosw.entrypoints.advice;
 import com.aibert.dosw.domain.exceptions.PlanningDomainException;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -26,37 +28,48 @@ class PlanningExceptionHandlerTest {
     void shouldHandleDomainException() {
         request.setRequestURI("/api/test");
         PlanningDomainException ex = new PlanningDomainException("Domain error occurred", "TEST_ERROR");
-        
+
         ResponseEntity<ApiResponse<Void>> response = handler.handleDomainException(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Domain error occurred", response.getBody().getMessage());
+        ApiResponse<Void> body = Objects.requireNonNull(response.getBody());
+        assertEquals("Domain error occurred", body.getMessage());
     }
 
     @Test
-    void shouldHandleValidationException() {
+    void shouldHandleValidationException() throws Exception {
         request.setRequestURI("/api/test");
         BindingResult bindingResult = mock(BindingResult.class);
-        when(bindingResult.getFieldErrors()).thenReturn(List.of(new FieldError("objectName", "field", "must not be null")));
-        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(null, bindingResult);
-        
+        when(bindingResult.getFieldErrors())
+                .thenReturn(List.of(new FieldError("objectName", "field", "must not be null")));
+        MethodArgumentNotValidException ex = new MethodArgumentNotValidException(
+                new MethodParameter(
+                        Objects.requireNonNull(
+                                PlanningExceptionHandlerTest.class.getDeclaredMethod("dummy", String.class)),
+                        0),
+                bindingResult);
+
         ResponseEntity<ApiResponse<Void>> response = handler.handleValidation(ex, request);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Error en los datos enviados", response.getBody().getMessage());
+        ApiResponse<Void> body = Objects.requireNonNull(response.getBody());
+        assertEquals("Error en los datos enviados", body.getMessage());
     }
 
     @Test
     void shouldHandleGenericException() {
         request.setRequestURI("/api/test");
         Exception ex = new Exception("Internal error");
-        
+
         ResponseEntity<ApiResponse<Void>> response = handler.handleGeneral(ex, request);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Error interno del servidor. Intenta de nuevo.", response.getBody().getMessage());
+        ApiResponse<Void> body = Objects.requireNonNull(response.getBody());
+        assertEquals("Error interno del servidor. Intenta de nuevo.", body.getMessage());
+    }
+
+    @SuppressWarnings("unused")
+    private void dummy(String value) {
+        assertNotNull(value);
     }
 }

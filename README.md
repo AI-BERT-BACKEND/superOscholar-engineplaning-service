@@ -161,7 +161,6 @@ score =
 
 ```
 src/
- ├── config/
  ├── domain/
  ├── application/
  ├── entrypoints/
@@ -177,7 +176,8 @@ src/
 | GET    | /planning/prioritization  |
 | GET    | /planning/balance         |
 | POST   | /planning/distribution    |
-| POST   | /planning/rebalance       |
+| POST   | /planning/rebalance/failure |
+| POST   | /planning/rebalance/reorganize |
 
 ---
 
@@ -223,6 +223,8 @@ DB_USERNAME=
 DB_PASSWORD=
 
 JWT_SECRET=
+FEIGN_TASK_SERVICE_URL=
+FEIGN_PROFILE_SERVICE_URL=
 
 GEMINI_API_KEY=
 GROQ_API_KEY=

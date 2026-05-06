@@ -7,6 +7,9 @@ import com.aibert.dosw.domain.ports.in.RebalanceTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,44 +24,56 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RebalanceController {
 
-    private final RebalanceTasksUseCase rebalanceTasksUseCase;
-    private final PlanningTaskMapper planningTaskMapper;
+        private final RebalanceTasksUseCase rebalanceTasksUseCase;
+        private final PlanningTaskMapper planningTaskMapper;
 
-    /**
-     * Endpoint for the frontend to report that a study block failed or was missed.
-     * Automatically triggers a rebalance and returns the new schedule.
-     */
-    @PostMapping("/failure")
-    public ResponseEntity<ApiResponse<DistributionPlanResponse>> reportFailure(
-            @RequestBody FailureReportRequest request) {
+        /**
+         * Endpoint for the frontend to report that a study block failed or was missed.
+         * Automatically triggers a rebalance and returns the new schedule.
+         */
+        @PostMapping("/failure")
+        public ResponseEntity<ApiResponse<DistributionPlanResponse>> reportFailure(
+                        @RequestBody FailureReportRequest request,
+                        Authentication authentication) {
 
-        var newPlan = rebalanceTasksUseCase.reportFailureAndRebalance(
-                request.getStudentId(),
-                request.getTaskId(),
-                request.getFailedDate(),
-                request.getHoursMissed(),
-                request.getReason()
-        );
+                assertStudentIdMatchesAuthenticatedUser(authentication, request.getStudentId());
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Failure reported and schedule rebalanced successfully",
-                        planningTaskMapper.toDistributionPlanResponse(newPlan))
-        );
-    }
+                var newPlan = rebalanceTasksUseCase.reportFailureAndRebalance(
+                                request.getStudentId(),
+                                request.getTaskId(),
+                                request.getFailedDate(),
+                                request.getHoursMissed(),
+                                request.getReason());
 
-    /**
-     * Endpoint to explicitly reorganize the remaining pending tasks 
-     * into the remaining time of the week.
-     */
-    @PostMapping("/reorganize")
-    public ResponseEntity<ApiResponse<DistributionPlanResponse>> reorganize(
-            @RequestParam String studentId) {
+                return ResponseEntity.ok(
+                                ApiResponse.success("Failure reported and schedule rebalanced successfully",
+                                                planningTaskMapper.toDistributionPlanResponse(newPlan)));
+        }
 
-        var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
+        /**
+         * Endpoint to explicitly reorganize the remaining pending tasks
+         * into the remaining time of the week.
+         */
+        @PostMapping("/reorganize")
+        public ResponseEntity<ApiResponse<DistributionPlanResponse>> reorganize(
+                        @RequestParam String studentId,
+                        Authentication authentication) {
 
-        return ResponseEntity.ok(
-                ApiResponse.success("Weekly schedule reorganized successfully",
-                        planningTaskMapper.toDistributionPlanResponse(updatedPlan))
-        );
-    }
+                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+
+                var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
+
+                return ResponseEntity.ok(
+                                ApiResponse.success("Weekly schedule reorganized successfully",
+                                                planningTaskMapper.toDistributionPlanResponse(updatedPlan)));
+        }
+
+        private void assertStudentIdMatchesAuthenticatedUser(
+                        Authentication authentication,
+                        String studentId) {
+                if (authentication == null || !StringUtils.hasText(authentication.getName())
+                                || !authentication.getName().equals(studentId)) {
+                        throw new AccessDeniedException("studentId does not match authenticated user");
+                }
+        }
 }

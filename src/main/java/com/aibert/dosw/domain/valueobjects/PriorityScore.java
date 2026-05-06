@@ -28,9 +28,9 @@ public final class PriorityScore {
     /**
      * Calculates the priority score based on weight, deadline, and estimated time.
      *
-     * @param dueDate           Task deadline
-     * @param subjectWeight     Weight of the subject or task (0-100)
-     * @param estimatedHours    Estimated hours required to complete the task
+     * @param dueDate        Task deadline
+     * @param subjectWeight  Weight of the subject or task (0-100)
+     * @param estimatedHours Estimated hours required to complete the task
      * @return Calculated PriorityScore
      */
     public static PriorityScore calculate(
@@ -60,12 +60,20 @@ public final class PriorityScore {
      * Closer deadlines yield higher factors.
      */
     private static double calculateProximityFactor(LocalDate dueDate) {
+        if (dueDate == null) {
+            return 0.10;
+        }
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
-        if (daysLeft <= 0) return 1.00;
-        if (daysLeft <= 1) return 0.95;
-        if (daysLeft <= 3) return 0.80;
-        if (daysLeft <= 7) return 0.60;
-        if (daysLeft <= 14) return 0.30;
+        if (daysLeft <= 0)
+            return 1.00;
+        if (daysLeft <= 1)
+            return 0.95;
+        if (daysLeft <= 3)
+            return 0.80;
+        if (daysLeft <= 7)
+            return 0.60;
+        if (daysLeft <= 14)
+            return 0.30;
         return 0.10;
     }
 
@@ -83,9 +91,12 @@ public final class PriorityScore {
      * Assigns the categorical priority level based on the numerical score.
      */
     private static TaskPriority assignLevel(double score) {
-        if (score >= 75) return TaskPriority.CRITICAL;
-        if (score >= 50) return TaskPriority.HIGH;
-        if (score >= 25) return TaskPriority.MEDIUM;
+        if (score >= 75)
+            return TaskPriority.CRITICAL;
+        if (score >= 50)
+            return TaskPriority.HIGH;
+        if (score >= 25)
+            return TaskPriority.MEDIUM;
         return TaskPriority.LOW;
     }
 }

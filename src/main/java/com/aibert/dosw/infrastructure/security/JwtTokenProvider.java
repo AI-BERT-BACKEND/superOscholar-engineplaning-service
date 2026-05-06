@@ -5,24 +5,33 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 /**
  * Service responsible for validating JWT tokens and extracting data.
  */
-@Component
+@Component("infrastructureJwtTokenProvider")
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret:VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24=}")
+    @Value("${jwt.secret}")
     private String jwtSecret;
 
     private Key key;
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+        if (!StringUtils.hasText(jwtSecret)) {
+            throw new IllegalStateException("jwt.secret must be provided");
+        }
+        byte[] secretBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32) {
+            throw new IllegalStateException("jwt.secret must be at least 32 bytes");
+        }
+        this.key = Keys.hmacShaKeyFor(secretBytes);
     }
 
     /**

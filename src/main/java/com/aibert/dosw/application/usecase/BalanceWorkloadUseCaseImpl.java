@@ -1,6 +1,5 @@
 package com.aibert.dosw.application.usecase;
 
-import com.aibert.dosw.domain.model.balance.BalanceStatus;
 import com.aibert.dosw.domain.model.balance.BalanceSuggestion;
 import com.aibert.dosw.domain.model.balance.DifferentialBalance;
 import com.aibert.dosw.domain.model.schedule.DailySchedule;
@@ -30,7 +29,7 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
 
     @Override
     public List<BalanceSuggestion> suggestBalance(String studentId) {
-        
+
         List<PlanningTask> scheduledTasks = taskProviderPort.getScheduledTasksByUser(studentId);
         List<DailySchedule> weeklySchedules = scheduleProviderPort.getWeeklySchedule(studentId);
 
@@ -48,7 +47,7 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
         for (DailySchedule schedule : weeklySchedules) {
             LocalDate date = schedule.getDate();
             double availableHours = schedule.getTotalAvailableHours();
-            
+
             double scheduledHours = tasksByDate.getOrDefault(date, List.of()).stream()
                     .mapToDouble(PlanningTask::getEstimatedHours)
                     .sum();
@@ -59,11 +58,11 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
         // 3. Identify Overloaded and Free days
         List<DifferentialBalance> overloadedDays = dailyBalances.stream()
                 .filter(DifferentialBalance::isOverloaded)
-                .collect(Collectors.toList());
+                .toList();
 
-        List<DifferentialBalance> freeDays = dailyBalances.stream()
+        List<DifferentialBalance> freeDays = new ArrayList<>(dailyBalances.stream()
                 .filter(DifferentialBalance::hasFreeTime)
-                .collect(Collectors.toList());
+                .toList());
 
         if (overloadedDays.isEmpty() || freeDays.isEmpty()) {
             return List.of(); // No rebalancing possible or needed
@@ -74,7 +73,7 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
 
         for (DifferentialBalance overloadedDay : overloadedDays) {
             List<PlanningTask> tasksOnDay = tasksByDate.getOrDefault(overloadedDay.getDate(), new ArrayList<>());
-            
+
             // Sort tasks: attempt to move tasks with the lowest priority first
             tasksOnDay.sort(Comparator.comparingDouble(PlanningTask::getPriorityScore));
 
@@ -89,28 +88,32 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
                 // Find a free day that can accommodate the task
                 for (int i = 0; i < freeDays.size(); i++) {
                     DifferentialBalance freeDay = freeDays.get(i);
-                    
+
                     // Can we add this task without overloading the free day?
                     double projectedHours = freeDay.getScheduledHours() + task.getEstimatedHours();
                     double maxAllowedHours = freeDay.getAvailableHours() * 0.8;
 
-                    if (projectedHours <= maxAllowedHours && !task.getDueDate().isBefore(freeDay.getDate())) {
-                        
+                    LocalDate dueDate = task.getDueDate();
+                    if (projectedHours <= maxAllowedHours
+                            && (dueDate == null || !dueDate.isBefore(freeDay.getDate()))) {
+
                         // Suggest moving it
                         suggestions.add(BalanceSuggestion.builder()
                                 .taskToMove(task)
                                 .fromDate(overloadedDay.getDate())
                                 .toDate(freeDay.getDate())
-                                .reason(String.format("Day %s is overloaded. Day %s has free time.", 
+                                .reason(String.format("Day %s is overloaded. Day %s has free time.",
                                         overloadedDay.getDate(), freeDay.getDate()))
                                 .build());
 
                         // Update current counters
                         currentScheduledHours -= task.getEstimatedHours();
-                        
-                        // Update the free day's scheduled hours so it's not overloaded with the next task
-                        freeDays.set(i, DifferentialBalance.of(freeDay.getDate(), freeDay.getAvailableHours(), projectedHours));
-                        
+
+                        // Update the free day's scheduled hours so it's not overloaded with the next
+                        // task
+                        freeDays.set(i,
+                                DifferentialBalance.of(freeDay.getDate(), freeDay.getAvailableHours(), projectedHours));
+
                         break; // Task successfully assigned to a new day
                     }
                 }

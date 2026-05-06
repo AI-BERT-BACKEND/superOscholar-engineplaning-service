@@ -6,6 +6,9 @@ import com.aibert.dosw.domain.ports.in.DistributeTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,14 +34,25 @@ public class DistributionController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<DistributionPlanResponse>> generateDistribution(
-            @RequestParam String studentId) {
+            @RequestParam String studentId,
+            Authentication authentication) {
+
+        assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
 
         var distributionPlan = distributeTasksUseCase.distribute(studentId);
-        
+
         DistributionPlanResponse response = planningTaskMapper.toDistributionPlanResponse(distributionPlan);
 
         return ResponseEntity.ok(
-                ApiResponse.success("Weekly distribution generated successfully", response)
-        );
+                ApiResponse.success("Weekly distribution generated successfully", response));
+    }
+
+    private void assertStudentIdMatchesAuthenticatedUser(
+            Authentication authentication,
+            String studentId) {
+        if (authentication == null || !StringUtils.hasText(authentication.getName())
+                || !authentication.getName().equals(studentId)) {
+            throw new AccessDeniedException("studentId does not match authenticated user");
+        }
     }
 }

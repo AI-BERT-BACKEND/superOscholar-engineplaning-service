@@ -12,6 +12,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -31,7 +32,11 @@ class PrioritizationControllerTest {
         when(prioritizeTasksUseCase.prioritize("st1", false)).thenReturn(List.of(PlanningTask.builder().build()));
         when(planningTaskMapper.toPrioritizedResponse(any())).thenReturn(PrioritizedTaskResponse.builder().build());
 
-        ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks("st1", false);
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("st1");
+
+        ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks("st1",
+                false, authentication);
         assertNotNull(response.getBody());
     }
 }

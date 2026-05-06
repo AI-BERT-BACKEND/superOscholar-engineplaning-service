@@ -15,13 +15,13 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * Application service implementing the Task Distribution Engine (R16).
- * It splits tasks to fit into available time slots, strictly prioritizing ALTO/CRITICAL tasks.
+ * It splits tasks to fit into available time slots, strictly prioritizing
+ * ALTO/CRITICAL tasks.
  */
 @Service
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
 
     @Override
     public WeeklyDistributionPlan distribute(String studentId) {
-        
+
         // 1. Fetch pending tasks, availability, and unavailable blocks
         List<PlanningTask> pendingTasks = taskProviderPort.getPendingTasksByUser(studentId);
         List<DailySchedule> weeklySchedules = scheduleProviderPort.getWeeklySchedule(studentId);
@@ -46,55 +46,57 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
                     .build();
         }
 
-        // 2. Sort tasks strictly prioritizing HIGH/CRITICAL (isHighPriority = true), 
+        // 2. Sort tasks strictly prioritizing HIGH/CRITICAL (isHighPriority = true),
         // and then by priority score descending.
         List<PlanningTask> sortedTasks = pendingTasks.stream()
                 .sorted(Comparator.comparing(PlanningTask::isHighPriority).reversed()
                         .thenComparing(Comparator.comparingDouble(PlanningTask::getPriorityScore).reversed()))
-                .collect(Collectors.toList());
+                .toList();
 
         List<ScheduledBlock> assignedBlocks = new ArrayList<>();
         List<PlanningTask> unassignedTasks = new ArrayList<>();
 
-        // 3. Apply Availability Filter: Create a mutable copy of the weekly schedule 
+        // 3. Apply Availability Filter: Create a mutable copy of the weekly schedule
         // strictly excluding any explicitly marked unavailable blocks.
         List<MutableDay> availableDays = weeklySchedules.stream()
                 .map(ds -> {
                     List<TimeSlot> rawSlots = ds.getAvailableSlots() != null ? ds.getAvailableSlots() : List.of();
-                    
+
                     // Find blocked events strictly for this specific day
                     List<UnavailableBlock> blocksForDay = unavailableBlocks.stream()
                             .filter(ub -> ub.getDate().equals(ds.getDate()))
-                            .collect(Collectors.toList());
-                            
+                            .toList();
+
                     // Run through the filter algorithm
                     List<TimeSlot> cleanSlots = AvailabilityFilter.removeUnavailableBlocks(rawSlots, blocksForDay);
-                    
+
                     return new MutableDay(ds.getDate(), cleanSlots);
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         // 4. Distribution Algorithm
         for (PlanningTask task : sortedTasks) {
             double remainingHours = task.getEstimatedHours();
 
             for (MutableDay day : availableDays) {
-                if (remainingHours <= 0) break;
-                
+                if (remainingHours <= 0)
+                    break;
+
                 // Do not schedule tasks after their deadline
                 if (task.getDueDate() != null && day.date.isAfter(task.getDueDate())) {
-                    continue; 
+                    continue;
                 }
 
                 for (int i = 0; i < day.slots.size(); i++) {
                     TimeSlot slot = day.slots.get(i);
                     double slotDuration = slot.getDurationHours();
 
-                    if (slotDuration <= 0) continue;
+                    if (slotDuration <= 0)
+                        continue;
 
                     double hoursToTake = Math.min(remainingHours, slotDuration);
                     int minutesToAdd = (int) Math.round(hoursToTake * 60);
-                    
+
                     LocalTime startTime = slot.getStartTime();
                     LocalTime endTime = startTime.plusMinutes(minutesToAdd);
 
@@ -145,7 +147,7 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
     private static class MutableDay {
         LocalDate date;
         List<TimeSlot> slots;
-        
+
         MutableDay(LocalDate date, List<TimeSlot> slots) {
             this.date = date;
             this.slots = new ArrayList<>(slots);

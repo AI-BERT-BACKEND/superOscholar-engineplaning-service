@@ -12,3 +12,12 @@ spring:
     user:
       name: test
       password: test
+
+feign:
+  task-service:
+    url: http://localhost
+  profile-service:
+    url: http://localhost
+
+jwt:
+  secret: test-jwt-secret-for-tests-32-bytes

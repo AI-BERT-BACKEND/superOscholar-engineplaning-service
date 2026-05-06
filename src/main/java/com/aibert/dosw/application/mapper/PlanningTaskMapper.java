@@ -11,7 +11,8 @@ import org.mapstruct.Mapping;
 
 /**
  * MapStruct mapper for converting Domain entities to Application DTOs.
- * Handles the mapping between internal domain names and the external task-service schema.
+ * Handles the mapping between internal domain names and the external
+ * task-service schema.
  */
 @Mapper(componentModel = "spring")
 public interface PlanningTaskMapper {
@@ -23,6 +24,8 @@ public interface PlanningTaskMapper {
      * @return The response DTO
      */
     @Mapping(target = "taskId", source = "id")
+    // External task-service schema expects subjectId, which is sourced from
+    // subjectName here.
     @Mapping(target = "subjectId", source = "subjectName")
     @Mapping(target = "estimatedDurationMinutes", expression = "java((int) Math.round(task.getEstimatedHours() * 60))")
     @Mapping(target = "deadline", expression = "java(task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : null)")
@@ -32,6 +35,6 @@ public interface PlanningTaskMapper {
     ScheduledBlockResponse toScheduledBlockResponse(ScheduledBlock block);
 
     @Mapping(target = "fullyAssigned", expression = "java(plan.isFullyAssigned())")
-    @Mapping(target = "criticalAlerts", expression = "java(plan.getCriticalTasks().stream().map(this::toPrioritizedResponse).collect(java.util.stream.Collectors.toList()))")
+    @Mapping(target = "criticalAlerts", expression = "java(plan.getCriticalTasks().stream().map(this::toPrioritizedResponse).toList())")
     DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
 }

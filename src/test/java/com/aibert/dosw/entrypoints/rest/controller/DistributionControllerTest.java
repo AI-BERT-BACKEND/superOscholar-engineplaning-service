@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -28,9 +29,14 @@ class DistributionControllerTest {
     @Test
     void shouldDistributeTasks() {
         when(distributeTasksUseCase.distribute("st1")).thenReturn(WeeklyDistributionPlan.builder().build());
-        when(planningTaskMapper.toDistributionPlanResponse(any())).thenReturn(DistributionPlanResponse.builder().build());
+        when(planningTaskMapper.toDistributionPlanResponse(any()))
+                .thenReturn(DistributionPlanResponse.builder().build());
 
-        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.generateDistribution("st1");
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("st1");
+
+        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.generateDistribution("st1",
+                authentication);
         assertNotNull(response.getBody());
     }
 }

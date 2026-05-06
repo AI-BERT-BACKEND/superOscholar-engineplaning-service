@@ -79,6 +79,9 @@ public class PlanningTask {
      * @return true if the due date has passed
      */
     public boolean isOverdue() {
+        if (this.dueDate == null) {
+            return false;
+        }
         return LocalDate.now().isAfter(this.dueDate);
     }
 
@@ -89,6 +92,9 @@ public class PlanningTask {
      * @return remaining days (minimum 0)
      */
     public long getDaysRemaining() {
+        if (this.dueDate == null) {
+            return 0;
+        }
         long days = ChronoUnit.DAYS.between(LocalDate.now(), this.dueDate);
         return Math.max(days, 0);
     }
@@ -119,8 +125,9 @@ public class PlanningTask {
      * @return true if CRITICAL or HIGH
      */
     public boolean isHighPriority() {
-        return this.priorityLevel == TaskPriority.CRITICAL
-                || this.priorityLevel == TaskPriority.HIGH;
+        return this.priorityLevel != null
+                && (this.priorityLevel == TaskPriority.CRITICAL
+                        || this.priorityLevel == TaskPriority.HIGH);
     }
 
     /**
