@@ -13,9 +13,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,5 +60,41 @@ class RebalanceControllerTest {
 
         ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reorganize("st1", authentication);
         assertNotNull(response.getBody());
+    }
+
+    @Test
+    void shouldThrowAccessDeniedOnFailureWhenAuthNull() {
+        FailureReportRequest req = new FailureReportRequest();
+        req.setStudentId("st1");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.reportFailure(req, null));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedOnFailureWhenNameMismatch() {
+        FailureReportRequest req = new FailureReportRequest();
+        req.setStudentId("st1");
+
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("other-user");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.reportFailure(req, authentication));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedOnReorganizeWhenAuthNull() {
+        assertThrows(AccessDeniedException.class, () ->
+            controller.reorganize("st1", null));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedOnReorganizeWhenNameMismatch() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("other-user");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.reorganize("st1", authentication));
     }
 }

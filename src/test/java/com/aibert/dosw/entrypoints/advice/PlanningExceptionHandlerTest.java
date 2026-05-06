@@ -7,6 +7,7 @@ import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,8 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import java.util.List;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +66,19 @@ class PlanningExceptionHandlerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         ApiResponse<Void> body = Objects.requireNonNull(response.getBody());
         assertEquals("Error interno del servidor. Intenta de nuevo.", body.getMessage());
+    }
+
+    @Test
+    void shouldHandleAccessDeniedException() {
+        request.setRequestURI("/planning/prioritization");
+        AccessDeniedException ex = new AccessDeniedException("studentId does not match authenticated user");
+
+        ResponseEntity<ApiResponse<Void>> response = handler.handleAccessDenied(ex, request);
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+        ApiResponse<Void> body = Objects.requireNonNull(response.getBody());
+        assertEquals("No tienes permisos para acceder a este recurso.", body.getMessage());
+        assertEquals("/planning/prioritization", body.getPath());
     }
 
     @SuppressWarnings("unused")

@@ -15,11 +15,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,5 +59,20 @@ class BalanceControllerTest {
 
         ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
         assertEquals(1, body.getData().getSuggestions().size());
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenAuthNull() {
+        assertThrows(AccessDeniedException.class, () ->
+            controller.getBalanceSuggestions("st1", null));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenNameMismatch() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("other-user");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.getBalanceSuggestions("st1", authentication));
     }
 }

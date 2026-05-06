@@ -12,9 +12,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,5 +39,29 @@ class PrioritizationControllerTest {
         ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks("st1",
                 false, authentication);
         assertNotNull(response.getBody());
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenAuthNull() {
+        assertThrows(AccessDeniedException.class, () ->
+            controller.getPrioritizedTasks("st1", false, null));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenNameMismatch() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("other-user");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.getPrioritizedTasks("st1", false, authentication));
+    }
+
+    @Test
+    void shouldThrowAccessDeniedWhenNameEmpty() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("");
+
+        assertThrows(AccessDeniedException.class, () ->
+            controller.getPrioritizedTasks("st1", false, authentication));
     }
 }

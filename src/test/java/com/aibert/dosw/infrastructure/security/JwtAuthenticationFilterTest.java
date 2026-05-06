@@ -10,9 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.mock.web.MockFilterChain;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class JwtAuthenticationFilterTest {
@@ -50,6 +48,50 @@ class JwtAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("Authorization", "Bearer bad-token");
 
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void shouldIgnoreWhenNoAuthorizationHeader() throws Exception {
+        JwtTokenProvider tokenProvider = Mockito.mock(JwtTokenProvider.class);
+
+        OncePerRequestFilter filter = new JwtAuthenticationFilter(tokenProvider);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        // No Authorization header set
+
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void shouldIgnoreWhenAuthorizationHeaderNotBearer() throws Exception {
+        JwtTokenProvider tokenProvider = Mockito.mock(JwtTokenProvider.class);
+
+        OncePerRequestFilter filter = new JwtAuthenticationFilter(tokenProvider);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Basic some-credentials");
+
+        filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
+
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    @Test
+    void shouldContinueFilterChainWhenExceptionThrown() throws Exception {
+        JwtTokenProvider tokenProvider = Mockito.mock(JwtTokenProvider.class);
+        when(tokenProvider.validateToken("error-token")).thenThrow(new RuntimeException("Unexpected error"));
+
+        OncePerRequestFilter filter = new JwtAuthenticationFilter(tokenProvider);
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader("Authorization", "Bearer error-token");
+
+        // Should not throw; the filter chain continues
         filter.doFilter(request, new MockHttpServletResponse(), new MockFilterChain());
 
         assertNull(SecurityContextHolder.getContext().getAuthentication());
