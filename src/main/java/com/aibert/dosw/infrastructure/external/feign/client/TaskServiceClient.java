@@ -1,6 +1,6 @@
 package com.aibert.dosw.infrastructure.external.feign.client;
 
-import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponseDTO;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Feign Client para comunicarse con task-service.
- * Retorna TaskServiceResponseDTO (contrato externo) que luego
- * el TaskServiceAdapter convierte a PlanningTask (dominio).
- *
+ * Retorna TaskServiceResponse (DTO) — la conversión a PlanningTask se hace en el adaptador.
  * El fallback se activa si task-service no responde o el circuit breaker está abierto.
  */
 @FeignClient(
@@ -26,15 +24,15 @@ public interface TaskServiceClient {
 
     // R14 / R16 — Obtener tareas pendientes (TODO e IN_PROGRESS)
     @GetMapping("/api/tasks/student/{studentId}/pending")
-    List<TaskServiceResponseDTO> getPendingTasks(@PathVariable("studentId") String studentId);
+    List<TaskServiceResponse> getPendingTasks(@PathVariable("studentId") String studentId);
 
     // R15 — Obtener tareas ya programadas (SCHEDULED)
     @GetMapping("/api/tasks/student/{studentId}/scheduled")
-    List<TaskServiceResponseDTO> getScheduledTasks(@PathVariable("studentId") String studentId);
+    List<TaskServiceResponse> getScheduledTasks(@PathVariable("studentId") String studentId);
 
     // R14 — Actualizar prioridades calculadas por el motor
     @PutMapping("/api/tasks/priorities")
-    void updateTaskPriorities(@RequestBody List<TaskServiceResponseDTO> tasks);
+    void updateTaskPriorities(@RequestBody List<TaskServiceResponse> tasks);
 
     // R17 — Notificar bloque de estudio fallido
     @PostMapping("/api/tasks/failure")

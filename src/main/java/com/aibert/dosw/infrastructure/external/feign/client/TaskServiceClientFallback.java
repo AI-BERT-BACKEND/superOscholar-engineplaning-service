@@ -1,6 +1,6 @@
 package com.aibert.dosw.infrastructure.external.feign.client;
 
-import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponseDTO;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -16,26 +16,27 @@ import org.springframework.stereotype.Component;
 public class TaskServiceClientFallback implements TaskServiceClient {
 
     @Override
-    public List<TaskServiceResponseDTO> getPendingTasks(String studentId) {
+    public List<TaskServiceResponse> getPendingTasks(String studentId) {
         log.warn("task-service no disponible al obtener tareas pendientes del estudiante '{}'.", studentId);
         return Collections.emptyList();
     }
 
     @Override
-    public List<TaskServiceResponseDTO> getScheduledTasks(String studentId) {
+    public List<TaskServiceResponse> getScheduledTasks(String studentId) {
         log.warn("task-service no disponible al obtener tareas programadas del estudiante '{}'.", studentId);
         return Collections.emptyList();
     }
 
     @Override
-    public void updateTaskPriorities(List<TaskServiceResponseDTO> tasks) {
-        log.warn("task-service no disponible. No se pudieron actualizar {} prioridades.",
-                tasks != null ? tasks.size() : 0);
+    public void updateTaskPriorities(List<TaskServiceResponse> tasks) {
+        log.warn("task-service no disponible. No se pudieron actualizar {} prioridades.", tasks.size());
+        // Silencioso: planning calculó bien, el problema es la persistencia remota
     }
 
     @Override
     public void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason) {
         log.warn("task-service no disponible. No se reportó el fallo de taskId='{}' ({}h, razón: {}).",
                 taskId, hoursMissed, reason);
+        // Silencioso: el rebalanceo local igual se ejecuta
     }
 }

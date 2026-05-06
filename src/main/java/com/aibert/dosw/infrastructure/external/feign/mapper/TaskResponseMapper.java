@@ -3,114 +3,112 @@ package com.aibert.dosw.infrastructure.external.feign.mapper;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.model.task.TaskPriority;
 import com.aibert.dosw.domain.model.task.TaskStatus;
-import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponseDTO;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Mapper que convierte TaskServiceResponseDTO (contrato de task-service)
- * a PlanningTask (modelo de dominio de planning-service).
- *
- * Conversiones que realiza:
- * - studentId → userId
- * - estimatedDurationMinutes (Integer) → estimatedHours (double) ÷60
- * - deadline (LocalDateTime) → dueDate (LocalDate)
- * - scheduledDate (LocalDateTime) → scheduledDate (LocalDate)
- * - priority (String) → priorityLevel (TaskPriority enum)
- * - status (String "TODO"/"IN_PROGRESS") → TaskStatus (PENDING/IN_PROGRESS)
- * - Campos faltantes en task-service reciben defaults seguros
+ * Mapper que convierte TaskServiceResponse (DTO de task-service) a PlanningTask (dominio).
+ * <p>
+ * Resuelve las incompatibilidades de tipos entre los dos microservicios:
+ * <ul>
+ *   <li>studentId → userId</li>
+ *   <li>estimatedDurationMinutes (Integer) → estimatedHours (double) : ÷60</li>
+ *   <li>deadline (LocalDateTime) → dueDate (LocalDate) : .toLocalDate()</li>
+ *   <li>scheduledDate (LocalDateTime) → scheduledDate (LocalDate) : .toLocalDate()</li>
+ *   <li>priority (String) → priorityLevel (TaskPriority enum)</li>
+ *   <li>status (String: TODO/IN_PROGRESS) → status (TaskStatus enum: PENDING/IN_PROGRESS)</li>
+ * </ul>
  */
 @Component
 public class TaskResponseMapper {
 
     /**
-     * Convierte una lista de DTOs del task-service a PlanningTasks del dominio.
+     * Convierte una lista de respuestas de task-service a PlanningTasks.
      *
-     * @param dtos lista de respuestas del task-service (puede ser null)
-     * @return lista de PlanningTask del dominio (nunca null)
+     * @param responses lista de DTOs de task-service
+     * @return lista de PlanningTask del dominio de planning-service
      */
-    public List<PlanningTask> toDomainList(List<TaskServiceResponseDTO> dtos) {
-        if (dtos == null || dtos.isEmpty()) {
+    public List<PlanningTask> toPlanningTasks(List<TaskServiceResponse> responses) {
+        if (responses == null || responses.isEmpty()) {
             return Collections.emptyList();
         }
-        return dtos.stream()
-                .map(this::toDomain)
+        return responses.stream()
+                .map(this::toPlanningTask)
                 .toList();
     }
 
     /**
-     * Convierte un único DTO del task-service a PlanningTask del dominio.
-     *
-     * @param dto respuesta del task-service
-     * @return PlanningTask del dominio
+     * Convierte un TaskServiceResponse individual a PlanningTask.
      */
-    public PlanningTask toDomain(TaskServiceResponseDTO dto) {
+    public PlanningTask toPlanningTask(TaskServiceResponse response) {
         return PlanningTask.builder()
-                .id(dto.getId())
-                .userId(dto.getStudentId())
-                .title(dto.getTitle())
-                .description(dto.getDescription())
-                .estimatedHours(convertMinutesToHours(dto.getEstimatedDurationMinutes()))
-                .dueDate(dto.getDeadline() != null ? dto.getDeadline().toLocalDate() : null)
-                .scheduledDate(dto.getScheduledDate() != null ? dto.getScheduledDate().toLocalDate() : null)
-                .priorityLevel(mapPriority(dto.getPriority()))
-                .status(mapStatus(dto.getStatus()))
-                .difficulty(dto.getDifficulty() != null ? dto.getDifficulty() : 3)
-                .subjectName(dto.getSubjectId() != null ? dto.getSubjectId() : "Sin asignatura")
-                .subjectCredits(dto.getSubjectCredits() != null ? dto.getSubjectCredits() : 3)
-                .taskWeightInGrade(dto.getTaskWeightInGrade())
-                .evaluationCuts(Collections.emptyList())
+                .id(response.getId())
+                .userId(response.getStudentId())
+                .title(response.getTitle())
+                .description(response.getDescription())
+                .estimatedHours(convertMinutesToHours(response.getEstimatedDurationMinutes()))
+                .dueDate(convertToLocalDate(response.getDeadline()))
+                .scheduledDate(convertToLocalDate(response.getScheduledDate()))
+                .priorityLevel(convertPriority(response.getPriority()))
+                .status(convertStatus(response.getStatus()))
+                .difficulty(response.getDifficulty() != null ? response.getDifficulty() : 0)
+                .subjectName(response.getSubjectId()) // Mapping subjectId as subjectName for now
                 .build();
     }
 
     /**
-     * Convierte minutos (Integer del task-service) a horas (double del planning-service).
-     * Si es null, retorna 1.0h como estimación mínima por defecto.
+     * Convierte minutos (Integer) a horas (double).
+     * Ej: 90 minutos → 1.5 horas
      */
-    double convertMinutesToHours(Integer minutes) {
+    private double convertMinutesToHours(Integer minutes) {
         if (minutes == null || minutes <= 0) {
-            return 1.0; // default: al menos 1 hora
+            return 0.0;
         }
         return minutes / 60.0;
     }
 
     /**
-     * Mapea el String de prioridad del task-service al enum TaskPriority.
-     * Soporta variaciones comunes: "HIGH", "ALTA", "high", etc.
+     * Extrae LocalDate de LocalDateTime.
      */
-    TaskPriority mapPriority(String priority) {
+    private LocalDate convertToLocalDate(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return null;
+        }
+        return dateTime.toLocalDate();
+    }
+
+    /**
+     * Convierte el String de prioridad al enum TaskPriority.
+     */
+    private TaskPriority convertPriority(String priority) {
         if (priority == null || priority.isBlank()) {
-            return TaskPriority.MEDIUM;
+            return null;
         }
         try {
-            return TaskPriority.valueOf(priority.toUpperCase().trim());
+            return TaskPriority.valueOf(priority.toUpperCase());
         } catch (IllegalArgumentException e) {
-            // Fallback para nombres en español u otros formatos
-            return switch (priority.toUpperCase().trim()) {
-                case "ALTA", "URGENTE" -> TaskPriority.HIGH;
-                case "BAJA" -> TaskPriority.LOW;
-                case "MEDIA" -> TaskPriority.MEDIUM;
-                case "CRITICA", "CRÍTICA" -> TaskPriority.CRITICAL;
-                default -> TaskPriority.MEDIUM;
-            };
+            return null;
         }
     }
 
     /**
-     * Mapea el String de estado del task-service al enum TaskStatus de planning-service.
-     * Conversiones clave: "TODO" → PENDING, "IN_PROGRESS" → IN_PROGRESS.
+     * Convierte el String de estado de task-service al enum TaskStatus de planning-service.
+     * Mapeo: TODO → PENDING, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED,
+     * SCHEDULED → SCHEDULED
      */
-    TaskStatus mapStatus(String status) {
+    private TaskStatus convertStatus(String status) {
         if (status == null || status.isBlank()) {
             return TaskStatus.PENDING;
         }
-        return switch (status.toUpperCase().trim()) {
-            case "TODO", "PENDIENTE", "PENDING" -> TaskStatus.PENDING;
-            case "IN_PROGRESS", "EN_PROGRESO" -> TaskStatus.IN_PROGRESS;
-            case "COMPLETED", "COMPLETADO", "DONE" -> TaskStatus.COMPLETED;
-            case "SCHEDULED", "PROGRAMADO" -> TaskStatus.SCHEDULED;
-            case "OVERLOADED", "SOBRECARGADO" -> TaskStatus.OVERLOADED;
+        return switch (status.toUpperCase()) {
+            case "TODO" -> TaskStatus.PENDING;
+            case "IN_PROGRESS" -> TaskStatus.IN_PROGRESS;
+            case "COMPLETED" -> TaskStatus.COMPLETED;
+            case "SCHEDULED" -> TaskStatus.SCHEDULED;
             default -> TaskStatus.PENDING;
         };
     }
