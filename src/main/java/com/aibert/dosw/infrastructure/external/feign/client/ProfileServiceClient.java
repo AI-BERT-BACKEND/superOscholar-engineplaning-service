@@ -8,9 +8,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Feign Client to communicate with the profile-service.
+ * Feign Client para comunicarse con profile-service.
+ * El fallback se activa si profile-service no responde o el circuit breaker está abierto.
  */
-@FeignClient(name = "profile-service", url = "${feign.profile-service.url}")
+@FeignClient(
+    name = "profile-service",
+    url = "${feign.profile-service.url}",
+    fallback = ProfileServiceClientFallback.class
+)
 public interface ProfileServiceClient {
 
     @GetMapping("/schedule/weekly")

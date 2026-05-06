@@ -1,13 +1,23 @@
 spring:
-	config:
-		activate:
-			on-profile: dev
+  config:
+    activate:
+      on-profile: dev
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true  # activa los fallbacks
 
 jwt:
   secret: "VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24="
 
 feign:
   task-service:
-    url: "http://localhost:8081" # Update this with the real task-service host or gateway
+    url: "http://localhost:8084"    # puerto correcto de task-service
   profile-service:
-    url: "http://localhost:8082" # Update this with the real profile-service host or gateway
+    url: "http://localhost:8082"    # puerto de profile-service
+  client:
+    config:
+      default:
+        connect-timeout: 5000
+        read-timeout: 10000
+        logger-level: BASIC
