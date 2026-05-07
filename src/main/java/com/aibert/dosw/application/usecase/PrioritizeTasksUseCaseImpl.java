@@ -4,6 +4,7 @@ import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
+import com.aibert.dosw.infrastructure.config.PriorityWeightsProperties;
 import java.util.Comparator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
     private final TaskProviderPort taskProviderPort;
+    private final PriorityWeightsProperties weightsConfig;
 
     @Override
     public List<PlanningTask> prioritize(String studentId, boolean forceRecalculate) {
@@ -31,6 +33,7 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
         }
 
         // 2. Apply mathematical algorithm to calculate PriorityScore for each task
+        //    using configurable weights from application.yml
         for (PlanningTask task : pendingTasks) {
 
             // Only recalculate if forced or if the task has no score
@@ -41,7 +44,10 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
                 PriorityScore score = PriorityScore.calculate(
                         task.getDueDate(),
                         weight,
-                        task.getEstimatedHours());
+                        task.getEstimatedHours(),
+                        weightsConfig.getWeightProximity(),
+                        weightsConfig.getWeightAcademic(),
+                        weightsConfig.getWeightTime());
 
                 task.assignPriority(score);
             }

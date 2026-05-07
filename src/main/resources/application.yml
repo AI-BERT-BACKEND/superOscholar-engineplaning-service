@@ -10,3 +10,10 @@ feign:
 
 jwt:
   secret: ${JWT_SECRET}
+
+# R14 — Configurable priority formula weights (must sum to 1.0)
+planning:
+  priority:
+    weight-proximity: 0.40   # Deadline proximity factor
+    weight-academic: 0.35    # Academic/subject weight factor
+    weight-time: 0.25        # Estimated time factor

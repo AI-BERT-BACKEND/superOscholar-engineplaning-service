@@ -3,6 +3,7 @@ package com.aibert.dosw.application.usecase;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.model.task.TaskPriority;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
+import com.aibert.dosw.infrastructure.config.PriorityWeightsProperties;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +23,9 @@ class PrioritizeTasksUseCaseImplTest {
 
     @Mock
     private TaskProviderPort taskProviderPort;
+
+    @Spy
+    private PriorityWeightsProperties weightsConfig = new PriorityWeightsProperties();
 
     @InjectMocks
     private PrioritizeTasksUseCaseImpl useCase;

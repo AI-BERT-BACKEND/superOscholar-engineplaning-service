@@ -26,7 +26,8 @@ public final class PriorityScore {
     }
 
     /**
-     * Calculates the priority score based on weight, deadline, and estimated time.
+     * Calculates the priority score using default weights (40/35/25).
+     * Convenience method for domain-only contexts and backward compatibility.
      *
      * @param dueDate        Task deadline
      * @param subjectWeight  Weight of the subject or task (0-100)
@@ -37,15 +38,36 @@ public final class PriorityScore {
             LocalDate dueDate,
             double subjectWeight,
             double estimatedHours) {
+        return calculate(dueDate, subjectWeight, estimatedHours, 0.40, 0.35, 0.25);
+    }
+
+    /**
+     * Calculates the priority score with configurable weights.
+     * The weights should sum to 1.0 for the score to range from 0 to 100.
+     *
+     * @param dueDate         Task deadline
+     * @param subjectWeight   Weight of the subject or task (0-100)
+     * @param estimatedHours  Estimated hours required to complete the task
+     * @param wProximity      Weight for deadline proximity factor
+     * @param wAcademic       Weight for academic weight factor
+     * @param wTime           Weight for estimated time factor
+     * @return Calculated PriorityScore
+     */
+    public static PriorityScore calculate(
+            LocalDate dueDate,
+            double subjectWeight,
+            double estimatedHours,
+            double wProximity,
+            double wAcademic,
+            double wTime) {
 
         double proximityFactor = calculateProximityFactor(dueDate);
         double weightFactor = Math.min(subjectWeight / 100.0, 1.0);
         double timeFactor = calculateTimeFactor(estimatedHours);
 
-        // Mathematical logic: 40% proximity, 35% weight, 25% estimated time
-        double rawScore = (proximityFactor * 0.40)
-                + (weightFactor * 0.35)
-                + (timeFactor * 0.25);
+        double rawScore = (proximityFactor * wProximity)
+                + (weightFactor * wAcademic)
+                + (timeFactor * wTime);
 
         double finalScore = Math.min(rawScore * 100.0, 100.0);
         finalScore = Math.round(finalScore * 100.0) / 100.0;
