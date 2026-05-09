@@ -5,18 +5,18 @@ spring:
 feign:
   task-service:
     url: ${FEIGN_TASK_SERVICE_URL}
+
   profile-service:
     url: ${FEIGN_PROFILE_SERVICE_URL}
 
 jwt:
   secret: ${JWT_SECRET}
-# R14 — Configurable priority formula weights (must sum to 1.0)
+
 planning:
   priority:
-    weight-proximity: 0.40   # Deadline proximity factor
-    weight-academic: 0.35    # Academic/subject weight factor
-    weight-time: 0.25        # Estimated time factor
-
+    weight-proximity: 0.40
+    weight-academic: 0.35
+    weight-time: 0.25
 
 management:
   endpoints:
@@ -34,6 +34,14 @@ spring:
     activate:
       on-profile: local
 
-  data:
-    mongodb:
-      uri: ${MONGO_URI}
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
