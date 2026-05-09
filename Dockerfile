@@ -1,25 +1,39 @@
-# Build stage
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM eclipse-temurin:21-jdk-alpine AS builder
+
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
-# This is done first to cache the dependencies layer
+COPY .mvn/ .mvn/
+
+COPY mvnw .
+
+RUN chmod +x mvnw && sed -i 's/\r$//' mvnw
+
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 
-# Copy the rest of the source code and build
-COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 \
+./mvnw dependency:go-offline -B || true
 
-# Run stage
-FROM eclipse-temurin:21-jre-jammy
+COPY src/ src/
+
+RUN --mount=type=cache,target=/root/.m2 \
+./mvnw package -DskipTests -B
+
+FROM eclipse-temurin:21-jre-alpine AS runtime
+
 WORKDIR /app
 
-# Copy the compiled jar from the build stage
-COPY --from=build /app/target/*.jar app.jar
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Expose the application port (adjust if necessary)
+USER appuser
+
+COPY --from=builder /app/target/*.jar app.jar
+
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+CMD wget -qO- http://localhost:8080/actuator/health || exit 1
+
+ENTRYPOINT ["java", \
+"-XX:+UseContainerSupport", \
+"-XX:MaxRAMPercentage=75.0", \
+"-jar", "app.jar"]
