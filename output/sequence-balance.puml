@@ -1,0 +1,53 @@
+@startuml
+
+title R15 - Sugerir balance de carga
+
+actor Frontend
+participant "JwtAuthenticationFilter" as AuthFilter
+participant "JwtTokenProvider" as TokenProvider
+participant "BalanceController" as Controller
+participant "BalanceWorkloadUseCaseImpl" as UseCase
+participant "TaskProviderPort\n(TaskServiceAdapter)" as TaskPort
+participant "TaskServiceClient" as TaskFeign
+participant "task-service" as TaskSvc
+participant "ScheduleProviderPort\n(ScheduleServiceAdapter)" as SchedulePort
+participant "ProfileServiceClient" as ProfileFeign
+participant "profile-service" as ProfileSvc
+participant "PlanningTaskMapper" as Mapper
+
+Frontend -> AuthFilter: GET /planning/balance?studentId\nAuthorization: Bearer <jwt>
+AuthFilter -> TokenProvider: validateToken(jwt)
+TokenProvider --> AuthFilter: ok
+AuthFilter -> TokenProvider: getUsernameFromToken(jwt)
+TokenProvider --> AuthFilter: username
+AuthFilter -> Controller: request (authenticated)
+
+Controller -> Controller: assertStudentIdMatchesAuthenticatedUser
+alt studentId mismatch
+	Controller --> Frontend: 403 Forbidden
+else ok
+	Controller -> UseCase: suggestBalance(studentId)
+
+	UseCase -> TaskPort: getScheduledTasksByUser(studentId)
+	TaskPort -> TaskFeign: getScheduledTasks(studentId)
+	TaskFeign -> TaskSvc: GET /api/tasks/student/{studentId}/scheduled
+	TaskSvc --> TaskFeign: TaskServiceResponse[]
+	TaskFeign --> TaskPort: TaskServiceResponse[]
+	TaskPort --> UseCase: PlanningTask[]
+
+	UseCase -> SchedulePort: getWeeklySchedule(studentId)
+	SchedulePort -> ProfileFeign: getWeeklySchedule(studentId)
+	ProfileFeign -> ProfileSvc: GET /api/profile/schedule/weekly
+	ProfileSvc --> ProfileFeign: DailySchedule[]
+	ProfileFeign --> SchedulePort: DailySchedule[]
+	SchedulePort --> UseCase: DailySchedule[]
+
+	UseCase -> UseCase: calculate DifferentialBalance\n(overloaded vs free)
+	UseCase -> UseCase: suggest moving tasks\n(<=80% and before dueDate)
+	UseCase --> Controller: List<BalanceSuggestion>
+	Controller -> Mapper: toPrioritizedResponse(task)
+	Mapper --> Controller: BalanceSuggestionResponse[]
+	Controller --> Frontend: ApiResponse<WorkloadBalanceResponse>
+end
+
+@enduml

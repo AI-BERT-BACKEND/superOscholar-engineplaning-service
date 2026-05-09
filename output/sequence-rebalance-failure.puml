@@ -1,0 +1,72 @@
+@startuml
+
+title R17 - Rebalanceo por falla
+
+actor Frontend
+participant "JwtAuthenticationFilter" as AuthFilter
+participant "JwtTokenProvider" as TokenProvider
+participant "RebalanceController" as Controller
+participant "RebalanceTasksUseCaseImpl" as UseCase
+participant "TaskProviderPort\n(TaskServiceAdapter)" as TaskPort
+participant "TaskServiceClient" as TaskFeign
+participant "task-service" as TaskSvc
+participant "DistributeTasksUseCaseImpl" as DistributeUseCase
+participant "ScheduleProviderPort\n(ScheduleServiceAdapter)" as SchedulePort
+participant "ProfileServiceClient" as ProfileFeign
+participant "profile-service" as ProfileSvc
+participant "PlanningTaskMapper" as Mapper
+
+Frontend -> AuthFilter: POST /planning/rebalance/failure\nAuthorization: Bearer <jwt>
+AuthFilter -> TokenProvider: validateToken(jwt)
+TokenProvider --> AuthFilter: ok
+AuthFilter -> TokenProvider: getUsernameFromToken(jwt)
+TokenProvider --> AuthFilter: username
+AuthFilter -> Controller: request (authenticated)
+
+Controller -> Controller: assertStudentIdMatchesAuthenticatedUser
+alt studentId mismatch
+	Controller --> Frontend: 403 Forbidden
+else ok
+	Controller -> UseCase: reportFailureAndRebalance(studentId, taskId, failedDate, hoursMissed, reason)
+
+	UseCase -> TaskPort: reportTaskFailure(studentId, taskId, hoursMissed, reason)
+	TaskPort -> TaskFeign: reportTaskFailure(studentId, taskId, hoursMissed, reason)
+	TaskFeign -> TaskSvc: POST /api/tasks/failure
+	TaskSvc --> TaskFeign: 200 OK
+	TaskFeign --> TaskPort: 200 OK
+	TaskPort --> UseCase: ok
+
+	UseCase -> DistributeUseCase: distribute(studentId)
+
+	DistributeUseCase -> TaskPort: getPendingTasksByUser(studentId)
+	TaskPort -> TaskFeign: getPendingTasks(studentId)
+	TaskFeign -> TaskSvc: GET /api/tasks/student/{studentId}/pending
+	TaskSvc --> TaskFeign: TaskServiceResponse[]
+	TaskFeign --> TaskPort: TaskServiceResponse[]
+	TaskPort --> DistributeUseCase: PlanningTask[]
+
+	DistributeUseCase -> SchedulePort: getWeeklySchedule(studentId)
+	SchedulePort -> ProfileFeign: getWeeklySchedule(studentId)
+	ProfileFeign -> ProfileSvc: GET /api/profile/schedule/weekly
+	ProfileSvc --> ProfileFeign: DailySchedule[]
+	ProfileFeign --> SchedulePort: DailySchedule[]
+	SchedulePort --> DistributeUseCase: DailySchedule[]
+
+	DistributeUseCase -> SchedulePort: getUnavailableBlocks(studentId)
+	SchedulePort -> ProfileFeign: getUnavailableBlocks(studentId)
+	ProfileFeign -> ProfileSvc: GET /api/profile/schedule/unavailable
+	ProfileSvc --> ProfileFeign: UnavailableBlock[]
+	ProfileFeign --> SchedulePort: UnavailableBlock[]
+	SchedulePort --> DistributeUseCase: UnavailableBlock[]
+
+	DistributeUseCase -> DistributeUseCase: apply AvailabilityFilter\nassign tasks to slots
+	DistributeUseCase --> UseCase: WeeklyDistributionPlan
+
+	UseCase -> UseCase: identify critical tasks\n(dueDate <= 24h)
+	UseCase --> Controller: WeeklyDistributionPlan
+	Controller -> Mapper: toDistributionPlanResponse(plan)
+	Mapper --> Controller: DistributionPlanResponse
+	Controller --> Frontend: ApiResponse<DistributionPlanResponse>
+end
+
+@enduml

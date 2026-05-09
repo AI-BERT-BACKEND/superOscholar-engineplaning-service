@@ -1,0 +1,59 @@
+@startuml
+
+title R16 - Generar distribucion semanal
+
+actor Frontend
+participant "JwtAuthenticationFilter" as AuthFilter
+participant "JwtTokenProvider" as TokenProvider
+participant "DistributionController" as Controller
+participant "DistributeTasksUseCaseImpl" as UseCase
+participant "TaskProviderPort\n(TaskServiceAdapter)" as TaskPort
+participant "TaskServiceClient" as TaskFeign
+participant "task-service" as TaskSvc
+participant "ScheduleProviderPort\n(ScheduleServiceAdapter)" as SchedulePort
+participant "ProfileServiceClient" as ProfileFeign
+participant "profile-service" as ProfileSvc
+participant "PlanningTaskMapper" as Mapper
+
+Frontend -> AuthFilter: POST /planning/distribution?studentId\nAuthorization: Bearer <jwt>
+AuthFilter -> TokenProvider: validateToken(jwt)
+TokenProvider --> AuthFilter: ok
+AuthFilter -> TokenProvider: getUsernameFromToken(jwt)
+TokenProvider --> AuthFilter: username
+AuthFilter -> Controller: request (authenticated)
+
+Controller -> Controller: assertStudentIdMatchesAuthenticatedUser
+alt studentId mismatch
+	Controller --> Frontend: 403 Forbidden
+else ok
+	Controller -> UseCase: distribute(studentId)
+
+	UseCase -> TaskPort: getPendingTasksByUser(studentId)
+	TaskPort -> TaskFeign: getPendingTasks(studentId)
+	TaskFeign -> TaskSvc: GET /api/tasks/student/{studentId}/pending
+	TaskSvc --> TaskFeign: TaskServiceResponse[]
+	TaskFeign --> TaskPort: TaskServiceResponse[]
+	TaskPort --> UseCase: PlanningTask[]
+
+	UseCase -> SchedulePort: getWeeklySchedule(studentId)
+	SchedulePort -> ProfileFeign: getWeeklySchedule(studentId)
+	ProfileFeign -> ProfileSvc: GET /api/profile/schedule/weekly
+	ProfileSvc --> ProfileFeign: DailySchedule[]
+	ProfileFeign --> SchedulePort: DailySchedule[]
+	SchedulePort --> UseCase: DailySchedule[]
+
+	UseCase -> SchedulePort: getUnavailableBlocks(studentId)
+	SchedulePort -> ProfileFeign: getUnavailableBlocks(studentId)
+	ProfileFeign -> ProfileSvc: GET /api/profile/schedule/unavailable
+	ProfileSvc --> ProfileFeign: UnavailableBlock[]
+	ProfileFeign --> SchedulePort: UnavailableBlock[]
+	SchedulePort --> UseCase: UnavailableBlock[]
+
+	UseCase -> UseCase: apply AvailabilityFilter\nassign tasks to slots
+	UseCase --> Controller: WeeklyDistributionPlan
+	Controller -> Mapper: toDistributionPlanResponse(plan)
+	Mapper --> Controller: DistributionPlanResponse
+	Controller --> Frontend: ApiResponse<DistributionPlanResponse>
+end
+
+@enduml

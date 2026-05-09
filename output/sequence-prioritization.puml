@@ -1,0 +1,51 @@
+@startuml
+
+title R14 - Priorizar tareas
+
+actor Frontend
+participant "JwtAuthenticationFilter" as AuthFilter
+participant "JwtTokenProvider" as TokenProvider
+participant "PrioritizationController" as Controller
+participant "PrioritizeTasksUseCaseImpl" as UseCase
+participant "TaskProviderPort\n(TaskServiceAdapter)" as TaskPort
+participant "TaskServiceClient" as TaskFeign
+participant "task-service" as TaskSvc
+participant "PlanningTaskMapper" as Mapper
+
+Frontend -> AuthFilter: GET /planning/prioritization?studentId&forceRecalculate\nAuthorization: Bearer <jwt>
+AuthFilter -> TokenProvider: validateToken(jwt)
+TokenProvider --> AuthFilter: ok
+AuthFilter -> TokenProvider: getUsernameFromToken(jwt)
+TokenProvider --> AuthFilter: username
+AuthFilter -> Controller: request (authenticated)
+
+Controller -> Controller: assertStudentIdMatchesAuthenticatedUser
+alt studentId mismatch
+	Controller --> Frontend: 403 Forbidden
+else ok
+	Controller -> UseCase: prioritize(studentId, forceRecalculate)
+
+	UseCase -> TaskPort: getPendingTasksByUser(studentId)
+	TaskPort -> TaskFeign: getPendingTasks(studentId)
+	TaskFeign -> TaskSvc: GET /api/tasks/student/{studentId}/pending
+	TaskSvc --> TaskFeign: TaskServiceResponse[]
+	TaskFeign --> TaskPort: TaskServiceResponse[]
+	TaskPort --> UseCase: PlanningTask[]
+
+	UseCase -> UseCase: calculate PriorityScore\n(proximity, weight, time)
+	UseCase -> UseCase: sort by priorityScore desc
+
+	UseCase -> TaskPort: updateTaskPriorities(tasks)
+	TaskPort -> TaskFeign: updateTaskPriorities(tasks)
+	TaskFeign -> TaskSvc: PUT /api/tasks/priorities
+	TaskSvc --> TaskFeign: 200 OK
+	TaskFeign --> TaskPort: 200 OK
+	TaskPort --> UseCase: ok
+
+	UseCase --> Controller: PlanningTask[]
+	Controller -> Mapper: toPrioritizedResponse(task)
+	Mapper --> Controller: PrioritizedTaskResponse[]
+	Controller --> Frontend: ApiResponse<List<PrioritizedTaskResponse>>
+end
+
+@enduml
