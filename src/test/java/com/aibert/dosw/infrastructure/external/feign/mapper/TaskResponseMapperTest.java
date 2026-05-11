@@ -11,12 +11,13 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.mapstruct.factory.Mappers;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TaskResponseMapperTest {
 
-    private final TaskResponseMapper mapper = new TaskResponseMapper();
+    private final TaskResponseMapper mapper = Mappers.getMapper(TaskResponseMapper.class);
 
     // ========== toPlanningTasks (list) ==========
 
@@ -38,8 +39,7 @@ class TaskResponseMapperTest {
     void toPlanningTasks_multipleTasks_convertsAll() {
         List<TaskServiceResponse> responses = List.of(
                 TaskServiceResponse.builder().id("1").studentId("st1").build(),
-                TaskServiceResponse.builder().id("2").studentId("st1").build()
-        );
+                TaskServiceResponse.builder().id("2").studentId("st1").build());
 
         List<PlanningTask> result = mapper.toPlanningTasks(responses);
 
@@ -147,12 +147,12 @@ class TaskResponseMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-        "LOW, LOW",
-        "MEDIUM, MEDIUM",
-        "HIGH, HIGH",
-        "CRITICAL, CRITICAL",
-        "high, HIGH",       // case insensitive
-        "Critical, CRITICAL" // mixed case
+            "LOW, LOW",
+            "MEDIUM, MEDIUM",
+            "HIGH, HIGH",
+            "CRITICAL, CRITICAL",
+            "high, HIGH", // case insensitive
+            "Critical, CRITICAL" // mixed case
     })
     void toPlanningTask_convertsPriority(String input, TaskPriority expected) {
         TaskServiceResponse response = TaskServiceResponse.builder()
@@ -205,10 +205,10 @@ class TaskResponseMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-        "TODO, PENDING",
-        "IN_PROGRESS, IN_PROGRESS",
-        "COMPLETED, COMPLETED",
-        "SCHEDULED, SCHEDULED"
+            "TODO, PENDING",
+            "IN_PROGRESS, IN_PROGRESS",
+            "COMPLETED, COMPLETED",
+            "SCHEDULED, SCHEDULED"
     })
     void toPlanningTask_convertsStatus(String input, TaskStatus expected) {
         TaskServiceResponse response = TaskServiceResponse.builder()
@@ -326,7 +326,6 @@ class TaskResponseMapperTest {
                 () -> assertEquals(TaskPriority.HIGH, result.getPriorityLevel()),
                 () -> assertEquals(TaskStatus.IN_PROGRESS, result.getStatus()),
                 () -> assertEquals(3, result.getDifficulty()),
-                () -> assertEquals("CALC-101", result.getSubjectName())
-        );
+                () -> assertEquals("CALC-101", result.getSubjectName()));
     }
 }

@@ -8,23 +8,28 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 
 /**
- * Mapper que convierte TaskServiceResponse (DTO de task-service) a PlanningTask (dominio).
+ * Mapper que convierte TaskServiceResponse (DTO de task-service) a PlanningTask
+ * (dominio).
  * <p>
  * Resuelve las incompatibilidades de tipos entre los dos microservicios:
  * <ul>
- *   <li>studentId → userId</li>
- *   <li>estimatedDurationMinutes (Integer) → estimatedHours (double) : ÷60</li>
- *   <li>deadline (LocalDateTime) → dueDate (LocalDate) : .toLocalDate()</li>
- *   <li>scheduledDate (LocalDateTime) → scheduledDate (LocalDate) : .toLocalDate()</li>
- *   <li>priority (String) → priorityLevel (TaskPriority enum)</li>
- *   <li>status (String: TODO/IN_PROGRESS) → status (TaskStatus enum: PENDING/IN_PROGRESS)</li>
+ * <li>studentId → userId</li>
+ * <li>estimatedDurationMinutes (Integer) → estimatedHours (double) : ÷60</li>
+ * <li>deadline (LocalDateTime) → dueDate (LocalDate) : .toLocalDate()</li>
+ * <li>scheduledDate (LocalDateTime) → scheduledDate (LocalDate) :
+ * .toLocalDate()</li>
+ * <li>priority (String) → priorityLevel (TaskPriority enum)</li>
+ * <li>status (String: TODO/IN_PROGRESS) → status (TaskStatus enum:
+ * PENDING/IN_PROGRESS)</li>
  * </ul>
  */
-@Component
-public class TaskResponseMapper {
+@Mapper(componentModel = "spring")
+public interface TaskResponseMapper {
 
     /**
      * Convierte una lista de respuestas de task-service a PlanningTasks.
@@ -32,7 +37,7 @@ public class TaskResponseMapper {
      * @param responses lista de DTOs de task-service
      * @return lista de PlanningTask del dominio de planning-service
      */
-    public List<PlanningTask> toPlanningTasks(List<TaskServiceResponse> responses) {
+    default List<PlanningTask> toPlanningTasks(List<TaskServiceResponse> responses) {
         if (responses == null || responses.isEmpty()) {
             return Collections.emptyList();
         }
@@ -44,27 +49,22 @@ public class TaskResponseMapper {
     /**
      * Convierte un TaskServiceResponse individual a PlanningTask.
      */
-    public PlanningTask toPlanningTask(TaskServiceResponse response) {
-        return PlanningTask.builder()
-                .id(response.getId())
-                .userId(response.getStudentId())
-                .title(response.getTitle())
-                .description(response.getDescription())
-                .estimatedHours(convertMinutesToHours(response.getEstimatedDurationMinutes()))
-                .dueDate(convertToLocalDate(response.getDeadline()))
-                .scheduledDate(convertToLocalDate(response.getScheduledDate()))
-                .priorityLevel(convertPriority(response.getPriority()))
-                .status(convertStatus(response.getStatus()))
-                .difficulty(response.getDifficulty() != null ? response.getDifficulty() : 0)
-                .subjectName(response.getSubjectId()) // Mapping subjectId as subjectName for now
-                .build();
-    }
+    @Mapping(target = "userId", source = "studentId")
+    @Mapping(target = "estimatedHours", source = "estimatedDurationMinutes", qualifiedByName = "minutesToHours")
+    @Mapping(target = "dueDate", source = "deadline", qualifiedByName = "toLocalDate")
+    @Mapping(target = "scheduledDate", source = "scheduledDate", qualifiedByName = "toLocalDate")
+    @Mapping(target = "priorityLevel", source = "priority", qualifiedByName = "priorityFromString")
+    @Mapping(target = "status", source = "status", qualifiedByName = "statusFromString")
+    @Mapping(target = "difficulty", source = "difficulty", qualifiedByName = "difficultyOrDefault")
+    @Mapping(target = "subjectName", source = "subjectId")
+    PlanningTask toPlanningTask(TaskServiceResponse response);
 
     /**
      * Convierte minutos (Integer) a horas (double).
      * Ej: 90 minutos → 1.5 horas
      */
-    private double convertMinutesToHours(Integer minutes) {
+    @Named("minutesToHours")
+    default double convertMinutesToHours(Integer minutes) {
         if (minutes == null || minutes <= 0) {
             return 0.0;
         }
@@ -74,7 +74,8 @@ public class TaskResponseMapper {
     /**
      * Extrae LocalDate de LocalDateTime.
      */
-    private LocalDate convertToLocalDate(LocalDateTime dateTime) {
+    @Named("toLocalDate")
+    default LocalDate convertToLocalDate(LocalDateTime dateTime) {
         if (dateTime == null) {
             return null;
         }
@@ -84,7 +85,8 @@ public class TaskResponseMapper {
     /**
      * Convierte el String de prioridad al enum TaskPriority.
      */
-    private TaskPriority convertPriority(String priority) {
+    @Named("priorityFromString")
+    default TaskPriority convertPriority(String priority) {
         if (priority == null || priority.isBlank()) {
             return null;
         }
@@ -96,11 +98,13 @@ public class TaskResponseMapper {
     }
 
     /**
-     * Convierte el String de estado de task-service al enum TaskStatus de planning-service.
+     * Convierte el String de estado de task-service al enum TaskStatus de
+     * planning-service.
      * Mapeo: TODO → PENDING, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED,
      * SCHEDULED → SCHEDULED
      */
-    private TaskStatus convertStatus(String status) {
+    @Named("statusFromString")
+    default TaskStatus convertStatus(String status) {
         if (status == null || status.isBlank()) {
             return TaskStatus.PENDING;
         }
@@ -111,5 +115,10 @@ public class TaskResponseMapper {
             case "SCHEDULED" -> TaskStatus.SCHEDULED;
             default -> TaskStatus.PENDING;
         };
+    }
+
+    @Named("difficultyOrDefault")
+    default int convertDifficulty(Integer difficulty) {
+        return difficulty != null ? difficulty : 0;
     }
 }
