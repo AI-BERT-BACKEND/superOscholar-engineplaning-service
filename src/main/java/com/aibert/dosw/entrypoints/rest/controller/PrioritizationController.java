@@ -52,8 +52,12 @@ public class PrioritizationController {
                                 .toList();
 
                 // 3. Return standardized API response
+                String message = tasks.isEmpty()
+                        ? "No hay tareas activas para priorizar"
+                        : "¡Tareas priorizadas exitosamente!";
+
                 return ResponseEntity.ok(
-                                ApiResponse.success("Tasks prioritized successfully", responseList));
+                                ApiResponse.success(message, responseList));
         }
 
         private void assertStudentIdMatchesAuthenticatedUser(

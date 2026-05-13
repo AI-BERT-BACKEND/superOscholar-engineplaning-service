@@ -121,20 +121,22 @@ public class PlanningTask {
 
     /**
      * Checks if the task is high priority.
+     * Includes CRITICA (deadline <24h escalado) and ALTA.
      *
-     * @return true if CRITICAL or HIGH
+     * @return true if CRITICA or ALTA per R14 spec
      */
     public boolean isHighPriority() {
         return this.priorityLevel != null
-                && (this.priorityLevel == TaskPriority.CRITICAL
-                        || this.priorityLevel == TaskPriority.HIGH);
+                && (this.priorityLevel == TaskPriority.CRITICA
+                        || this.priorityLevel == TaskPriority.ALTA);
     }
 
     /**
-     * Marks the task as a critical alert when its deadline is imminent.
+     * Marks the task as CRITICA when its deadline is imminent (<24h).
+     * Per RN-02: escala automáticamente a ALTA (CRITICA internamente) sin importar otros factores.
      */
     public void markAsCriticalAlert() {
-        this.priorityLevel = TaskPriority.CRITICAL;
-        this.priorityScore = Math.max(this.priorityScore, 99.0); // Boost score
+        this.priorityLevel = TaskPriority.CRITICA;
+        this.priorityScore = Math.max(this.priorityScore, 100.0); // Score máximo
     }
 }

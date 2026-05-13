@@ -315,12 +315,231 @@ score =
 
 ## 6. ⚡ Funcionalidades
 
-### 6.1 R14 — Priorización de Tareas
+> **Versión actualizada:** Todos los endpoints ahora retornan mensajes en español, usan los niveles de prioridad `ALTA / MEDIA / BAJA` según el requerimiento R14, e incluyen los campos `movedTasks` (R17) y `weeklyLoadAnalysis` (R15).
 
-Calcula automáticamente la prioridad de las tareas académicas del estudiante aplicando el algoritmo de scoring ponderado.
+---
+
+### 6.1 R14 — Motor de Priorización de Tareas
+
+Calcula automáticamente la prioridad de las tareas académicas del estudiante usando el algoritmo de scoring ponderado. Aplica escalado forzado a **ALTA** cuando el deadline es menor a 24 horas (**RN-02**).
 
 **Endpoint:**
-`GET /planning/prioritization`
+`GET /planning/prioritization?studentId={id}&forceRecalculate={bool}`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `studentId` | `String` | Obligatorio (Query Param) | Identificador del estudiante. |
+| `forceRecalculate` | `Boolean` | Opcional (default: false) | Si es `true`, recalcula todos los scores aunque ya existan. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `message` | `String` | `"¡Tareas priorizadas exitosamente!"` o `"No hay tareas activas para priorizar"` |
+| `data[].taskId` | `String` | Identificador único de la tarea. |
+| `data[].title` | `String` | Nombre de la tarea académica. |
+| `data[].priorityScore` | `Float` | Puntaje calculado (0.0 – 100.0). |
+| `data[].priorityLevel` | `String` | Nivel: `ALTA` (≥70) / `MEDIA` (40–69) / `BAJA` (<40). |
+| `data[].deadline` | `LocalDateTime` | Fecha límite de la tarea. |
+| `data[].estimatedDurationMinutes` | `Integer` | Tiempo estimado en minutos. |
+
+</div>
+
+#### 🧮 Algoritmo de Scoring (R14)
+
+```
+score = (proximityFactor × 0.40) + (academicWeightFactor × 0.35) + (timeFactor × 0.25)
+
+academicWeightFactor = min(academicWeight / 5.0, 1.0)   ← escala 0.0–5.0
+timeFactor           = min(estimatedHours / 20.0, 1.0)  ← capped at 72h
+```
+
+| Nivel | Score | Regla especial |
+|-------|-------|----------------|
+| `ALTA` | ≥ 70 | deadline ≤ mañana → forzado a ALTA con score 100 (RN-02) |
+| `MEDIA` | 40–69 | — |
+| `BAJA` | < 40 | tarea sin deadline → BAJA por defecto |
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+GET /planning/prioritization?studentId=STU-001&forceRecalculate=true
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "¡Tareas priorizadas exitosamente!",
+  "data": [
+    {
+      "taskId": "TASK-101",
+      "title": "Parcial de Cálculo Diferencial",
+      "priorityScore": 100.0,
+      "priorityLevel": "ALTA",
+      "deadline": "2026-05-13T23:59:00",
+      "estimatedDurationMinutes": 180
+    },
+    {
+      "taskId": "TASK-102",
+      "title": "Taller de Programación",
+      "priorityScore": 62.50,
+      "priorityLevel": "MEDIA",
+      "deadline": "2026-05-20T23:59:00",
+      "estimatedDurationMinutes": 120
+    }
+  ],
+  "timestamp": "2026-05-12T19:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![400](https://img.shields.io/badge/400-Bad_Request-red?style=flat) | studentId vacío | `"Student ID cannot be null or empty"` |
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido o ausente | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ usuario autenticado | `"studentId does not match authenticated user"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error en algoritmo | `"Error calculating priority score"` |
+
+</div>
+
+---
+
+### 6.2 R15 — Balanceador de Tiempo
+
+Analiza la distribución semanal del estudiante, detecta días con sobrecarga (>80%) y días vacíos (<20%), y genera sugerencias de redistribución.
+
+**Endpoint:**
+`GET /planning/balance?studentId={id}&weekStartDate={fecha}`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `studentId` | `String` | Obligatorio (Query Param) | Identificador del estudiante. |
+| `weekStartDate` | `Date` | Opcional (ISO 8601, default: lunes actual) | Lunes de la semana a analizar. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `message` | `String` | `"La semana está bien distribuida"` o `"Se detectaron días con sobrecarga, se sugiere redistribuir"` |
+| `weeklyLoadAnalysis[]` | `Array` | Análisis por día: horasDisponibles, horasAsignadas, % ocupación, estado. |
+| `overloadedDays[]` | `Array<String>` | Días con carga > 80% (RN-01). |
+| `emptyDays[]` | `Array<String>` | Días con carga < 20% (RN-02). |
+| `balanceSuggestions[].task` | `Object` | Tarea sugerida a mover. |
+| `balanceSuggestions[].fromDate` | `Date` | Día original. |
+| `balanceSuggestions[].toDate` | `Date` | Día sugerido. |
+| `balanceSuggestions[].reason` | `String` | Razón de la sugerencia. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+GET /planning/balance?studentId=STU-001&weekStartDate=2026-05-11
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Se detectaron días con sobrecarga, se sugiere redistribuir",
+  "data": {
+    "studentId": "STU-001",
+    "weeklyLoadAnalysis": [
+      {
+        "date": "2026-05-11",
+        "availableHours": 6.0,
+        "assignedHours": 5.5,
+        "occupancyPercent": 91.67,
+        "status": "OVERLOADED"
+      },
+      {
+        "date": "2026-05-12",
+        "availableHours": 8.0,
+        "assignedHours": 1.0,
+        "occupancyPercent": 12.5,
+        "status": "FREE"
+      }
+    ],
+    "overloadedDays": ["lunes 2026-05-11"],
+    "emptyDays": ["martes 2026-05-12"],
+    "balanceSuggestions": [
+      {
+        "task": { "taskId": "TASK-103", "title": "Laboratorio de Física" },
+        "fromDate": "2026-05-11",
+        "toDate": "2026-05-12",
+        "reason": "El día lunes 2026-05-11 está sobrecargado. El día martes 2026-05-12 tiene tiempo libre.",
+        "suggestionMessage": "Move task 'Laboratorio de Física' from 2026-05-11 to 2026-05-12 to balance workload."
+      }
+    ]
+  },
+  "timestamp": "2026-05-12T19:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"studentId does not match authenticated user"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Error analyzing weekly balance"` |
+
+</div>
+
+> **Flujos alternos manejados:**
+> - Sin disponibilidad configurada → `"Configura tu disponibilidad diaria para activar el balanceador."`
+> - Sin tareas en la semana → `"No hay tareas registradas para esta semana."`
+
+---
+
+### 6.3 R16 — Distribución Automática de Tareas
+
+Genera un plan semanal optimizado que distribuye las tareas priorizadas respetando la disponibilidad del estudiante. Los bloques marcados como `PERSONAL`, `DESCANSO` o `SOCIAL` nunca reciben tareas académicas (**RN-04**).
+
+**Endpoint:**
+`POST /planning/distribution?studentId={id}`
 
 ---
 
@@ -334,6 +553,190 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante a
 | `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
 
 </div>
+
+> La disponibilidad horaria y las tareas pendientes se obtienen automáticamente desde `task-service` y `profile-service` vía Feign.
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `message` | `String` | `"¡Plan de trabajo generado exitosamente!"` o aviso de tareas sin asignar. |
+| `fullyAssigned` | `Boolean` | `true` si todas las tareas fueron asignadas. |
+| `assignedBlocks[]` | `Array` | Cada bloque: taskId, día, startTime, endTime, durationHours. |
+| `unassignedTasks[]` | `Array` | Tareas no asignadas por falta de disponibilidad. |
+| `criticalAlerts[]` | `Array` | Tareas con deadline < 24h que requieren atención inmediata. |
+| `movedTasks[]` | `Array` | (En rebalanceo) taskId, bloque original y bloque nuevo. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+POST /planning/distribution?studentId=STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "¡Plan de trabajo generado exitosamente!",
+  "data": {
+    "studentId": "STU-001",
+    "fullyAssigned": true,
+    "assignedBlocks": [
+      {
+        "task": {
+          "taskId": "TASK-101",
+          "title": "Parcial de Cálculo",
+          "priorityScore": 100.0,
+          "priorityLevel": "ALTA"
+        },
+        "date": "2026-05-13",
+        "startTime": "08:00",
+        "endTime": "11:00",
+        "durationHours": 3.0
+      }
+    ],
+    "unassignedTasks": [],
+    "criticalAlerts": [],
+    "movedTasks": []
+  },
+  "timestamp": "2026-05-12T19:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"studentId does not match authenticated user"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error de generación | `"Error generating weekly distribution plan"` |
+
+</div>
+
+---
+
+### 6.4 R17 — Rebalanceo Dinámico de Tareas
+
+Reorganiza el plan cuando el estudiante no cumple con una tarea asignada, redistribuyendo la carga restante. Rastrea exactamente qué tareas se movieron (**`movedTasks`**) y nunca asigna tareas en bloques de tiempo personal o descanso (**RN-03**).
+
+#### Endpoint 1 — Registrar Fallo y Rebalancear
+
+`POST /planning/rebalance/failure`
+
+---
+
+#### 📦 Información de Entrada (Request — Failure Report)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `studentId` | `String` | Obligatorio | Identificador del estudiante. |
+| `taskId` | `String` | Obligatorio | Tarea con bloque asignado no completada. |
+| `failedDate` | `Date` | Obligatorio | Fecha en que ocurrió el fallo. |
+| `hoursMissed` | `Float` | Obligatorio | Horas de estudio no completadas. |
+| `reason` | `String` | Opcional | Razón del incumplimiento. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### Endpoint 2 — Reorganizar Plan Manualmente
+
+`POST /planning/rebalance/reorganize?studentId={id}`
+
+---
+
+#### 📦 Información de Salida (Ambos endpoints)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `message` | `String` | `"Plan reorganizado exitosamente"` o `"Hay tareas críticas que requieren tu atención inmediata"` |
+| `fullyAssigned` | `Boolean` | Si todo pudo ser reasignado. |
+| `assignedBlocks[]` | `Array` | Nuevo plan semanal con bloques actualizados. |
+| `unassignedTasks[]` | `Array` | Tareas que no pudieron ser ubicadas. |
+| `criticalAlerts[]` | `Array` | Tareas con deadline < 24h sin tiempo disponible (RN-02). |
+| `movedTasks[]` | `Array` | **Nuevo R17** — Lista de tareas reubicadas con bloque original y nuevo bloque. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```json
+POST /planning/rebalance/failure
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+{
+  "studentId": "STU-001",
+  "taskId": "TASK-101",
+  "failedDate": "2026-05-13",
+  "hoursMissed": 2.0,
+  "reason": "Tuve un imprevisto familiar"
+}
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Plan reorganizado exitosamente",
+  "data": {
+    "studentId": "STU-001",
+    "fullyAssigned": true,
+    "assignedBlocks": [...],
+    "unassignedTasks": [],
+    "criticalAlerts": [],
+    "movedTasks": [
+      {
+        "taskId": "TASK-101",
+        "taskTitle": "Parcial de Cálculo Diferencial",
+        "originalDate": "2026-05-13",
+        "originalStartTime": "08:00",
+        "newDate": "2026-05-14",
+        "newStartTime": "09:00",
+        "reason": "Rebalanceo por tarea no completada el 2026-05-13"
+      }
+    ]
+  },
+  "timestamp": "2026-05-12T19:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![400](https://img.shields.io/badge/400-Bad_Request-red?style=flat) | Datos inválidos | `"Plan ID cannot be null or empty"` |
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"studentId does not match authenticated user"` |
+| ![422](https://img.shields.io/badge/422-Unprocessable-yellow?style=flat) | Sin tiempo disponible | `"No hay tiempo disponible para reorganizar. Te recomendamos revisar tus prioridades."` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Error during plan reorganization"` |
+
+</div>
+
+---
+
 
 ---
 

@@ -30,7 +30,7 @@ public final class PriorityScore {
      * Convenience method for domain-only contexts and backward compatibility.
      *
      * @param dueDate        Task deadline
-     * @param subjectWeight  Weight of the subject or task (0-100)
+     * @param subjectWeight  Weight of the subject or task (0.0–5.0 scale per R14 spec)
      * @param estimatedHours Estimated hours required to complete the task
      * @return Calculated PriorityScore
      */
@@ -45,9 +45,12 @@ public final class PriorityScore {
      * Calculates the priority score with configurable weights.
      * The weights should sum to 1.0 for the score to range from 0 to 100.
      *
+     * <p><b>RN-02:</b> If the deadline is within 24 hours, the task is automatically
+     * escalated to ALTA regardless of other factors.</p>
+     *
      * @param dueDate         Task deadline
-     * @param subjectWeight   Weight of the subject or task (0-100)
-     * @param estimatedHours  Estimated hours required to complete the task
+     * @param subjectWeight   Academic weight of the subject (0.0–5.0 scale per R14)
+     * @param estimatedHours  Estimated hours required (max 72h per R14)
      * @param wProximity      Weight for deadline proximity factor
      * @param wAcademic       Weight for academic weight factor
      * @param wTime           Weight for estimated time factor
@@ -61,9 +64,19 @@ public final class PriorityScore {
             double wAcademic,
             double wTime) {
 
+        // RN-02: Deadline < 24h → automáticamente ALTA con score máximo
+        if (dueDate != null) {
+            long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
+            if (daysLeft <= 0) {
+                return new PriorityScore(100.0, TaskPriority.ALTA);
+            }
+        }
+
         double proximityFactor = calculateProximityFactor(dueDate);
-        double weightFactor = Math.min(subjectWeight / 100.0, 1.0);
-        double timeFactor = calculateTimeFactor(estimatedHours);
+        // R14 spec: academicWeight es 0.0–5.0 → se normaliza dividiendo entre 5.0
+        double weightFactor = Math.min(subjectWeight / 5.0, 1.0);
+        // R14 spec: estimatedTime máximo 72h
+        double timeFactor = calculateTimeFactor(Math.min(estimatedHours, 72.0));
 
         double rawScore = (proximityFactor * wProximity)
                 + (weightFactor * wAcademic)
@@ -89,7 +102,7 @@ public final class PriorityScore {
         if (daysLeft <= 0)
             return 1.00;
         if (daysLeft <= 1)
-            return 0.95;
+            return 0.95; // Deadline mañana → factor muy alto
         if (daysLeft <= 3)
             return 0.80;
         if (daysLeft <= 7)
@@ -111,14 +124,18 @@ public final class PriorityScore {
 
     /**
      * Assigns the categorical priority level based on the numerical score.
+     * Thresholds per R14 spec:
+     * <ul>
+     *   <li>ALTA  — score ≥ 70</li>
+     *   <li>MEDIA — score 40–69</li>
+     *   <li>BAJA  — score &lt; 40</li>
+     * </ul>
      */
     private static TaskPriority assignLevel(double score) {
-        if (score >= 75)
-            return TaskPriority.CRITICAL;
-        if (score >= 50)
-            return TaskPriority.HIGH;
-        if (score >= 25)
-            return TaskPriority.MEDIUM;
-        return TaskPriority.LOW;
+        if (score >= 70)
+            return TaskPriority.ALTA;
+        if (score >= 40)
+            return TaskPriority.MEDIA;
+        return TaskPriority.BAJA;
     }
 }

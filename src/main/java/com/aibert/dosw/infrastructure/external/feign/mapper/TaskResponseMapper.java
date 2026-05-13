@@ -90,11 +90,24 @@ public interface TaskResponseMapper {
         if (priority == null || priority.isBlank()) {
             return null;
         }
-        try {
-            return TaskPriority.valueOf(priority.toUpperCase());
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+        return switch (priority.toUpperCase()) {
+            // Nuevos valores del planning-service
+            case "ALTA" -> TaskPriority.ALTA;
+            case "MEDIA" -> TaskPriority.MEDIA;
+            case "BAJA" -> TaskPriority.BAJA;
+            case "CRITICA" -> TaskPriority.CRITICA;
+            // Compatibilidad con valores legacy del task-service
+            case "HIGH", "CRITICAL" -> TaskPriority.ALTA;
+            case "MEDIUM" -> TaskPriority.MEDIA;
+            case "LOW" -> TaskPriority.BAJA;
+            default -> {
+                try {
+                    yield TaskPriority.valueOf(priority.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    yield null;
+                }
+            }
+        };
     }
 
     /**
