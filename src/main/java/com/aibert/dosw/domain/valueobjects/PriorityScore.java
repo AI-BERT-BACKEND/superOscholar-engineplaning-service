@@ -68,7 +68,7 @@ public final class PriorityScore {
         if (dueDate != null) {
             long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
             if (daysLeft <= 0) {
-                return new PriorityScore(100.0, TaskPriority.ALTA);
+                return new PriorityScore(100.0, TaskPriority.CRITICA);
             }
         }
 

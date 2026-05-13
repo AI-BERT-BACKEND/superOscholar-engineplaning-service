@@ -40,7 +40,7 @@ class TaskServiceAdapterTest {
                 .build();
         PlanningTask expected = PlanningTask.builder()
                 .id("1").userId("st1").title("Test Task")
-                .estimatedHours(1.5).priorityLevel(TaskPriority.HIGH)
+                .estimatedHours(1.5).priorityLevel(TaskPriority.ALTA)
                 .status(TaskStatus.PENDING)
                 .build();
 
@@ -80,7 +80,7 @@ class TaskServiceAdapterTest {
     void shouldUpdateTaskPriorities() {
         PlanningTask task = PlanningTask.builder()
                 .id("1").userId("st1").title("Task")
-                .estimatedHours(2.0).priorityLevel(TaskPriority.HIGH)
+                .estimatedHours(2.0).priorityLevel(TaskPriority.ALTA)
                 .status(TaskStatus.PENDING)
                 .build();
 
@@ -94,7 +94,7 @@ class TaskServiceAdapterTest {
         assertEquals("1", sent.get(0).getId());
         assertEquals("st1", sent.get(0).getStudentId());
         assertEquals(120, sent.get(0).getEstimatedDurationMinutes());
-        assertEquals("HIGH", sent.get(0).getPriority());
+        assertEquals("ALTA", sent.get(0).getPriority());
         assertEquals("TODO", sent.get(0).getStatus()); // PENDING → TODO
     }
 

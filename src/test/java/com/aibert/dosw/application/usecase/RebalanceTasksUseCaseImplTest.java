@@ -7,6 +7,7 @@ import com.aibert.dosw.domain.model.task.TaskPriority;
 import com.aibert.dosw.domain.ports.in.DistributeTasksUseCase;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -34,10 +35,15 @@ class RebalanceTasksUseCaseImplTest {
     void shouldReportFailureAndRebalanceWithCriticalAlert() {
         PlanningTask task = PlanningTask.builder()
             .id("1").dueDate(LocalDate.now().plusDays(1)).build();
-            
+
         List<ScheduledBlock> blocks = new ArrayList<>();
-        blocks.add(ScheduledBlock.builder().task(task).build());
-        
+        blocks.add(ScheduledBlock.builder()
+            .task(task)
+            .date(LocalDate.now())
+            .startTime(LocalTime.of(9, 0))
+            .endTime(LocalTime.of(10, 0))
+            .build());
+
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
             .studentId("st1")
             .assignedBlocks(blocks)
@@ -50,8 +56,8 @@ class RebalanceTasksUseCaseImplTest {
 
         verify(taskProviderPort).reportTaskFailure("st1", "1", 2.0, "reason");
         assertEquals(1, result.getAssignedBlocks().size());
-        // Verify critical task marker
-        assertEquals(99.0, result.getAssignedBlocks().get(0).getTask().getPriorityScore());
+        // markAsCriticalAlert sets score to max(current, 100.0)
+        assertEquals(100.0, result.getAssignedBlocks().get(0).getTask().getPriorityScore());
     }
 
     @Test
@@ -66,7 +72,8 @@ class RebalanceTasksUseCaseImplTest {
 
         WeeklyDistributionPlan result = useCase.reorganizePlan("st1");
 
-        verify(distributeTasksUseCase).distribute("st1");
+        // distribute is called twice (before snapshot + new plan)
+        verify(distributeTasksUseCase, times(2)).distribute("st1");
         assertEquals("st1", result.getStudentId());
     }
 
@@ -85,8 +92,8 @@ class RebalanceTasksUseCaseImplTest {
 
         WeeklyDistributionPlan result = useCase.reportFailureAndRebalance("st1", "1", LocalDate.now(), 1.0, "reason");
 
-        assertEquals(TaskPriority.CRITICAL, result.getUnassignedTasks().get(0).getPriorityLevel());
-        assertEquals(99.0, result.getUnassignedTasks().get(0).getPriorityScore());
+        assertEquals(TaskPriority.CRITICA, result.getUnassignedTasks().get(0).getPriorityLevel());
+        assertEquals(100.0, result.getUnassignedTasks().get(0).getPriorityScore());
     }
 
     @Test
@@ -95,7 +102,12 @@ class RebalanceTasksUseCaseImplTest {
             .id("1").dueDate(LocalDate.now().plusDays(10)).priorityScore(30.0).build();
 
         List<ScheduledBlock> blocks = new ArrayList<>();
-        blocks.add(ScheduledBlock.builder().task(task).build());
+        blocks.add(ScheduledBlock.builder()
+            .task(task)
+            .date(LocalDate.now())
+            .startTime(LocalTime.of(9, 0))
+            .endTime(LocalTime.of(10, 0))
+            .build());
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
             .studentId("st1")
@@ -133,7 +145,12 @@ class RebalanceTasksUseCaseImplTest {
             .id("1").dueDate(null).priorityScore(30.0).build();
 
         List<ScheduledBlock> blocks = new ArrayList<>();
-        blocks.add(ScheduledBlock.builder().task(taskNullDue).build());
+        blocks.add(ScheduledBlock.builder()
+            .task(taskNullDue)
+            .date(LocalDate.now())
+            .startTime(LocalTime.of(9, 0))
+            .endTime(LocalTime.of(10, 0))
+            .build());
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
             .studentId("st1")

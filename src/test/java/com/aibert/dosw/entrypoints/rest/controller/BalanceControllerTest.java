@@ -1,14 +1,18 @@
 package com.aibert.dosw.entrypoints.rest.controller;
 
+import com.aibert.dosw.application.dto.response.DayBalanceResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.dto.response.WorkloadBalanceResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
+import com.aibert.dosw.domain.model.balance.BalanceResult;
 import com.aibert.dosw.domain.model.balance.BalanceSuggestion;
+import com.aibert.dosw.domain.model.balance.DifferentialBalance;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.BalanceWorkloadUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,10 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,24 +51,39 @@ class BalanceControllerTest {
                 .reason("Free time")
                 .build();
 
-        when(balanceWorkloadUseCase.suggestBalance("st1")).thenReturn(List.of(suggestion));
+        DifferentialBalance balance = DifferentialBalance.of(
+                LocalDate.of(2026, 5, 5), 8.0, 7.0);
+
+        BalanceResult balanceResult = BalanceResult.builder()
+                .weeklyLoadAnalysis(List.of(balance))
+                .overloadedDays(List.of("lunes 2026-05-05"))
+                .emptyDays(List.of())
+                .balanceSuggestions(List.of(suggestion))
+                .message("Se detectaron días con sobrecarga, se sugiere redistribuir")
+                .build();
+
+        when(balanceWorkloadUseCase.suggestBalance(eq("st1"), any(LocalDate.class)))
+                .thenReturn(balanceResult);
         when(planningTaskMapper.toPrioritizedResponse(any()))
                 .thenReturn(PrioritizedTaskResponse.builder().build());
 
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("st1");
 
-        ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response = controller.getBalanceSuggestions("st1",
-                authentication);
+        ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response =
+                controller.getBalanceSuggestions("st1", null, authentication);
 
         ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
-        assertEquals(1, body.getData().getSuggestions().size());
+        assertEquals(1, body.getData().getBalanceSuggestions().size());
+        assertNotNull(body.getData().getMessage());
+        assertFalse(body.getData().getOverloadedDays().isEmpty());
+        assertFalse(body.getData().getWeeklyLoadAnalysis().isEmpty());
     }
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
         assertThrows(AccessDeniedException.class, () ->
-            controller.getBalanceSuggestions("st1", null));
+            controller.getBalanceSuggestions("st1", null, null));
     }
 
     @Test
@@ -73,6 +92,6 @@ class BalanceControllerTest {
         when(authentication.getName()).thenReturn("other-user");
 
         assertThrows(AccessDeniedException.class, () ->
-            controller.getBalanceSuggestions("st1", authentication));
+            controller.getBalanceSuggestions("st1", null, authentication));
     }
 }

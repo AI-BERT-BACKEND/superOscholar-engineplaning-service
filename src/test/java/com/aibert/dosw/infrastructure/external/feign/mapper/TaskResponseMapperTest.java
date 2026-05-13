@@ -147,12 +147,16 @@ class TaskResponseMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-            "LOW, LOW",
-            "MEDIUM, MEDIUM",
-            "HIGH, HIGH",
-            "CRITICAL, CRITICAL",
-            "high, HIGH", // case insensitive
-            "Critical, CRITICAL" // mixed case
+            "BAJA, BAJA",
+            "MEDIA, MEDIA",
+            "ALTA, ALTA",
+            "CRITICA, CRITICA",
+            "LOW, BAJA",
+            "MEDIUM, MEDIA",
+            "HIGH, ALTA",
+            "CRITICAL, ALTA",
+            "high, ALTA",
+            "Critical, ALTA"
     })
     void toPlanningTask_convertsPriority(String input, TaskPriority expected) {
         TaskServiceResponse response = TaskServiceResponse.builder()
@@ -323,7 +327,7 @@ class TaskResponseMapperTest {
                 () -> assertEquals(2.0, result.getEstimatedHours(), 0.001),
                 () -> assertEquals(LocalDate.of(2026, 6, 20), result.getDueDate()),
                 () -> assertEquals(LocalDate.of(2026, 6, 18), result.getScheduledDate()),
-                () -> assertEquals(TaskPriority.HIGH, result.getPriorityLevel()),
+                () -> assertEquals(TaskPriority.ALTA, result.getPriorityLevel()),
                 () -> assertEquals(TaskStatus.IN_PROGRESS, result.getStatus()),
                 () -> assertEquals(3, result.getDifficulty()),
                 () -> assertEquals("CALC-101", result.getSubjectName()));

@@ -26,7 +26,7 @@ class EmptyClassesInstantiationTest {
         assertNotNull(new AvailabilityBlock());
         assertNotNull(new ScheduleMapper());
         assertNotNull(new PlanningResponseMapper());
-        assertNotNull(new DayBalanceResponse());
+        assertNotNull(DayBalanceResponse.builder().build());
         assertNotNull(new RebalanceResultResponse());
     }
 }

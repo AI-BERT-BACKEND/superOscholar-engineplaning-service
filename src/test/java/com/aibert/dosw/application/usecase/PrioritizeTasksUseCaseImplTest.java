@@ -67,7 +67,7 @@ class PrioritizeTasksUseCaseImplTest {
     void shouldNotRecalculateWhenNotForcedAndPriorityExists() {
         PlanningTask task = PlanningTask.builder()
             .id("1").dueDate(LocalDate.now().plusDays(3))
-            .priorityLevel(TaskPriority.HIGH).priorityScore(60.0)
+            .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
             .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
@@ -84,7 +84,7 @@ class PrioritizeTasksUseCaseImplTest {
     void shouldRecalculateWhenForced() {
         PlanningTask task = PlanningTask.builder()
             .id("1").dueDate(LocalDate.now().plusDays(3))
-            .priorityLevel(TaskPriority.HIGH).priorityScore(60.0)
+            .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
             .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));

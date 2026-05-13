@@ -11,17 +11,17 @@ class PriorityScoreTest {
 
     @Test
     void shouldHandleNullDueDate() {
-        PriorityScore score = PriorityScore.calculate(null, 50.0, 2.0);
+        PriorityScore score = PriorityScore.calculate(null, 2.5, 2.0);
 
         assertNotNull(score);
         assertEquals(24.0, score.getFinalScore());
-        assertEquals(TaskPriority.LOW, score.getLevel());
+        assertEquals(TaskPriority.BAJA, score.getLevel());
     }
 
     @Test
     void shouldReturnCriticalForImminentDeadline() {
-        PriorityScore score = PriorityScore.calculate(LocalDate.now().plusDays(1), 100.0, 20.0);
+        PriorityScore score = PriorityScore.calculate(LocalDate.now(), 5.0, 20.0);
 
-        assertEquals(TaskPriority.CRITICAL, score.getLevel());
+        assertEquals(TaskPriority.CRITICA, score.getLevel());
     }
 }

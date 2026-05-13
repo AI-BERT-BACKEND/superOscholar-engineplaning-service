@@ -59,11 +59,11 @@ class ScheduleModelTest {
     void shouldCollectCriticalTasksFromWeeklyPlan() {
         PlanningTask critical1 = PlanningTask.builder()
                 .id("c1")
-                .priorityLevel(TaskPriority.CRITICAL)
+                .priorityLevel(TaskPriority.CRITICA)
                 .build();
         PlanningTask critical2 = PlanningTask.builder()
                 .id("c2")
-                .priorityLevel(TaskPriority.CRITICAL)
+                .priorityLevel(TaskPriority.CRITICA)
                 .build();
 
         ScheduledBlock block = ScheduledBlock.builder()

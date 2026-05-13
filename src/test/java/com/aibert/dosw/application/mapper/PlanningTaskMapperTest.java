@@ -30,7 +30,7 @@ class PlanningTaskMapperTest {
                 .estimatedHours(1.5)
                 .dueDate(LocalDate.of(2026, 5, 5))
                 .priorityScore(42.5)
-                .priorityLevel(TaskPriority.HIGH)
+                .priorityLevel(TaskPriority.ALTA)
                 .build();
 
         PrioritizedTaskResponse response = mapper.toPrioritizedResponse(task);
@@ -47,7 +47,7 @@ class PlanningTaskMapperTest {
         PlanningTask critical = PlanningTask.builder()
                 .id("c1")
                 .title("Critical")
-                .priorityLevel(TaskPriority.CRITICAL)
+                .priorityLevel(TaskPriority.CRITICA)
                 .estimatedHours(1.0)
                 .build();
 
