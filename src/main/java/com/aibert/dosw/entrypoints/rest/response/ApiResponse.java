@@ -1,5 +1,6 @@
 package com.aibert.dosw.entrypoints.rest.response;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -13,11 +14,21 @@ import lombok.Getter;
  */
 @Getter
 @Builder
+@Schema(description = "Standard API response wrapper for successful and error responses")
 public class ApiResponse<T> {
+    @Schema(description = "Human-readable response message", example = "Weekly distribution generated successfully")
     private final String message;
+
+    @Schema(description = "Response payload for successful requests", nullable = true)
     private final T data;
+
+    @Schema(description = "Request path that generated the response", example = "/planning/distribution")
     private final String path;
+
+    @Schema(description = "Server timestamp for the response", example = "2026-05-12T20:00:00")
     private final LocalDateTime timestamp;
+
+    @Schema(description = "List of validation or processing errors", example = "[\"studentId is required\"]")
     private final List<String> errors;
 
     /**

@@ -21,19 +21,48 @@ public interface PlanningTaskMapper {
 
     /**
      * Converts a PlanningTask domain model into a PrioritizedTaskResponse DTO.
-     * The priorityLevel is projected using the label (ALTA/MEDIA/BAJA) per R14 spec.
+     * The priorityLevel is projected using the label (ALTA/MEDIA/BAJA) per R14
+     * spec.
      *
      * @param task The domain task
      * @return The response DTO
      */
     @Mapping(target = "taskId", source = "id")
-    // External task-service schema expects subjectId, which is sourced from subjectName here.
+    // External task-service schema expects subjectId, which is sourced from
+    // subjectName here.
     @Mapping(target = "subjectId", source = "subjectName")
+    @Mapping(target = "taskType", expression = "java(task.getType() != null ? task.getType().name() : \"OTRO\")")
     @Mapping(target = "estimatedDurationMinutes", expression = "java((int) Math.round(task.getEstimatedHours() * 60))")
-    @Mapping(target = "deadline", expression = "java(task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : null)")
-    // Use label (ALTA/MEDIA/BAJA) instead of enum name to comply with R14 spec
-    @Mapping(target = "priorityLevel", expression = "java(task.getPriorityLevel() != null ? task.getPriorityLevel().getLabel() : null)")
+    @Mapping(target = "deadline", expression = "java(task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : java.time.LocalDateTime.MIN)")
+    @Mapping(target = "scheduledDate", expression = "java(task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : java.time.LocalDateTime.MIN)")
+    @Mapping(target = "status", expression = "java(mapStatus(task))")
+    @Mapping(target = "priorityLevel", expression = "java(mapPriority(task))")
     PrioritizedTaskResponse toPrioritizedResponse(PlanningTask task);
+
+    default String mapPriority(PlanningTask task) {
+        if (task == null || task.getPriorityLevel() == null) {
+            return "LOW";
+        }
+        return switch (task.getPriorityLevel()) {
+            case CRITICA -> "CRITICAL";
+            case ALTA -> "HIGH";
+            case MEDIA -> "MEDIUM";
+            case BAJA -> "LOW";
+        };
+    }
+
+    default String mapStatus(PlanningTask task) {
+        if (task == null || task.getStatus() == null) {
+            return "TODO";
+        }
+        return switch (task.getStatus()) {
+            case PENDING -> "TODO";
+            case IN_PROGRESS -> "IN_PROGRESS";
+            case COMPLETED -> "COMPLETED";
+            case SCHEDULED -> "SCHEDULED";
+            case OVERLOADED -> "TODO";
+        };
+    }
 
     @Mapping(target = "durationHours", expression = "java(block.getDurationHours())")
     ScheduledBlockResponse toScheduledBlockResponse(ScheduledBlock block);
@@ -56,4 +85,3 @@ public interface PlanningTaskMapper {
     @Mapping(target = "message", expression = "java(plan.isFullyAssigned() ? \"¡Plan de trabajo generado exitosamente!\" : \"Plan generado. Hay tareas que no pudieron ser asignadas por falta de disponibilidad.\")")
     DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
 }
-

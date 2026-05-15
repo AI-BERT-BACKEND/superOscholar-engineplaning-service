@@ -48,7 +48,8 @@ public class TaskServiceAdapter implements TaskProviderPort {
     }
 
     /**
-     * Convierte PlanningTask de vuelta a TaskServiceResponse para enviar actualizaciones.
+     * Convierte PlanningTask de vuelta a TaskServiceResponse para enviar
+     * actualizaciones.
      */
     private TaskServiceResponse toTaskServiceResponse(PlanningTask task) {
         return TaskServiceResponse.builder()
@@ -60,14 +61,28 @@ public class TaskServiceAdapter implements TaskProviderPort {
                         task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
                 .deadline(task.getDueDate() != null ? task.getDueDate().atStartOfDay() : null)
                 .scheduledDate(task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : null)
-                .priority(task.getPriorityLevel() != null ? task.getPriorityLevel().name() : null)
+                .priority(toTaskServicePriority(task))
+                .type(task.getType() != null ? task.getType().name() : null)
                 .status(convertStatusToTaskService(task))
                 .build();
     }
 
+    private String toTaskServicePriority(PlanningTask task) {
+        if (task.getPriorityLevel() == null) {
+            return null;
+        }
+        return switch (task.getPriorityLevel()) {
+            case CRITICA -> "CRITICAL";
+            case ALTA -> "HIGH";
+            case MEDIA -> "MEDIUM";
+            case BAJA -> "LOW";
+        };
+    }
+
     /**
      * Convierte TaskStatus de planning-service a String de task-service.
-     * PENDING → TODO, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED, SCHEDULED → SCHEDULED
+     * PENDING → TODO, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED, SCHEDULED →
+     * SCHEDULED
      */
     private String convertStatusToTaskService(PlanningTask task) {
         if (task.getStatus() == null) {

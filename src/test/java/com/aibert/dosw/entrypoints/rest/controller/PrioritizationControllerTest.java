@@ -1,7 +1,10 @@
 package com.aibert.dosw.entrypoints.rest.controller;
 
+import com.aibert.dosw.application.dto.request.CriticalRecommendationsRequest;
+import com.aibert.dosw.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
+import com.aibert.dosw.application.service.CriticalRecommendationsService;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
@@ -25,6 +28,8 @@ class PrioritizationControllerTest {
     private PrioritizeTasksUseCase prioritizeTasksUseCase;
     @Mock
     private PlanningTaskMapper planningTaskMapper;
+    @Mock
+    private CriticalRecommendationsService criticalRecommendationsService;
     @InjectMocks
     private PrioritizationController controller;
 
@@ -43,8 +48,7 @@ class PrioritizationControllerTest {
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () ->
-            controller.getPrioritizedTasks("st1", false, null));
+        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, null));
     }
 
     @Test
@@ -52,8 +56,7 @@ class PrioritizationControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.getPrioritizedTasks("st1", false, authentication));
+        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, authentication));
     }
 
     @Test
@@ -61,7 +64,27 @@ class PrioritizationControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.getPrioritizedTasks("st1", false, authentication));
+        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, authentication));
+    }
+
+    @Test
+    void shouldReturnCriticalRecommendations() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("st1");
+
+        when(criticalRecommendationsService.buildRecommendations(anyList()))
+                .thenReturn(CriticalRecommendationsResponse.builder()
+                        .totalCritical(0)
+                        .criticalRecommendations(List.of())
+                        .message("You have no critical tasks at the moment")
+                        .build());
+
+        ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> response = controller.getCriticalRecommendations(
+                "st1",
+                new CriticalRecommendationsRequest(),
+                false,
+                authentication);
+
+        assertNotNull(response.getBody());
     }
 }

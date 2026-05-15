@@ -2,17 +2,23 @@ package com.aibert.dosw.application.usecase;
 
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
+import com.aibert.dosw.domain.model.task.TaskStatus;
+import com.aibert.dosw.domain.ports.out.AcademicWeightProviderPort;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
+import com.aibert.dosw.domain.valueobjects.AcademicWeight;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
 import com.aibert.dosw.infrastructure.config.PriorityWeightsProperties;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 /**
  * Application service implementing the prioritization use case (R14).
- * It fetches pending tasks, applies the mathematical prioritization algorithm,
+ * It fetches pending tasks, applies weighted prioritization rules,
  * sorts the tasks, and updates them via the output port.
  */
 @Service
@@ -20,6 +26,7 @@ import org.springframework.stereotype.Service;
 public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
     private final TaskProviderPort taskProviderPort;
+    private final AcademicWeightProviderPort academicWeightProviderPort;
     private final PriorityWeightsProperties weightsConfig;
 
     @Override
@@ -32,18 +39,21 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
             return List.of();
         }
 
-        // 2. Apply mathematical algorithm to calculate PriorityScore for each task
-        //    using configurable weights from application.yml
-        for (PlanningTask task : pendingTasks) {
+        // 2. Filter active tasks and apply weighted priority
+        List<PlanningTask> activeTasks = pendingTasks.stream()
+                .filter(this::isActive)
+                .collect(Collectors.toList());
 
-            // Only recalculate if forced or if the task has no score
+        for (PlanningTask task : activeTasks) {
             if (forceRecalculate || task.getPriorityLevel() == null) {
-
-                double weight = task.getTaskWeightInGrade() != null ? task.getTaskWeightInGrade() : 0.0;
+                double academicWeight = academicWeightProviderPort
+                        .getAcademicWeight(studentId, task.getSubjectName())
+                        .map(AcademicWeight::getValue)
+                        .orElse(0.0);
 
                 PriorityScore score = PriorityScore.calculate(
                         task.getDueDate(),
-                        weight,
+                        academicWeight,
                         task.getEstimatedHours(),
                         weightsConfig.getWeightProximity(),
                         weightsConfig.getWeightAcademic(),
@@ -53,14 +63,27 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
             }
         }
 
-        // 3. Sort the tasks based on the calculated priority score (Descending order)
-        List<PlanningTask> prioritizedTasks = pendingTasks.stream()
-                .sorted(Comparator.comparingDouble(PlanningTask::getPriorityScore).reversed())
+        // 3. Sort the tasks by priority score (desc) and deadline (asc)
+        List<PlanningTask> prioritizedTasks = activeTasks.stream()
+                .sorted(Comparator.comparingDouble(PlanningTask::getPriorityScore).reversed()
+                        .thenComparing(this::dueDateOrMax))
                 .toList();
 
         // 4. Send the updated priorities back to the task-service
         taskProviderPort.updateTaskPriorities(prioritizedTasks);
 
         return prioritizedTasks;
+    }
+
+    private boolean isActive(PlanningTask task) {
+        return task != null
+                && (task.getStatus() == TaskStatus.PENDING
+                        || task.getStatus() == TaskStatus.IN_PROGRESS);
+    }
+
+    private LocalDate dueDateOrMax(PlanningTask task) {
+        return Optional.ofNullable(task)
+                .map(PlanningTask::getDueDate)
+                .orElse(LocalDate.MAX);
     }
 }

@@ -13,25 +13,25 @@ class PlanningTaskTest {
     @Test
     void shouldAssignPriorityAndStatus() {
         PlanningTask task = PlanningTask.builder().dueDate(LocalDate.now().plusDays(2)).build();
-        task.assignPriority(PriorityScore.calculate(LocalDate.now(), 5.0, 20.0));
+        task.assignPriority(PriorityScore.calculate(LocalDate.now(), 0.5, 20.0));
         assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
 
         task.scheduleFor(LocalDate.now());
         assertEquals(TaskStatus.SCHEDULED, task.getStatus());
-        
+
         task.markAsCompleted();
         assertEquals(TaskStatus.COMPLETED, task.getStatus());
-        
+
         task.markAsOverloaded();
         assertEquals(TaskStatus.OVERLOADED, task.getStatus());
     }
-    
+
     @Test
     void shouldCalculateOverdue() {
         PlanningTask task = PlanningTask.builder().dueDate(LocalDate.now().minusDays(1)).build();
         assertTrue(task.isOverdue());
         assertEquals(0, task.getDaysRemaining());
-        
+
         task.markAsCriticalAlert();
         assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
     }
@@ -76,8 +76,7 @@ class PlanningTaskTest {
     void getSubjectRiskLevel_withCuts_calculatesRisk() {
         List<NoteRiskCalculator.CutProgress> cuts = List.of(
                 new NoteRiskCalculator.CutProgress(2.0, 0.5),
-                new NoteRiskCalculator.CutProgress(null, 0.5)
-        );
+                new NoteRiskCalculator.CutProgress(null, 0.5));
         PlanningTask task = PlanningTask.builder().evaluationCuts(cuts).build();
         assertEquals(RiskLevel.HIGH, task.getSubjectRiskLevel());
     }
@@ -98,8 +97,7 @@ class PlanningTaskTest {
     void getRequiredGradeForRemainingCuts_withCuts_calculatesGrade() {
         List<NoteRiskCalculator.CutProgress> cuts = List.of(
                 new NoteRiskCalculator.CutProgress(2.0, 0.5),
-                new NoteRiskCalculator.CutProgress(null, 0.5)
-        );
+                new NoteRiskCalculator.CutProgress(null, 0.5));
         PlanningTask task = PlanningTask.builder().evaluationCuts(cuts).build();
         assertTrue(task.getRequiredGradeForRemainingCuts() > 0.0);
     }

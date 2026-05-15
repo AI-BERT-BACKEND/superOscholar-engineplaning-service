@@ -19,57 +19,59 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PlanningTaskMapperTest {
 
-    private final PlanningTaskMapper mapper = Mappers.getMapper(PlanningTaskMapper.class);
+        private final PlanningTaskMapper mapper = Mappers.getMapper(PlanningTaskMapper.class);
 
-    @Test
-    void shouldMapPlanningTaskToPrioritizedResponse() {
-        PlanningTask task = PlanningTask.builder()
-                .id("t1")
-                .title("Task")
-                .subjectName("math")
-                .estimatedHours(1.5)
-                .dueDate(LocalDate.of(2026, 5, 5))
-                .priorityScore(42.5)
-                .priorityLevel(TaskPriority.ALTA)
-                .build();
+        @Test
+        void shouldMapPlanningTaskToPrioritizedResponse() {
+                PlanningTask task = PlanningTask.builder()
+                                .id("t1")
+                                .title("Task")
+                                .subjectName("math")
+                                .estimatedHours(1.5)
+                                .dueDate(LocalDate.of(2026, 5, 5))
+                                .priorityScore(42.5)
+                                .priorityLevel(TaskPriority.ALTA)
+                                .build();
 
-        PrioritizedTaskResponse response = mapper.toPrioritizedResponse(task);
+                PrioritizedTaskResponse response = mapper.toPrioritizedResponse(task);
 
-        assertEquals("t1", response.getTaskId());
-        assertEquals("math", response.getSubjectId());
-        assertEquals(90, response.getEstimatedDurationMinutes());
-        assertEquals(LocalDateTime.of(2026, 5, 5, 23, 59), response.getDeadline());
-        assertEquals(42.5, response.getPriorityScore());
-    }
+                assertEquals("t1", response.getTaskId());
+                assertEquals("math", response.getSubjectId());
+                assertEquals(90, response.getEstimatedDurationMinutes());
+                assertEquals(LocalDateTime.of(2026, 5, 5, 23, 59), response.getDeadline());
+                assertEquals(42.5, response.getPriorityScore());
+                assertEquals("HIGH", response.getPriorityLevel());
+                assertEquals("TODO", response.getStatus());
+        }
 
-    @Test
-    void shouldMapDistributionPlan() {
-        PlanningTask critical = PlanningTask.builder()
-                .id("c1")
-                .title("Critical")
-                .priorityLevel(TaskPriority.CRITICA)
-                .estimatedHours(1.0)
-                .build();
+        @Test
+        void shouldMapDistributionPlan() {
+                PlanningTask critical = PlanningTask.builder()
+                                .id("c1")
+                                .title("Critical")
+                                .priorityLevel(TaskPriority.CRITICA)
+                                .estimatedHours(1.0)
+                                .build();
 
-        ScheduledBlock block = ScheduledBlock.builder()
-                .task(critical)
-                .date(LocalDate.of(2026, 5, 5))
-                .startTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(10, 0))
-                .build();
+                ScheduledBlock block = ScheduledBlock.builder()
+                                .task(critical)
+                                .date(LocalDate.of(2026, 5, 5))
+                                .startTime(LocalTime.of(9, 0))
+                                .endTime(LocalTime.of(10, 0))
+                                .build();
 
-        WeeklyDistributionPlan plan = WeeklyDistributionPlan.builder()
-                .studentId("st1")
-                .assignedBlocks(List.of(block))
-                .unassignedTasks(List.of())
-                .build();
+                WeeklyDistributionPlan plan = WeeklyDistributionPlan.builder()
+                                .studentId("st1")
+                                .assignedBlocks(List.of(block))
+                                .unassignedTasks(List.of())
+                                .build();
 
-        DistributionPlanResponse response = mapper.toDistributionPlanResponse(plan);
+                DistributionPlanResponse response = mapper.toDistributionPlanResponse(plan);
 
-        assertNotNull(response);
-        assertTrue(response.isFullyAssigned());
-        assertEquals(1, response.getAssignedBlocks().size());
-        assertEquals(1.0, response.getAssignedBlocks().get(0).getDurationHours());
-        assertEquals(1, response.getCriticalAlerts().size());
-    }
+                assertNotNull(response);
+                assertTrue(response.isFullyAssigned());
+                assertEquals(1, response.getAssignedBlocks().size());
+                assertEquals(1.0, response.getAssignedBlocks().get(0).getDurationHours());
+                assertEquals(1, response.getCriticalAlerts().size());
+        }
 }

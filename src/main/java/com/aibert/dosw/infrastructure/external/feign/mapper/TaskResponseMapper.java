@@ -3,6 +3,7 @@ package com.aibert.dosw.infrastructure.external.feign.mapper;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.model.task.TaskPriority;
 import com.aibert.dosw.domain.model.task.TaskStatus;
+import com.aibert.dosw.domain.model.task.TaskType;
 import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -57,6 +58,7 @@ public interface TaskResponseMapper {
     @Mapping(target = "status", source = "status", qualifiedByName = "statusFromString")
     @Mapping(target = "difficulty", source = "difficulty", qualifiedByName = "difficultyOrDefault")
     @Mapping(target = "subjectName", source = "subjectId")
+    @Mapping(target = "type", source = "type", qualifiedByName = "typeFromString")
     PlanningTask toPlanningTask(TaskServiceResponse response);
 
     /**
@@ -133,5 +135,19 @@ public interface TaskResponseMapper {
     @Named("difficultyOrDefault")
     default int convertDifficulty(Integer difficulty) {
         return difficulty != null ? difficulty : 0;
+    }
+
+    @Named("typeFromString")
+    default TaskType convertType(String type) {
+        if (type == null || type.isBlank()) {
+            return TaskType.OTRO;
+        }
+        return switch (type.toUpperCase()) {
+            case "TAREA" -> TaskType.TAREA;
+            case "EXAMEN" -> TaskType.EXAMEN;
+            case "PROYECTO" -> TaskType.PROYECTO;
+            case "LECTURA" -> TaskType.LECTURA;
+            default -> TaskType.OTRO;
+        };
     }
 }

@@ -5,13 +5,13 @@ import java.util.List;
 
 /**
  * Input port for the Prioritization Engine (R14).
- * Defines the contract for prioritizing academic tasks based on mathematical logic.
+ * Defines the contract for prioritizing academic tasks based on urgency rules.
  */
 public interface PrioritizeTasksUseCase {
 
     /**
      * Prioritizes all pending tasks for a student.
-     * Calculates the priority score for each task and orders them
+     * Applies urgency-based priority levels and orders them
      * from highest to lowest priority.
      *
      * @param studentId        The ID of the student

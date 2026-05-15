@@ -34,6 +34,7 @@ public class PlanningTask {
     private final Double taskWeightInGrade; // optional weight of this specific task
     private final List<NoteRiskCalculator.CutProgress> evaluationCuts; // Dynamic cuts
 
+    private final TaskType type;
     private TaskStatus status;
     private TaskPriority priorityLevel;
     private double priorityScore;
@@ -47,6 +48,20 @@ public class PlanningTask {
     public void assignPriority(PriorityScore score) {
         this.priorityScore = score.getFinalScore();
         this.priorityLevel = score.getLevel();
+    }
+
+    /**
+     * Applies a discrete priority level with a computed score.
+     * Used by the auto-prioritization flow when scoring is rule-based.
+     *
+     * @param level calculated priority level
+     * @param score calculated score
+     */
+    public void applyPriority(TaskPriority level, double score) {
+        if (level != null) {
+            this.priorityLevel = level;
+        }
+        this.priorityScore = Math.max(score, 0.0);
     }
 
     /**
@@ -133,7 +148,8 @@ public class PlanningTask {
 
     /**
      * Marks the task as CRITICA when its deadline is imminent (<24h).
-     * Per RN-02: escala automáticamente a ALTA (CRITICA internamente) sin importar otros factores.
+     * Per RN-02: escala automáticamente a ALTA (CRITICA internamente) sin importar
+     * otros factores.
      */
     public void markAsCriticalAlert() {
         this.priorityLevel = TaskPriority.CRITICA;

@@ -2,11 +2,15 @@ package com.aibert.dosw.application.usecase;
 
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.model.task.TaskPriority;
+import com.aibert.dosw.domain.model.task.TaskStatus;
+import com.aibert.dosw.domain.ports.out.AcademicWeightProviderPort;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
+import com.aibert.dosw.domain.valueobjects.AcademicWeight;
 import com.aibert.dosw.infrastructure.config.PriorityWeightsProperties;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +28,9 @@ class PrioritizeTasksUseCaseImplTest {
     @Mock
     private TaskProviderPort taskProviderPort;
 
+    @Mock
+    private AcademicWeightProviderPort academicWeightProviderPort;
+
     @Spy
     private PriorityWeightsProperties weightsConfig = new PriorityWeightsProperties();
 
@@ -33,14 +40,22 @@ class PrioritizeTasksUseCaseImplTest {
     @Test
     void shouldPrioritizeTasksCorrectly() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").title("T1").dueDate(LocalDate.now().plusDays(1))
-            .subjectCredits(4).estimatedHours(3.0).build();
+                .id("1").title("T1").dueDate(LocalDate.now().plusDays(2))
+                .subjectName("math")
+                .status(TaskStatus.PENDING)
+                .subjectCredits(4).estimatedHours(3.0).build();
 
         PlanningTask t2 = PlanningTask.builder()
-            .id("2").title("T2").dueDate(LocalDate.now().plusDays(10))
-            .subjectCredits(2).estimatedHours(1.0).build();
+                .id("2").title("T2").dueDate(LocalDate.now().plusDays(10))
+                .subjectName("history")
+                .status(TaskStatus.PENDING)
+                .subjectCredits(2).estimatedHours(1.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("student1")).thenReturn(List.of(t1, t2));
+        when(academicWeightProviderPort.getAcademicWeight("student1", "math"))
+                .thenReturn(Optional.of(AcademicWeight.of("math", 0.6)));
+        when(academicWeightProviderPort.getAcademicWeight("student1", "history"))
+                .thenReturn(Optional.of(AcademicWeight.of("history", 0.2)));
 
         List<PlanningTask> result = useCase.prioritize("student1", false);
 
@@ -66,16 +81,18 @@ class PrioritizeTasksUseCaseImplTest {
     @Test
     void shouldNotRecalculateWhenNotForcedAndPriorityExists() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(3))
-            .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
-            .estimatedHours(2.0).build();
+                .id("1").dueDate(LocalDate.now().plusDays(3))
+                .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
+                .status(TaskStatus.PENDING)
+                .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
 
         List<PlanningTask> result = useCase.prioritize("st1", false);
 
         assertEquals(1, result.size());
-        // Score should remain unchanged since forceRecalculate is false and priorityLevel is not null
+        // Score should remain unchanged since forceRecalculate is false and
+        // priorityLevel is not null
         assertEquals(60.0, result.get(0).getPriorityScore());
         verify(taskProviderPort).updateTaskPriorities(anyList());
     }
@@ -83,11 +100,14 @@ class PrioritizeTasksUseCaseImplTest {
     @Test
     void shouldRecalculateWhenForced() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(3))
-            .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
-            .estimatedHours(2.0).build();
+                .id("1").dueDate(LocalDate.now().plusDays(3))
+                .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
+                .status(TaskStatus.PENDING)
+                .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
+        when(academicWeightProviderPort.getAcademicWeight("st1", null))
+                .thenReturn(Optional.empty());
 
         List<PlanningTask> result = useCase.prioritize("st1", true);
 
@@ -98,32 +118,38 @@ class PrioritizeTasksUseCaseImplTest {
     }
 
     @Test
-    void shouldHandleNullTaskWeightInGrade() {
+    void shouldAssignCriticalPriorityWhenDueToday() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(5))
-            .taskWeightInGrade(null)
-            .estimatedHours(3.0).build();
+                .id("1").dueDate(LocalDate.now())
+                .subjectName("math")
+                .status(TaskStatus.PENDING)
+                .estimatedHours(3.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
+        when(academicWeightProviderPort.getAcademicWeight("st1", "math"))
+                .thenReturn(Optional.of(AcademicWeight.of("math", 0.2)));
 
         List<PlanningTask> result = useCase.prioritize("st1", true);
 
         assertEquals(1, result.size());
-        assertNotNull(result.get(0).getPriorityLevel());
+        assertEquals(TaskPriority.CRITICA, result.get(0).getPriorityLevel());
     }
 
     @Test
-    void shouldHandleTaskWithWeight() {
+    void shouldAssignMediumPriorityWhenDueInThreeDays() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(5))
-            .taskWeightInGrade(50.0)
-            .estimatedHours(3.0).build();
+                .id("1").dueDate(LocalDate.now().plusDays(3))
+                .subjectName("math")
+                .status(TaskStatus.PENDING)
+                .estimatedHours(3.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
+        when(academicWeightProviderPort.getAcademicWeight("st1", "math"))
+                .thenReturn(Optional.of(AcademicWeight.of("math", 0.5)));
 
         List<PlanningTask> result = useCase.prioritize("st1", true);
 
         assertEquals(1, result.size());
-        assertNotNull(result.get(0).getPriorityLevel());
+        assertEquals(TaskPriority.MEDIA, result.get(0).getPriorityLevel());
     }
 }

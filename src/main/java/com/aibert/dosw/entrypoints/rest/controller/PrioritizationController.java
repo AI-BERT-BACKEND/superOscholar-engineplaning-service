@@ -1,9 +1,19 @@
 package com.aibert.dosw.entrypoints.rest.controller;
 
+import com.aibert.dosw.application.dto.request.CriticalRecommendationsRequest;
+import com.aibert.dosw.application.dto.request.CriticalTaskCandidateRequest;
+import com.aibert.dosw.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
+import com.aibert.dosw.application.service.CriticalRecommendationsService;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +21,9 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,14 +34,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/prioritization")
 @RequiredArgsConstructor
+@Tag(name = "Prioritization", description = "Endpoints for retrieving and managing prioritized lists of study tasks based on calculated priority scores")
 public class PrioritizationController {
 
         private final PrioritizeTasksUseCase prioritizeTasksUseCase;
         private final PlanningTaskMapper planningTaskMapper;
+        private final CriticalRecommendationsService criticalRecommendationsService;
 
         /**
-         * Exposes a REST endpoint that returns active tasks ordered descendingly by
-         * priority score.
+         * Exposes a REST endpoint that returns active tasks ordered by
+         * priority level (desc) and deadline (asc).
          * 
          * @param studentId        The ID of the student requesting the prioritization
          * @param forceRecalculate If true, forces the engine to recalculate priority
@@ -36,9 +51,17 @@ public class PrioritizationController {
          * @return HTTP 200 OK with the ordered list of prioritized tasks
          */
         @GetMapping
+        @Operation(summary = "Get Prioritized Tasks", description = "Retrieves all active study tasks for a student, ordered by priority level and nearest deadline. Optionally forces recalculation for up-to-date rankings.")
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Prioritized tasks retrieved successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - studentId does not match authenticated user"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
+        })
         public ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> getPrioritizedTasks(
-                        @RequestParam String studentId,
-                        @RequestParam(defaultValue = "false") boolean forceRecalculate,
+                        @Parameter(description = "Student identifier used to fetch prioritized tasks", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
+                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(defaultValue = "false") boolean forceRecalculate,
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
@@ -53,11 +76,77 @@ public class PrioritizationController {
 
                 // 3. Return standardized API response
                 String message = tasks.isEmpty()
-                        ? "No hay tareas activas para priorizar"
-                        : "¡Tareas priorizadas exitosamente!";
+                                ? "No hay tareas activas para priorizar"
+                                : "¡Tareas priorizadas exitosamente!";
 
                 return ResponseEntity.ok(
                                 ApiResponse.success(message, responseList));
+        }
+
+        @PostMapping("/critical")
+        @Operation(summary = "Get Critical Task Recommendations", description = "Filters prioritized tasks and returns up to 3 critical recommendations (HIGH/CRITICAL within 48 hours).")
+        @ApiResponses(value = {
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Critical recommendations retrieved", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - studentId does not match authenticated user"),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
+        })
+        public ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> getCriticalRecommendations(
+                        @Parameter(description = "Student identifier used to fetch critical recommendations", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
+                        @RequestBody(required = false) CriticalRecommendationsRequest request,
+                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(defaultValue = "false") boolean forceRecalculate,
+                        Authentication authentication) {
+
+                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+
+                List<PrioritizedTaskResponse> orderedTasks = resolveOrderedTasks(studentId, request, forceRecalculate);
+                CriticalRecommendationsResponse response = criticalRecommendationsService
+                                .buildRecommendations(orderedTasks);
+
+                return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
+        }
+
+        private List<PrioritizedTaskResponse> resolveOrderedTasks(
+                        String studentId,
+                        CriticalRecommendationsRequest request,
+                        boolean forceRecalculate) {
+                List<CriticalTaskCandidateRequest> candidates = request != null ? request.getOrderedTasks() : null;
+                if (candidates == null || candidates.isEmpty()) {
+                        return prioritizeTasksUseCase.prioritize(studentId, forceRecalculate).stream()
+                                        .map(planningTaskMapper::toPrioritizedResponse)
+                                        .toList();
+                }
+
+                return candidates.stream()
+                                .map(this::toPrioritizedResponse)
+                                .toList();
+        }
+
+        private PrioritizedTaskResponse toPrioritizedResponse(CriticalTaskCandidateRequest candidate) {
+                String safeTaskId = candidate.getTaskId() != null ? candidate.getTaskId() : "";
+                String safeTitle = candidate.getTitle() != null ? candidate.getTitle() : "";
+                String safeSubjectId = candidate.getSubjectId() != null ? candidate.getSubjectId() : "";
+                String safeTaskType = candidate.getTaskType() != null ? candidate.getTaskType() : "OTRO";
+                String safePriorityLevel = candidate.getPriorityLevel() != null ? candidate.getPriorityLevel() : "LOW";
+                String safeStatus = candidate.getStatus() != null ? candidate.getStatus() : "TODO";
+
+                return PrioritizedTaskResponse.builder()
+                                .taskId(safeTaskId)
+                                .title(safeTitle)
+                                .subjectId(safeSubjectId)
+                                .taskType(safeTaskType)
+                                .deadline(candidate.getDeadline())
+                                .scheduledDate(candidate.getScheduledDate())
+                                .estimatedDurationMinutes(candidate.getEstimatedDurationMinutes() != null
+                                                ? candidate.getEstimatedDurationMinutes()
+                                                : 0)
+                                .priorityScore(candidate.getPriorityScore() != null
+                                                ? candidate.getPriorityScore()
+                                                : 0.0)
+                                .priorityLevel(safePriorityLevel)
+                                .status(safeStatus)
+                                .build();
         }
 
         private void assertStudentIdMatchesAuthenticatedUser(

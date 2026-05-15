@@ -57,6 +57,7 @@
    - [6.2 R15 — Balance de Tiempo](#62-r15--balance-de-tiempo)
    - [6.3 R16 — Distribución Automática](#63-r16--distribución-automática)
    - [6.4 R17 — Rebalanceo Dinámico](#64-r17--rebalanceo-dinámico)
+  - [6.5 AIB-22.2 — Critical Task Recommendations](#65-aib-222--critical-task-recommendations)
 7. [🔌 Conexiones con Servicios Externos](#7--conexiones-con-servicios-externos)
 8. [⚠️ Manejo de Errores](#8--manejo-de-errores)
 9. [📋 Estrategia de Versionamiento y Branches](#9--estrategia-de-versionamiento-y-branches)
@@ -161,7 +162,8 @@ El `planning-engine-service` consume información de otros microservicios del ec
 ```
 planning-engine-service
  ├── task-service        → Obtiene las tareas académicas del estudiante
- └── user-service        → Obtiene el perfil y disponibilidad del estudiante
+ ├── user-service        → Obtiene el perfil y disponibilidad del estudiante
+ └── academic-service    → Obtiene el peso académico de la materia
 ```
 
 <div align="center">
@@ -170,6 +172,7 @@ planning-engine-service
 |:---------------------|:----------------|:-----------------|
 | **task-service** | GET tareas del estudiante | Obtener lista de tareas pendientes para planificar |
 | **user-service** | GET perfil del estudiante | Obtener disponibilidad horaria y carga académica |
+| **academic-service** | GET peso académico | Obtener el peso de la materia en la carga semestral |
 
 </div>
 
@@ -220,22 +223,30 @@ El microservicio implementa **Clean Architecture** con enfoque **Hexagonal (Port
 
 ### 4.4 Algoritmo de priorización
 
-El motor calcula un **score de prioridad** para cada tarea académica con base en cuatro factores ponderados:
+El motor calcula un **score de prioridad** combinando tres factores:
 
 ```
-score =
-  (nota_actual    × 0.35) +   ← Peso académico del estudiante
-  (proximidad     × 0.35) +   ← Cercanía a la fecha límite
-  (peso_tarea     × 0.20) +   ← Peso de la tarea en la materia
-  (creditos       × 0.10)     ← Créditos de la asignatura
+score = (pesoAcademico * 100) * weightAcademic
+  + (puntuacionProximidad) * weightProximity
+  + (puntuacionTiempo) * weightTime
 ```
 
-| Factor | Peso | Descripción |
-|--------|------|-------------|
-| `nota_actual` | 35% | Nota actual del estudiante en la materia |
-| `proximidad` | 35% | Qué tan cerca está la fecha de entrega |
-| `peso_tarea` | 20% | Porcentaje que representa la tarea en la nota final |
-| `creditos` | 10% | Créditos de la asignatura |
+**Proximidad (horas restantes):**
+
+| Horas restantes | puntuacionProximidad |
+|----------------|----------------------|
+| <= 24 | 100 |
+| <= 48 | 80 |
+| <= 120 | 60 |
+| > 120 | 40 |
+
+**Tiempo estimado:**
+
+```
+puntuacionTiempo = min((minutosEstimados / 3), 100)
+```
+
+Si no hay deadline, la prioridad es `BAJA` y el score es `0`.
 
 ---
 
@@ -321,10 +332,10 @@ score =
 
 ### 6.1 R14 — Motor de Priorización de Tareas
 
-Calcula automáticamente la prioridad de las tareas académicas del estudiante usando el algoritmo de scoring ponderado. Aplica escalado forzado a **ALTA** cuando el deadline es menor a 24 horas (**RN-02**).
+Calcula automáticamente la prioridad de las tareas académicas del estudiante combinando peso académico, proximidad del deadline y tiempo estimado. Aplica escalado a **CRITICA** cuando el deadline es menor o igual a 24 horas.
 
 **Endpoint:**
-`GET /planning/prioritization?studentId={id}&forceRecalculate={bool}`
+`GET /planning/prioritization?forceRecalculate={bool}`
 
 ---
 
@@ -334,7 +345,7 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante u
 
 | 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
 |---|---|:---:|---|
-| `studentId` | `String` | Obligatorio (Query Param) | Identificador del estudiante. |
+| `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
 | `forceRecalculate` | `Boolean` | Opcional (default: false) | Si es `true`, recalcula todos los scores aunque ya existan. |
 | `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
 
@@ -352,26 +363,27 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante u
 | `data[].taskId` | `String` | Identificador único de la tarea. |
 | `data[].title` | `String` | Nombre de la tarea académica. |
 | `data[].priorityScore` | `Float` | Puntaje calculado (0.0 – 100.0). |
-| `data[].priorityLevel` | `String` | Nivel: `ALTA` (≥70) / `MEDIA` (40–69) / `BAJA` (<40). |
+| `data[].priorityLevel` | `String` | Nivel: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`. |
 | `data[].deadline` | `LocalDateTime` | Fecha límite de la tarea. |
 | `data[].estimatedDurationMinutes` | `Integer` | Tiempo estimado en minutos. |
 
 </div>
 
-#### 🧮 Algoritmo de Scoring (R14)
+#### 🧮 Algoritmo de Prioridad (R14)
 
 ```
-score = (proximityFactor × 0.40) + (academicWeightFactor × 0.35) + (timeFactor × 0.25)
+score = (pesoAcademico * 100) * weightAcademic
+      + (puntuacionProximidad) * weightProximity
+      + (puntuacionTiempo) * weightTime
 
-academicWeightFactor = min(academicWeight / 5.0, 1.0)   ← escala 0.0–5.0
-timeFactor           = min(estimatedHours / 20.0, 1.0)  ← capped at 72h
+puntuacionProximidad:
+  <= 24h  -> 100
+  <= 48h  -> 80
+  <= 120h -> 60
+  > 120h  -> 40
+
+puntuacionTiempo = min((minutosEstimados / 3), 100)
 ```
-
-| Nivel | Score | Regla especial |
-|-------|-------|----------------|
-| `ALTA` | ≥ 70 | deadline ≤ mañana → forzado a ALTA con score 100 (RN-02) |
-| `MEDIA` | 40–69 | — |
-| `BAJA` | < 40 | tarea sin deadline → BAJA por defecto |
 
 ---
 
@@ -761,7 +773,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 **Request:**
 ```http
-GET /planning/prioritization?studentId=STU-001
+GET /planning/prioritization?forceRecalculate=false
+X-Student-Id: STU-001
 Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 ```
 
@@ -1111,6 +1124,82 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 | ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Error during plan reorganization"` |
 
 </div>
+
+---
+
+### 6.5 AIB-22.2 — Critical Task Recommendations
+
+Filters prioritized tasks to highlight up to 3 critical recommendations. A task is critical when
+its priority is `HIGH` or `CRITICAL` and the deadline is within 48 hours.
+
+**Endpoint:**
+`POST /planning/prioritization/critical`
+
+---
+
+#### 📦 Input (Request)
+
+<div align="center">
+
+| Field | Type | Required | Description |
+|---|---|:---:|---|
+| `X-Student-Id` | `String` | Yes (Header) | Student identifier. |
+| `orderedTasks` | `Array` | No | If empty, planning-service will compute priorities using AIB-22. |
+| `forceRecalculate` | `boolean` | No | Query param. Forces recalculation before filtering. |
+| `Authorization` | `String` | Yes (Header) | JWT Bearer token. |
+
+</div>
+
+---
+
+#### 📦 Output (Response)
+
+<div align="center">
+
+| Field | Type | Description |
+|---|---|---|
+| `criticalRecommendations` | `Array` | Up to 3 tasks ordered by urgency (CRITICAL first). |
+| `totalCritical` | `Integer` | Total number of critical tasks (unlimited). |
+| `message` | `String` | User-facing message in English. |
+
+</div>
+
+---
+
+#### ✅ Example
+
+**Request:**
+```http
+POST /planning/prioritization/critical?forceRecalculate=false
+X-Student-Id: STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "You have 2 critical tasks that require immediate attention",
+  "data": {
+    "criticalRecommendations": [
+      {
+        "taskId": "TASK-101",
+        "title": "Calculus Exam",
+        "subjectId": "SUB-01",
+        "taskType": "EXAMEN",
+        "deadline": "2026-05-15T10:00:00",
+        "estimatedDurationMinutes": 120,
+        "priorityScore": 92.5,
+        "priorityLevel": "CRITICAL",
+        "status": "IN_PROGRESS",
+        "scheduledDate": "2026-05-14T08:00:00"
+      }
+    ],
+    "totalCritical": 2,
+    "message": "You have 2 critical tasks that require immediate attention"
+  },
+  "timestamp": "2026-05-14T10:00:00"
+}
+```
 
 ---
 
@@ -1784,6 +1873,7 @@ JWT_SECRET=your_jwt_secret_key_here
 # Feign Clients — Servicios externos
 FEIGN_TASK_SERVICE_URL=http://task-service:8001
 FEIGN_PROFILE_SERVICE_URL=http://user-service:8002
+FEIGN_ACADEMIC_SERVICE_URL=http://academic-service:8003
 
 # Inteligencia Artificial
 GEMINI_API_KEY=your_gemini_api_key_here

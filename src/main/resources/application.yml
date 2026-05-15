@@ -12,14 +12,17 @@ feign:
   profile-service:
     url: ${FEIGN_PROFILE_SERVICE_URL}
 
+  academic-service:
+    url: ${FEIGN_ACADEMIC_SERVICE_URL}
+
 jwt:
   secret: ${JWT_SECRET}
 
 planning:
   priority:
     weight-proximity: 0.40
-    weight-academic: 0.35
-    weight-time: 0.25
+    weight-academic: 0.40
+    weight-time: 0.20
 
 management:
   endpoints:

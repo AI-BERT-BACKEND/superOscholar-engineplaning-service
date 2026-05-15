@@ -27,13 +27,20 @@ public class TaskServiceResponse {
     private String title;
     private String description;
 
-    /** Duración estimada en minutos (task-service usa minutos, planning usa horas) */
+    /**
+     * Duración estimada en minutos (task-service usa minutos, planning usa horas)
+     */
     private Integer estimatedDurationMinutes;
 
-    /** Fecha límite como LocalDateTime (planning-service necesita solo LocalDate) */
+    /**
+     * Fecha límite como LocalDateTime (planning-service necesita solo LocalDate)
+     */
     private LocalDateTime deadline;
 
-    /** Fecha programada como LocalDateTime (planning-service necesita solo LocalDate) */
+    /**
+     * Fecha programada como LocalDateTime (planning-service necesita solo
+     * LocalDate)
+     */
     private LocalDateTime scheduledDate;
 
     /** Nombre de la prioridad (LOW, MEDIUM, HIGH, CRITICAL) */
@@ -44,6 +51,9 @@ public class TaskServiceResponse {
 
     /** ID de la materia asociada */
     private String subjectId;
+
+    /** Tipo de tarea (TAREA, EXAMEN, PROYECTO, LECTURA, OTRO) */
+    private String type;
 
     /** Dificultad de la tarea (1-5), puede ser null si task-service no lo tiene */
     private Integer difficulty;

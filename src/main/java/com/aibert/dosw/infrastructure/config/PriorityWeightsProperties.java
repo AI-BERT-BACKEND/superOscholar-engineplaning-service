@@ -10,14 +10,17 @@ import org.springframework.stereotype.Component;
  * Values can be changed at runtime via application.yml or environment variables
  * without modifying code.
  *
- * <p>The three weights must sum to 1.0 for the formula to produce a score in 0–100.</p>
+ * <p>
+ * The three weights must sum to 1.0 for the formula to produce a score in
+ * 0–100.
+ * </p>
  *
  * <pre>
  * planning:
  *   priority:
  *     weight-proximity: 0.40
- *     weight-academic: 0.35
- *     weight-time: 0.25
+ *     weight-academic: 0.40
+ *     weight-time: 0.20
  * </pre>
  */
 @Getter
@@ -29,9 +32,9 @@ public class PriorityWeightsProperties {
     /** Weight for deadline proximity factor (default 40%). */
     private double weightProximity = 0.40;
 
-    /** Weight for academic/subject weight factor (default 35%). */
-    private double weightAcademic = 0.35;
+    /** Weight for academic/subject weight factor (default 40%). */
+    private double weightAcademic = 0.40;
 
-    /** Weight for estimated time factor (default 25%). */
-    private double weightTime = 0.25;
+    /** Weight for estimated time factor (default 20%). */
+    private double weightTime = 0.20;
 }
