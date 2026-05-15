@@ -35,7 +35,7 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldDistributeTasksProperly() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.ALTA).build();
+            .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.HIGH).build();
             
         DailySchedule day = DailySchedule.builder()
             .date(LocalDate.now())
@@ -93,7 +93,7 @@ class DistributeTasksUseCaseImplTest {
     void shouldSkipDayAfterDeadline() {
         PlanningTask t1 = PlanningTask.builder()
             .id("1").estimatedHours(2.0).dueDate(LocalDate.now())
-            .priorityLevel(TaskPriority.ALTA).build();
+            .priorityLevel(TaskPriority.HIGH).build();
 
         DailySchedule futureDay = DailySchedule.builder()
             .date(LocalDate.now().plusDays(5))
@@ -117,7 +117,7 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldDistributeWithUnavailableBlocks() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(1.0).priorityLevel(TaskPriority.ALTA).build();
+            .id("1").estimatedHours(1.0).priorityLevel(TaskPriority.HIGH).build();
 
         LocalDate today = LocalDate.now();
         DailySchedule day = DailySchedule.builder()
@@ -147,7 +147,7 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldSplitTaskAcrossMultipleSlots() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(3.0).priorityLevel(TaskPriority.ALTA).build();
+            .id("1").estimatedHours(3.0).priorityLevel(TaskPriority.HIGH).build();
 
         LocalDate today = LocalDate.now();
         DailySchedule day = DailySchedule.builder()
@@ -172,7 +172,7 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldMarkTaskAsUnassignedWhenNotEnoughTime() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(10.0).priorityLevel(TaskPriority.ALTA).build();
+            .id("1").estimatedHours(10.0).priorityLevel(TaskPriority.HIGH).build();
 
         DailySchedule day = DailySchedule.builder()
             .date(LocalDate.now())
@@ -196,10 +196,10 @@ class DistributeTasksUseCaseImplTest {
     void shouldPrioritizeHighPriorityTasks() {
         PlanningTask high = PlanningTask.builder()
             .id("1").estimatedHours(2.0)
-            .priorityLevel(TaskPriority.CRITICA).priorityScore(90.0).build();
+            .priorityLevel(TaskPriority.CRITICAL).priorityScore(90.0).build();
         PlanningTask low = PlanningTask.builder()
             .id("2").estimatedHours(2.0)
-            .priorityLevel(TaskPriority.BAJA).priorityScore(10.0).build();
+            .priorityLevel(TaskPriority.LOW).priorityScore(10.0).build();
 
         DailySchedule day = DailySchedule.builder()
             .date(LocalDate.now())

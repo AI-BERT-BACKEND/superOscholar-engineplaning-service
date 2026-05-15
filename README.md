@@ -57,7 +57,7 @@
    - [6.2 R15 — Balance de Tiempo](#62-r15--balance-de-tiempo)
    - [6.3 R16 — Distribución Automática](#63-r16--distribución-automática)
    - [6.4 R17 — Rebalanceo Dinámico](#64-r17--rebalanceo-dinámico)
-  - [6.5 AIB-22.2 — Critical Task Recommendations](#65-aib-222--critical-task-recommendations)
+   - [6.5 AIB-22.1 — Priorización Automática](#65-aib-221--priorización-automática)
 7. [🔌 Conexiones con Servicios Externos](#7--conexiones-con-servicios-externos)
 8. [⚠️ Manejo de Errores](#8--manejo-de-errores)
 9. [📋 Estrategia de Versionamiento y Branches](#9--estrategia-de-versionamiento-y-branches)
@@ -246,7 +246,7 @@ score = (pesoAcademico * 100) * weightAcademic
 puntuacionTiempo = min((minutosEstimados / 3), 100)
 ```
 
-Si no hay deadline, la prioridad es `BAJA` y el score es `0`.
+Si no hay deadline, la prioridad es `LOW` y el score es `0`.
 
 ---
 
@@ -326,13 +326,13 @@ Si no hay deadline, la prioridad es `BAJA` y el score es `0`.
 
 ## 6. ⚡ Funcionalidades
 
-> **Versión actualizada:** Todos los endpoints ahora retornan mensajes en español, usan los niveles de prioridad `ALTA / MEDIA / BAJA` según el requerimiento R14, e incluyen los campos `movedTasks` (R17) y `weeklyLoadAnalysis` (R15).
+> **Versión actualizada:** Todos los endpoints ahora retornan mensajes en español, usan los niveles de prioridad `CRITICAL / HIGH / MEDIUM / LOW` según el requerimiento AIB-22, e incluyen los campos `movedTasks` (R17) y `weeklyLoadAnalysis` (R15).
 
 ---
 
 ### 6.1 R14 — Motor de Priorización de Tareas
 
-Calcula automáticamente la prioridad de las tareas académicas del estudiante combinando peso académico, proximidad del deadline y tiempo estimado. Aplica escalado a **CRITICA** cuando el deadline es menor o igual a 24 horas.
+Calcula automáticamente la prioridad de las tareas académicas del estudiante combinando peso académico, proximidad del deadline y tiempo estimado. Aplica escalado a **CRITICAL** cuando el deadline es menor o igual a 24 horas.
 
 **Endpoint:**
 `GET /planning/prioritization?forceRecalculate={bool}`
@@ -362,10 +362,15 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante c
 | `message` | `String` | `"¡Tareas priorizadas exitosamente!"` o `"No hay tareas activas para priorizar"` |
 | `data[].taskId` | `String` | Identificador único de la tarea. |
 | `data[].title` | `String` | Nombre de la tarea académica. |
+| `data[].subjectId` | `String` | ID de la materia asociada. |
+| `data[].taskType` | `String` | Tipo: `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO`. |
+| `data[].deadline` | `LocalDateTime` | Fecha límite de la tarea (ISO 8601). |
+| `data[].scheduledDate` | `LocalDateTime` | Fecha de estudio asignada. `null` si no distribuida. |
+| `data[].estimatedDurationMinutes` | `Integer` | Tiempo estimado en minutos. |
+| `data[].status` | `String` | Estado: `TODO` / `IN_PROGRESS` / `COMPLETED` / `SCHEDULED`. |
 | `data[].priorityScore` | `Float` | Puntaje calculado (0.0 – 100.0). |
 | `data[].priorityLevel` | `String` | Nivel: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`. |
-| `data[].deadline` | `LocalDateTime` | Fecha límite de la tarea. |
-| `data[].estimatedDurationMinutes` | `Integer` | Tiempo estimado en minutos. |
+| `data[].lastUpdated` | `LocalDateTime` | Timestamp ISO 8601 del último recálculo de prioridad. |
 
 </div>
 
@@ -403,18 +408,28 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
     {
       "taskId": "TASK-101",
       "title": "Parcial de Cálculo Diferencial",
-      "priorityScore": 100.0,
-      "priorityLevel": "ALTA",
+      "subjectId": "CALC-201",
+      "taskType": "EXAMEN",
       "deadline": "2026-05-13T23:59:00",
-      "estimatedDurationMinutes": 180
+      "scheduledDate": "2026-05-12T08:00:00",
+      "estimatedDurationMinutes": 180,
+      "status": "TODO",
+      "priorityScore": 100.0,
+      "priorityLevel": "CRITICAL",
+      "lastUpdated": "2026-05-12T19:00:00"
     },
     {
       "taskId": "TASK-102",
       "title": "Taller de Programación",
-      "priorityScore": 62.50,
-      "priorityLevel": "MEDIA",
+      "subjectId": "PROG-101",
+      "taskType": "TAREA",
       "deadline": "2026-05-20T23:59:00",
-      "estimatedDurationMinutes": 120
+      "scheduledDate": null,
+      "estimatedDurationMinutes": 120,
+      "status": "TODO",
+      "priorityScore": 62.50,
+      "priorityLevel": "MEDIUM",
+      "lastUpdated": "2026-05-12T19:00:00"
     }
   ],
   "timestamp": "2026-05-12T19:00:00"
@@ -608,7 +623,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
           "taskId": "TASK-101",
           "title": "Parcial de Cálculo",
           "priorityScore": 100.0,
-          "priorityLevel": "ALTA"
+          "priorityLevel": "CRITICAL"
         },
         "date": "2026-05-13",
         "startTime": "08:00",
@@ -749,71 +764,88 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 ---
 
+---
+
+### 6.5 AIB-22.1 — Priorización Automática
+
+Sub-funcionalidad del Motor de Priorización (AIB-22). El sistema recalcula y asigna automáticamente el nivel de prioridad a cada tarea sin intervención manual del estudiante, cada vez que se detecta un cambio relevante.
+
+**Disparador:** Se ejecuta internamente al detectar eventos de cambio en tareas (registro, edición, completado).
 
 ---
 
-#### 📦 Información de Salida (Response)
+#### 🔄 Flujo Básico
+
+<div align="center">
+
+| Paso | Actor | Descripción |
+|:----:|-------|-------------|
+| 1 | Estudiante | Registra, edita o completa una tarea en el sistema. |
+| 2 | planning-service | Detecta el evento y activa `PrioritizeTasksUseCase`. |
+| 3 | planning-service | Recupera todas las tareas activas (`TODO`/`IN_PROGRESS`) desde `task-service`. |
+| 4 | planning-service | Recalcula `priorityScore` y `priorityLevel` para cada tarea. |
+| 5 | Estudiante | Visualiza su lista de tareas actualizada y ordenada por prioridad. |
+
+</div>
+
+---
+
+#### 📦 Datos de Entrada (Internos)
 
 <div align="center">
 
 | 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
 |---|---|---|
-| `taskId` | `String` | Identificador único de la tarea. |
-| `taskName` | `String` | Nombre de la tarea académica. |
-| `priorityScore` | `Double` | Puntuación calculada (0.0 - 1.0). |
-| `priorityLevel` | `Enum` | Nivel: `HIGH`, `MEDIUM`, `LOW`. |
-| `dueDate` | `String` | Fecha límite de la tarea (ISO 8601). |
-| `estimatedTime` | `Integer` | Tiempo estimado en minutos. |
+| `taskList` | `List<TaskServiceResponse>` | Tareas activas recuperadas del task-service via Feign. |
+| `id` | `String (UUID)` | Identificador de la tarea. |
+| `deadline` | `LocalDateTime` | Fecha límite (ISO 8601). |
+| `estimatedDurationMinutes` | `Integer` | Minutos estimados de trabajo. |
+| `type` | `TaskType` | `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO` |
+| `status` | `TaskStatus` | Solo `TODO` o `IN_PROGRESS`. |
 
 </div>
 
 ---
 
-#### ✅ Happy Path (Ejemplo de Uso Exitoso)
-
-**Request:**
-```http
-GET /planning/prioritization?forceRecalculate=false
-X-Student-Id: STU-001
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-```
-
-**Response `200 OK`:**
-```json
-[
-  {
-    "taskId": "TASK-101",
-    "taskName": "Parcial de Cálculo Diferencial",
-    "priorityScore": 0.92,
-    "priorityLevel": "HIGH",
-    "dueDate": "2025-08-10T23:59:00Z",
-    "estimatedTime": 180
-  },
-  {
-    "taskId": "TASK-102",
-    "taskName": "Taller de Programación",
-    "priorityScore": 0.65,
-    "priorityLevel": "MEDIUM",
-    "dueDate": "2025-08-14T23:59:00Z",
-    "estimatedTime": 120
-  }
-]
-```
-
----
-
-#### 📊 Tipos de Errores Manejados
+#### 📦 Datos de Salida
 
 <div align="center">
 
-| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
-|:------------------:|:----------------|:------------------------|
-| ![400](https://img.shields.io/badge/400-Bad_Request-red?style=flat) | studentId vacío | `"Student ID cannot be null or empty"` |
-| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido o ausente | `"Invalid or missing JWT token"` |
-| ![404](https://img.shields.io/badge/404-Not_Found-orange?style=flat) | Estudiante no encontrado | `"No tasks found for student"` |
-| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error en algoritmo | `"Error calculating priority score"` |
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `taskId` | `String` | Identificador de la tarea (UUID). |
+| `title` | `String` | Título de la tarea (máx. 200 caracteres). |
+| `subjectId` | `String` | ID de la materia asociada. |
+| `taskType` | `String` | `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO` |
+| `deadline` | `LocalDateTime` | Fecha límite (ISO 8601). |
+| `priorityScore` | `Float` | Puntuación 0.0 – 100.0 (mayor = más urgente). |
+| `priorityLevel` | `String` | `LOW` (< 40) / `MEDIUM` (40-69) / `HIGH` (≥ 70) / `CRITICAL` (deadline < 24h). |
+| `estimatedDurationMinutes` | `Integer` | Minutos estimados de trabajo. |
+| `status` | `String` | `TODO` / `IN_PROGRESS`. |
+| `scheduledDate` | `LocalDateTime` | Fecha de estudio asignada. `null` si no distribuida. |
+| `lastUpdated` | `LocalDateTime` | Timestamp ISO 8601 del último recálculo. |
 
 </div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | El recálculo se ejecuta automáticamente al registrar, editar o completar una tarea. |
+| RN-02 | El proceso no interrumpe la navegación del estudiante (corre en segundo plano). |
+| RN-03 | El evento disparador es interno del sistema y no requiere acción del estudiante. |
+
+</div>
+
+#### 🔀 Flujo Alterno
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | No hay tareas activas al momento del evento → el sistema omite el recálculo y registra en log: `"FA-01: No active tasks found for student '{}'. Skipping prioritization."` |
 
 ---
 

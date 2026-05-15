@@ -42,13 +42,13 @@ class PrioritizeTasksUseCaseImplTest {
         PlanningTask t1 = PlanningTask.builder()
                 .id("1").title("T1").dueDate(LocalDate.now().plusDays(2))
                 .subjectName("math")
-                .status(TaskStatus.PENDING)
+                .status(TaskStatus.TODO)
                 .subjectCredits(4).estimatedHours(3.0).build();
 
         PlanningTask t2 = PlanningTask.builder()
                 .id("2").title("T2").dueDate(LocalDate.now().plusDays(10))
                 .subjectName("history")
-                .status(TaskStatus.PENDING)
+                .status(TaskStatus.TODO)
                 .subjectCredits(2).estimatedHours(1.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("student1")).thenReturn(List.of(t1, t2));
@@ -82,8 +82,8 @@ class PrioritizeTasksUseCaseImplTest {
     void shouldNotRecalculateWhenNotForcedAndPriorityExists() {
         PlanningTask task = PlanningTask.builder()
                 .id("1").dueDate(LocalDate.now().plusDays(3))
-                .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
-                .status(TaskStatus.PENDING)
+                .priorityLevel(TaskPriority.HIGH).priorityScore(60.0)
+                .status(TaskStatus.TODO)
                 .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
@@ -91,8 +91,7 @@ class PrioritizeTasksUseCaseImplTest {
         List<PlanningTask> result = useCase.prioritize("st1", false);
 
         assertEquals(1, result.size());
-        // Score should remain unchanged since forceRecalculate is false and
-        // priorityLevel is not null
+        // Score should remain unchanged since forceRecalculate is false and priorityLevel is not null
         assertEquals(60.0, result.get(0).getPriorityScore());
         verify(taskProviderPort).updateTaskPriorities(anyList());
     }
@@ -101,8 +100,8 @@ class PrioritizeTasksUseCaseImplTest {
     void shouldRecalculateWhenForced() {
         PlanningTask task = PlanningTask.builder()
                 .id("1").dueDate(LocalDate.now().plusDays(3))
-                .priorityLevel(TaskPriority.ALTA).priorityScore(60.0)
-                .status(TaskStatus.PENDING)
+                .priorityLevel(TaskPriority.HIGH).priorityScore(60.0)
+                .status(TaskStatus.TODO)
                 .estimatedHours(2.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
@@ -122,7 +121,7 @@ class PrioritizeTasksUseCaseImplTest {
         PlanningTask task = PlanningTask.builder()
                 .id("1").dueDate(LocalDate.now())
                 .subjectName("math")
-                .status(TaskStatus.PENDING)
+                .status(TaskStatus.TODO)
                 .estimatedHours(3.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
@@ -132,7 +131,7 @@ class PrioritizeTasksUseCaseImplTest {
         List<PlanningTask> result = useCase.prioritize("st1", true);
 
         assertEquals(1, result.size());
-        assertEquals(TaskPriority.CRITICA, result.get(0).getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, result.get(0).getPriorityLevel()); // RN-02
     }
 
     @Test
@@ -140,7 +139,7 @@ class PrioritizeTasksUseCaseImplTest {
         PlanningTask task = PlanningTask.builder()
                 .id("1").dueDate(LocalDate.now().plusDays(3))
                 .subjectName("math")
-                .status(TaskStatus.PENDING)
+                .status(TaskStatus.TODO)
                 .estimatedHours(3.0).build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(new ArrayList<>(List.of(task)));
@@ -150,6 +149,6 @@ class PrioritizeTasksUseCaseImplTest {
         List<PlanningTask> result = useCase.prioritize("st1", true);
 
         assertEquals(1, result.size());
-        assertEquals(TaskPriority.MEDIA, result.get(0).getPriorityLevel());
+        assertEquals(TaskPriority.MEDIUM, result.get(0).getPriorityLevel());
     }
 }

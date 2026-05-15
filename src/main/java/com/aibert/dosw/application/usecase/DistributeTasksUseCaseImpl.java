@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 /**
  * Application service implementing the Task Distribution Engine (R16).
  * It splits tasks to fit into available time slots, strictly prioritizing
- * ALTO/CRITICAL tasks.
+ * HIGH/CRITICAL tasks.
  */
 @Service
 @RequiredArgsConstructor

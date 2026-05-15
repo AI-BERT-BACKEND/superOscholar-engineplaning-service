@@ -92,7 +92,7 @@ class RebalanceTasksUseCaseImplTest {
 
         WeeklyDistributionPlan result = useCase.reportFailureAndRebalance("st1", "1", LocalDate.now(), 1.0, "reason");
 
-        assertEquals(TaskPriority.CRITICA, result.getUnassignedTasks().get(0).getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, result.getUnassignedTasks().get(0).getPriorityLevel());
         assertEquals(100.0, result.getUnassignedTasks().get(0).getPriorityScore());
     }
 

@@ -10,9 +10,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * Secondary adapter that implements the TaskProviderPort using Feign.
- * Converts TaskServiceResponse (external DTO) to PlanningTask (domain model)
- * using TaskResponseMapper to resolve field name and type incompatibilities.
+ * Secondary adapter that implements {@link TaskProviderPort} using Feign.
+ *
+ * <p>
+ * Converts {@link TaskServiceResponse} (external DTO) to {@link PlanningTask}
+ * (domain model) using {@link TaskResponseMapper} to resolve field name and
+ * type
+ * incompatibilities between the two microservices.
+ * </p>
  */
 @Component
 @RequiredArgsConstructor
@@ -35,7 +40,6 @@ public class TaskServiceAdapter implements TaskProviderPort {
 
     @Override
     public void updateTaskPriorities(List<PlanningTask> tasks) {
-        // Convert PlanningTask back to TaskServiceResponse for the PUT request
         List<TaskServiceResponse> responses = tasks.stream()
                 .map(this::toTaskServiceResponse)
                 .toList();
@@ -47,9 +51,12 @@ public class TaskServiceAdapter implements TaskProviderPort {
         taskServiceClient.reportTaskFailure(studentId, taskId, hoursMissed, reason);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // Private helpers
+    // ─────────────────────────────────────────────────────────────────
+
     /**
-     * Convierte PlanningTask de vuelta a TaskServiceResponse para enviar
-     * actualizaciones.
+     * Converts a PlanningTask back to TaskServiceResponse for outbound updates.
      */
     private TaskServiceResponse toTaskServiceResponse(PlanningTask task) {
         return TaskServiceResponse.builder()
@@ -61,39 +68,26 @@ public class TaskServiceAdapter implements TaskProviderPort {
                         task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
                 .deadline(task.getDueDate() != null ? task.getDueDate().atStartOfDay() : null)
                 .scheduledDate(task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : null)
-                .priority(toTaskServicePriority(task))
+                .priority(task.getPriorityLevel() != null ? task.getPriorityLevel().name() : null)
                 .type(task.getType() != null ? task.getType().name() : null)
                 .status(convertStatusToTaskService(task))
                 .build();
     }
 
-    private String toTaskServicePriority(PlanningTask task) {
-        if (task.getPriorityLevel() == null) {
-            return null;
-        }
-        return switch (task.getPriorityLevel()) {
-            case CRITICA -> "CRITICAL";
-            case ALTA -> "HIGH";
-            case MEDIA -> "MEDIUM";
-            case BAJA -> "LOW";
-        };
-    }
-
     /**
-     * Convierte TaskStatus de planning-service a String de task-service.
-     * PENDING → TODO, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED, SCHEDULED →
-     * SCHEDULED
+     * Converts the internal TaskStatus to the task-service canonical string.
+     * SCHEDULED and OVERLOADED are planning-service internals; OVERLOADED maps back
+     * to TODO.
      */
     private String convertStatusToTaskService(PlanningTask task) {
-        if (task.getStatus() == null) {
+        if (task.getStatus() == null)
             return "TODO";
-        }
         return switch (task.getStatus()) {
-            case PENDING -> "TODO";
+            case TODO -> "TODO";
             case IN_PROGRESS -> "IN_PROGRESS";
             case COMPLETED -> "COMPLETED";
             case SCHEDULED -> "SCHEDULED";
-            case OVERLOADED -> "TODO"; // task-service doesn't have OVERLOADED
+            case OVERLOADED -> "TODO"; // task-service has no OVERLOADED
         };
     }
 }

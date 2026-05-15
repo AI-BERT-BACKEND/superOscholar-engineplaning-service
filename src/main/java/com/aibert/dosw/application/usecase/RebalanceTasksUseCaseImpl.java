@@ -90,7 +90,7 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
     }
 
     /**
-     * Identifies tasks with imminent deadlines and marks them as CRITICA (RN-02).
+     * Identifies tasks with imminent deadlines and marks them as CRITICAL (RN-02).
      */
     private void identifyAndMarkCriticalTasks(WeeklyDistributionPlan plan) {
         LocalDate tomorrow = LocalDate.now().plusDays(1);

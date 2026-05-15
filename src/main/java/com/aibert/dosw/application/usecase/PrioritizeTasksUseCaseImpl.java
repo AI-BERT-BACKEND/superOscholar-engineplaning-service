@@ -14,14 +14,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * Application service implementing the prioritization use case (R14).
+ * Application service implementing the prioritization use case (AIB-22).
  * It fetches pending tasks, applies weighted prioritization rules,
  * sorts the tasks, and updates them via the output port.
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
@@ -36,6 +38,7 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
         List<PlanningTask> pendingTasks = taskProviderPort.getPendingTasksByUser(studentId);
 
         if (pendingTasks == null || pendingTasks.isEmpty()) {
+            log.info("FA-01: No active tasks found for student '{}'. Skipping prioritization.", studentId);
             return List.of();
         }
 
@@ -72,12 +75,14 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
         // 4. Send the updated priorities back to the task-service
         taskProviderPort.updateTaskPriorities(prioritizedTasks);
 
+        log.info("Successfully prioritized {} tasks for student '{}'", prioritizedTasks.size(), studentId);
+
         return prioritizedTasks;
     }
 
     private boolean isActive(PlanningTask task) {
         return task != null
-                && (task.getStatus() == TaskStatus.PENDING
+                && (task.getStatus() == TaskStatus.TODO
                         || task.getStatus() == TaskStatus.IN_PROGRESS);
     }
 

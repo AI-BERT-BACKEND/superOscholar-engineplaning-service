@@ -9,6 +9,6 @@ class EmptyValueObjectsTest {
     @Test
     void shouldInstantiateEmptyValueObjects() {
         assertNotNull(new UserId());
-        assertNotNull(new AcademicWeight());
+        assertNotNull(AcademicWeight.of("test", 0.5));
     }
 }

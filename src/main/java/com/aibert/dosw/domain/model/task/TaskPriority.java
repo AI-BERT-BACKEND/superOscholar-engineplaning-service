@@ -4,28 +4,27 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Niveles de prioridad para una tarea académica según el requerimiento R14.
+ * Priority levels for an academic task (AIB-22).
  *
  * <ul>
- *   <li>ALTA     — score ≥ 70 (incluye tareas con deadline &lt;24h escaladas automáticamente)</li>
- *   <li>MEDIA    — score 40–69</li>
- *   <li>BAJA     — score &lt; 40</li>
- *   <li>CRITICA  — alias interno para deadline &lt;24h; se proyecta como ALTA al cliente</li>
+ *   <li>CRITICAL — deadline &lt; 24 h; escalated automatically (RN-02)</li>
+ *   <li>HIGH     — score ≥ 70</li>
+ *   <li>MEDIUM   — score 40–69</li>
+ *   <li>LOW      — score &lt; 40 (also assigned when no deadline)</li>
  * </ul>
  */
 @Getter
 @RequiredArgsConstructor
 public enum TaskPriority {
-    /** Deadline en menos de 24h — se muestra como ALTA al cliente con score máximo. */
-    CRITICA(70.0, "ALTA"),
+
+    /** Deadline within 24 h — automatically escalated (RN-02). Score = 100. */
+    CRITICAL(70.0),
     /** Score ≥ 70. */
-    ALTA(70.0, "ALTA"),
+    HIGH(70.0),
     /** Score 40–69. */
-    MEDIA(40.0, "MEDIA"),
-    /** Score < 40. */
-    BAJA(0.0, "BAJA");
+    MEDIUM(40.0),
+    /** Score &lt; 40 or no deadline. */
+    LOW(0.0);
 
     private final double minimumScore;
-    /** Etiqueta que se expone en la respuesta de la API. */
-    private final String label;
 }

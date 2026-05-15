@@ -19,7 +19,7 @@ class EmptyClassesInstantiationTest {
     @Test
     void shouldInstantiateEmptyClasses() {
         assertNotNull(new UserId());
-        assertNotNull(new AcademicWeight());
+        assertNotNull(AcademicWeight.of("test", 0.5));
         assertNotNull(new UserProfile());
         assertNotNull(new RebalanceResult());
         assertNotNull(new WeeklyDistribution());

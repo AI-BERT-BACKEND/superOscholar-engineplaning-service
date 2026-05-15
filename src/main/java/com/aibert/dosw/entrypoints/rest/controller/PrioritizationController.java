@@ -146,6 +146,7 @@ public class PrioritizationController {
                                                 : 0.0)
                                 .priorityLevel(safePriorityLevel)
                                 .status(safeStatus)
+                                .lastUpdated(java.time.LocalDateTime.now())
                                 .build();
         }
 

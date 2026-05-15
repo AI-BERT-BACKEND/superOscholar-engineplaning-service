@@ -38,9 +38,12 @@ public class PrioritizedTaskResponse {
     @Schema(description = "Task status", example = "TODO")
     private final String status;
 
-    @Schema(description = "Priority score computed by the engine", example = "0.82")
+    @Schema(description = "Priority score computed by the engine", example = "82.5")
     private final double priorityScore;
 
     @Schema(description = "Priority level label", example = "HIGH")
     private final String priorityLevel;
+
+    @Schema(description = "Timestamp of the last priority recalculation (ISO 8601)", example = "2026-05-15T12:00:00")
+    private final LocalDateTime lastUpdated;
 }

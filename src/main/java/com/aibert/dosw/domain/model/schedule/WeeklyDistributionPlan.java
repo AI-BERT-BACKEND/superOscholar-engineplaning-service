@@ -36,7 +36,7 @@ public class WeeklyDistributionPlan {
     }
 
     /**
-     * Returns a distinct list of all tasks that are currently marked as CRITICA (deadline <24h).
+     * Returns a distinct list of all tasks that are currently marked as CRITICAL (deadline <24h).
      * Used for the criticalAlerts field in the response (R17 RN-02).
      */
     public List<PlanningTask> getCriticalTasks() {
@@ -44,12 +44,12 @@ public class WeeklyDistributionPlan {
         if (assignedBlocks != null) {
             assignedBlocks.stream()
                     .map(ScheduledBlock::getTask)
-                    .filter(t -> t.getPriorityLevel() == TaskPriority.CRITICA)
+                    .filter(t -> t.getPriorityLevel() == TaskPriority.CRITICAL)
                     .forEach(criticals::add);
         }
         if (unassignedTasks != null) {
             unassignedTasks.stream()
-                    .filter(t -> t.getPriorityLevel() == TaskPriority.CRITICA)
+                    .filter(t -> t.getPriorityLevel() == TaskPriority.CRITICAL)
                     .forEach(criticals::add);
         }
         return criticals.stream().distinct().toList();

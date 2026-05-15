@@ -48,7 +48,7 @@ class TaskResponseMapperTest {
         assertEquals("2", result.get(1).getId());
     }
 
-    // ========== toPlanningTask — Grupo A: campos compatibles ==========
+    // ========== toPlanningTask — Group A: direct field mapping ==========
 
     @Test
     void toPlanningTask_mapsDirectFields() {
@@ -67,7 +67,7 @@ class TaskResponseMapperTest {
         assertEquals("Implementar microservicio", result.getDescription());
     }
 
-    // ========== toPlanningTask — Grupo B: conversiones de tipo ==========
+    // ========== toPlanningTask — Group B: type conversions ==========
 
     @Test
     void toPlanningTask_convertsMinutesToHours() {
@@ -147,16 +147,13 @@ class TaskResponseMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-            "BAJA, BAJA",
-            "MEDIA, MEDIA",
-            "ALTA, ALTA",
-            "CRITICA, CRITICA",
-            "LOW, BAJA",
-            "MEDIUM, MEDIA",
-            "HIGH, ALTA",
-            "CRITICAL, ALTA",
-            "high, ALTA",
-            "Critical, ALTA"
+            "LOW, LOW",
+            "MEDIUM, MEDIUM",
+            "HIGH, HIGH",
+            "CRITICAL, CRITICAL",
+            "high, HIGH",
+            "Critical, CRITICAL",
+            "low, LOW"
     })
     void toPlanningTask_convertsPriority(String input, TaskPriority expected) {
         TaskServiceResponse response = TaskServiceResponse.builder()
@@ -209,7 +206,7 @@ class TaskResponseMapperTest {
 
     @ParameterizedTest
     @CsvSource({
-            "TODO, PENDING",
+            "TODO, TODO",
             "IN_PROGRESS, IN_PROGRESS",
             "COMPLETED, COMPLETED",
             "SCHEDULED, SCHEDULED"
@@ -226,7 +223,7 @@ class TaskResponseMapperTest {
     }
 
     @Test
-    void toPlanningTask_nullStatus_defaultsToPending() {
+    void toPlanningTask_nullStatus_defaultsToTodo() {
         TaskServiceResponse response = TaskServiceResponse.builder()
                 .id("1")
                 .status(null)
@@ -234,11 +231,11 @@ class TaskResponseMapperTest {
 
         PlanningTask result = mapper.toPlanningTask(response);
 
-        assertEquals(TaskStatus.PENDING, result.getStatus());
+        assertEquals(TaskStatus.TODO, result.getStatus());
     }
 
     @Test
-    void toPlanningTask_blankStatus_defaultsToPending() {
+    void toPlanningTask_blankStatus_defaultsToTodo() {
         TaskServiceResponse response = TaskServiceResponse.builder()
                 .id("1")
                 .status("")
@@ -246,11 +243,11 @@ class TaskResponseMapperTest {
 
         PlanningTask result = mapper.toPlanningTask(response);
 
-        assertEquals(TaskStatus.PENDING, result.getStatus());
+        assertEquals(TaskStatus.TODO, result.getStatus());
     }
 
     @Test
-    void toPlanningTask_unknownStatus_defaultsToPending() {
+    void toPlanningTask_unknownStatus_defaultsToTodo() {
         TaskServiceResponse response = TaskServiceResponse.builder()
                 .id("1")
                 .status("CANCELLED")
@@ -258,7 +255,7 @@ class TaskResponseMapperTest {
 
         PlanningTask result = mapper.toPlanningTask(response);
 
-        assertEquals(TaskStatus.PENDING, result.getStatus());
+        assertEquals(TaskStatus.TODO, result.getStatus());
     }
 
     // ========== Difficulty & subjectId ==========
@@ -327,7 +324,7 @@ class TaskResponseMapperTest {
                 () -> assertEquals(2.0, result.getEstimatedHours(), 0.001),
                 () -> assertEquals(LocalDate.of(2026, 6, 20), result.getDueDate()),
                 () -> assertEquals(LocalDate.of(2026, 6, 18), result.getScheduledDate()),
-                () -> assertEquals(TaskPriority.ALTA, result.getPriorityLevel()),
+                () -> assertEquals(TaskPriority.HIGH, result.getPriorityLevel()),
                 () -> assertEquals(TaskStatus.IN_PROGRESS, result.getStatus()),
                 () -> assertEquals(3, result.getDifficulty()),
                 () -> assertEquals("CALC-101", result.getSubjectName()));

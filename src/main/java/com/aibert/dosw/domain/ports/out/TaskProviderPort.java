@@ -8,7 +8,7 @@ import java.util.List;
  * This abstracts the Feign Client communication in the domain layer.
  */
 public interface TaskProviderPort {
-    
+
     /**
      * Retrieves all pending tasks for a specific user from the task-service.
      *
@@ -33,7 +33,7 @@ public interface TaskProviderPort {
     void updateTaskPriorities(List<PlanningTask> tasks);
 
     /**
-     * Reports a failed study block to the task-service so it can 
+     * Reports a failed study block to the task-service so it can
      * restore the pending hours or mark the task as incomplete.
      *
      * @param studentId   The ID of the student

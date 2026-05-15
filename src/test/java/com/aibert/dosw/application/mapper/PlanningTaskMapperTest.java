@@ -30,7 +30,7 @@ class PlanningTaskMapperTest {
                                 .estimatedHours(1.5)
                                 .dueDate(LocalDate.of(2026, 5, 5))
                                 .priorityScore(42.5)
-                                .priorityLevel(TaskPriority.ALTA)
+                                .priorityLevel(TaskPriority.HIGH)
                                 .build();
 
                 PrioritizedTaskResponse response = mapper.toPrioritizedResponse(task);
@@ -42,6 +42,7 @@ class PlanningTaskMapperTest {
                 assertEquals(42.5, response.getPriorityScore());
                 assertEquals("HIGH", response.getPriorityLevel());
                 assertEquals("TODO", response.getStatus());
+                assertNotNull(response.getLastUpdated(), "lastUpdated must be set by the mapper");
         }
 
         @Test
@@ -49,7 +50,7 @@ class PlanningTaskMapperTest {
                 PlanningTask critical = PlanningTask.builder()
                                 .id("c1")
                                 .title("Critical")
-                                .priorityLevel(TaskPriority.CRITICA)
+                                .priorityLevel(TaskPriority.CRITICAL)
                                 .estimatedHours(1.0)
                                 .build();
 

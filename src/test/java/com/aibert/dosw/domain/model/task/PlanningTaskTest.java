@@ -14,7 +14,7 @@ class PlanningTaskTest {
     void shouldAssignPriorityAndStatus() {
         PlanningTask task = PlanningTask.builder().dueDate(LocalDate.now().plusDays(2)).build();
         task.assignPriority(PriorityScore.calculate(LocalDate.now(), 0.5, 20.0));
-        assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, task.getPriorityLevel());
 
         task.scheduleFor(LocalDate.now());
         assertEquals(TaskStatus.SCHEDULED, task.getStatus());
@@ -33,7 +33,7 @@ class PlanningTaskTest {
         assertEquals(0, task.getDaysRemaining());
 
         task.markAsCriticalAlert();
-        assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, task.getPriorityLevel());
     }
 
     @Test
@@ -109,26 +109,26 @@ class PlanningTaskTest {
     }
 
     @Test
-    void isHighPriority_criticaLevel_returnsTrue() {
-        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.CRITICA).build();
+    void isHighPriority_criticalLevel_returnsTrue() {
+        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.CRITICAL).build();
         assertTrue(task.isHighPriority());
     }
 
     @Test
-    void isHighPriority_altaLevel_returnsTrue() {
-        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.ALTA).build();
+    void isHighPriority_highLevel_returnsTrue() {
+        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.HIGH).build();
         assertTrue(task.isHighPriority());
     }
 
     @Test
-    void isHighPriority_mediaLevel_returnsFalse() {
-        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.MEDIA).build();
+    void isHighPriority_mediumLevel_returnsFalse() {
+        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.MEDIUM).build();
         assertFalse(task.isHighPriority());
     }
 
     @Test
-    void isHighPriority_bajaLevel_returnsFalse() {
-        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.BAJA).build();
+    void isHighPriority_lowLevel_returnsFalse() {
+        PlanningTask task = PlanningTask.builder().priorityLevel(TaskPriority.LOW).build();
         assertFalse(task.isHighPriority());
     }
 
@@ -136,7 +136,7 @@ class PlanningTaskTest {
     void markAsCriticalAlert_boostsPriorityScore() {
         PlanningTask task = PlanningTask.builder().priorityScore(50.0).build();
         task.markAsCriticalAlert();
-        assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, task.getPriorityLevel());
         assertEquals(100.0, task.getPriorityScore());
     }
 
@@ -144,7 +144,7 @@ class PlanningTaskTest {
     void markAsCriticalAlert_keepHigherScore() {
         PlanningTask task = PlanningTask.builder().priorityScore(100.0).build();
         task.markAsCriticalAlert();
-        assertEquals(TaskPriority.CRITICA, task.getPriorityLevel());
+        assertEquals(TaskPriority.CRITICAL, task.getPriorityLevel());
         assertEquals(100.0, task.getPriorityScore());
     }
 }
