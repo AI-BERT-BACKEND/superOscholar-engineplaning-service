@@ -1,6 +1,10 @@
 package com.aibert.dosw.application.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,18 +18,23 @@ import lombok.Setter;
 @NoArgsConstructor
 @Schema(description = "Payload used to report a missed or failed study block for a student")
 public class FailureReportRequest {
+    @NotBlank(message = "studentId is required")
     @Schema(description = "Student identifier reporting the failure", example = "student-123")
     private String studentId;
 
+    @NotBlank(message = "taskId is required")
     @Schema(description = "Identifier of the task that failed", example = "task-456")
     private String taskId;
 
+    @NotNull(message = "failedDate is required")
     @Schema(description = "Date when the study block was missed", example = "2026-05-12")
     private LocalDate failedDate;
 
+    @Positive(message = "hoursMissed must be greater than 0")
     @Schema(description = "Number of study hours missed in the block", example = "2.5")
     private double hoursMissed;
 
+    @Size(max = 500, message = "reason must not exceed 500 characters")
     @Schema(description = "Short reason or note for the failure", example = "Sick day")
     private String reason;
 }

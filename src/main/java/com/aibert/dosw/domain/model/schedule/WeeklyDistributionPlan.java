@@ -1,6 +1,7 @@
 package com.aibert.dosw.domain.model.schedule;
 
 import com.aibert.dosw.domain.model.context.MovedTaskRecord;
+import com.aibert.dosw.domain.model.context.OverloadedDayRecord;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.model.task.TaskPriority;
 import java.util.ArrayList;
@@ -29,6 +30,20 @@ public class WeeklyDistributionPlan {
     private final List<MovedTaskRecord> movedTasks;
 
     /**
+     * AIB-27: Days where the proposed plan (without the cap) would have exceeded
+     * MAX_MINUTES_PER_DAY = 240. Empty when no overload was detected.
+     */
+    private final List<OverloadedDayRecord> overloadedDays;
+
+    /**
+     * AIB-25 / AIB-26 / AIB-27 — Optional override message.
+     * Set when a specific FA scenario is detected or overload protection is
+     * applied.
+     * When non-null, the mapper uses this value instead of the default message.
+     */
+    private final String message;
+
+    /**
      * Checks if the distribution was 100% successful (all tasks fitted).
      */
     public boolean isFullyAssigned() {
@@ -36,7 +51,8 @@ public class WeeklyDistributionPlan {
     }
 
     /**
-     * Returns a distinct list of all tasks that are currently marked as CRITICAL (deadline <24h).
+     * Returns a distinct list of all tasks that are currently marked as CRITICAL
+     * (deadline <24h).
      * Used for the criticalAlerts field in the response (R17 RN-02).
      */
     public List<PlanningTask> getCriticalTasks() {
@@ -55,4 +71,3 @@ public class WeeklyDistributionPlan {
         return criticals.stream().distinct().toList();
     }
 }
-

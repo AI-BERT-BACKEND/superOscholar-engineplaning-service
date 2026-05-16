@@ -2,9 +2,11 @@ package com.aibert.dosw.application.mapper;
 
 import com.aibert.dosw.application.dto.response.DistributionPlanResponse;
 import com.aibert.dosw.application.dto.response.MovedTaskResponse;
+import com.aibert.dosw.application.dto.response.OverloadedDayResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.dto.response.ScheduledBlockResponse;
 import com.aibert.dosw.domain.model.context.MovedTaskRecord;
+import com.aibert.dosw.domain.model.context.OverloadedDayRecord;
 import com.aibert.dosw.domain.model.schedule.ScheduledBlock;
 import com.aibert.dosw.domain.model.schedule.WeeklyDistributionPlan;
 import com.aibert.dosw.domain.model.task.PlanningTask;
@@ -127,7 +129,11 @@ public interface PlanningTaskMapper {
         };
     }
 
-    @Mapping(target = "durationHours", expression = "java(block.getDurationHours())")
+    @Mapping(target = "taskId", expression = "java(block.getTask().getId())")
+    @Mapping(target = "title", expression = "java(block.getTask().getTitle())")
+    @Mapping(target = "scheduledDate", expression = "java(java.time.LocalDateTime.of(block.getDate(), block.getStartTime()))")
+    @Mapping(target = "estimatedDurationMinutes", expression = "java((int) Math.round(block.getDurationHours() * 60))")
+    @Mapping(target = "priority", expression = "java(block.getTask().getPriorityLevel() != null ? block.getTask().getPriorityLevel().name() : \"LOW\")")
     ScheduledBlockResponse toScheduledBlockResponse(ScheduledBlock block);
 
     /**
@@ -145,6 +151,10 @@ public interface PlanningTaskMapper {
     @Mapping(target = "fullyAssigned", expression = "java(plan.isFullyAssigned())")
     @Mapping(target = "criticalAlerts", expression = "java(plan.getCriticalTasks().stream().map(this::toPrioritizedResponse).toList())")
     @Mapping(target = "movedTasks", expression = "java(plan.getMovedTasks() != null ? plan.getMovedTasks().stream().map(this::toMovedTaskResponse).toList() : java.util.List.of())")
-    @Mapping(target = "message", expression = "java(plan.isFullyAssigned() ? \"¡Plan de trabajo generado exitosamente!\" : \"Plan generado. Hay tareas que no pudieron ser asignadas por falta de disponibilidad.\")")
+    @Mapping(target = "overloadedDays", expression = "java(plan.getOverloadedDays() != null ? plan.getOverloadedDays().stream().map(this::toOverloadedDayResponse).collect(java.util.stream.Collectors.toList()) : java.util.List.of())")
+    @Mapping(target = "message", expression = "java(plan.getMessage() != null ? plan.getMessage() : plan.getAssignedBlocks().isEmpty() && plan.getUnassignedTasks().isEmpty() ? \"No tienes tareas pendientes para distribuir.\" : plan.isFullyAssigned() ? \"¡Plan de trabajo generado exitosamente!\" : \"Hay tareas que no pudieron asignarse por falta de disponibilidad\")")
     DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
+
+    /** AIB-27: Maps an OverloadedDayRecord domain object to its response DTO. */
+    OverloadedDayResponse toOverloadedDayResponse(OverloadedDayRecord record);
 }

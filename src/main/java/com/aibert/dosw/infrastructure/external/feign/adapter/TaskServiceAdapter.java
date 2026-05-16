@@ -75,7 +75,8 @@ public class TaskServiceAdapter implements TaskProviderPort {
                 .title(task.getTitle())
                 .description(task.getDescription())
                 .estimatedDurationMinutes(
-                        task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
+                        task.getCorrectedEstimatedMinutes() != null ? task.getCorrectedEstimatedMinutes()
+                                : task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
                 .deadline(deadline)
                 .scheduledDate(scheduled)
                 .priority(task.getPriorityLevel() != null ? task.getPriorityLevel().name() : null)

@@ -47,6 +47,13 @@ public class DistributionPlanResponse {
     private final boolean fullyAssigned;
 
     /**
+     * AIB-27: Days where the proposed plan exceeded MAX_MINUTES_PER_DAY = 240
+     * before the overload-protection cap was applied. Empty when no overload.
+     */
+    @Schema(description = "Days with overload detected before the daily cap was applied (AIB-27)")
+    private final List<OverloadedDayResponse> overloadedDays;
+
+    /**
      * Human-readable result message per spec:
      * "¡Plan de trabajo generado exitosamente!" or task-not-found warnings.
      */

@@ -29,7 +29,7 @@ class DistributionControllerTest {
 
     @Test
     void shouldDistributeTasks() {
-        when(distributeTasksUseCase.distribute("st1")).thenReturn(WeeklyDistributionPlan.builder().build());
+        when(distributeTasksUseCase.distribute(any(), any())).thenReturn(WeeklyDistributionPlan.builder().build());
         when(planningTaskMapper.toDistributionPlanResponse(any()))
                 .thenReturn(DistributionPlanResponse.builder().build());
 
@@ -37,14 +37,13 @@ class DistributionControllerTest {
         when(authentication.getName()).thenReturn("st1");
 
         ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.generateDistribution("st1",
-                authentication);
+                null, authentication);
         assertNotNull(response.getBody());
     }
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () ->
-            controller.generateDistribution("st1", null));
+        assertThrows(AccessDeniedException.class, () -> controller.generateDistribution("st1", null, null));
     }
 
     @Test
@@ -52,7 +51,6 @@ class DistributionControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.generateDistribution("st1", authentication));
+        assertThrows(AccessDeniedException.class, () -> controller.generateDistribution("st1", null, authentication));
     }
 }

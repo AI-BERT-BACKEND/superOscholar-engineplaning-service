@@ -11,15 +11,17 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/rebalance")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Rebalance", description = "Endpoints for handling dynamic rebalancing of study schedules when failures or changes occur")
 public class RebalanceController {
 
@@ -48,10 +51,12 @@ public class RebalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<DistributionPlanResponse>> reportFailure(
-                        @Parameter(description = "Failure report details including studentId, taskId, failed date, hours missed, and reason", required = true) @RequestBody FailureReportRequest request,
+                        @Parameter(description = "Failure report details including studentId, taskId, failed date, hours missed, and reason", required = true) @Valid @RequestBody FailureReportRequest request,
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, request.getStudentId());
+                log.info("Reporte de fallo recibido para estudiante={} tarea={}", request.getStudentId(),
+                                request.getTaskId());
 
                 var newPlan = rebalanceTasksUseCase.reportFailureAndRebalance(
                                 request.getStudentId(),
@@ -60,9 +65,9 @@ public class RebalanceController {
                                 request.getHoursMissed(),
                                 request.getReason());
 
+                var response = planningTaskMapper.toDistributionPlanResponse(newPlan);
                 return ResponseEntity.ok(
-                                ApiResponse.success("Fallo reportado y plan redistribuido exitosamente",
-                                                planningTaskMapper.toDistributionPlanResponse(newPlan)));
+                                ApiResponse.success(response.getMessage(), response));
         }
 
         /**
@@ -79,16 +84,17 @@ public class RebalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<DistributionPlanResponse>> reorganize(
-                        @Parameter(description = "Student identifier used to reorganize the remaining weekly schedule", required = true, example = "student-123") @RequestParam String studentId,
+                        @Parameter(description = "Student identifier used to reorganize the remaining weekly schedule", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+                log.info("Reorganización manual del plan semanal para estudiante={}", studentId);
 
                 var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
 
+                var response = planningTaskMapper.toDistributionPlanResponse(updatedPlan);
                 return ResponseEntity.ok(
-                                ApiResponse.success("¡Plan semanal reorganizado exitosamente!",
-                                                planningTaskMapper.toDistributionPlanResponse(updatedPlan)));
+                                ApiResponse.success(response.getMessage(), response));
         }
 
         private void assertStudentIdMatchesAuthenticatedUser(

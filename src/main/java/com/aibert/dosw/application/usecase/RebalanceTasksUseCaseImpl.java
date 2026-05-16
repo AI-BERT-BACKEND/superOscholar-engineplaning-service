@@ -1,6 +1,7 @@
 package com.aibert.dosw.application.usecase;
 
 import com.aibert.dosw.domain.model.context.MovedTaskRecord;
+import com.aibert.dosw.domain.model.context.OverloadedDayRecord;
 import com.aibert.dosw.domain.model.schedule.ScheduledBlock;
 import com.aibert.dosw.domain.model.schedule.WeeklyDistributionPlan;
 import com.aibert.dosw.domain.model.task.PlanningTask;
@@ -62,6 +63,8 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
                 .assignedBlocks(newPlan.getAssignedBlocks())
                 .unassignedTasks(newPlan.getUnassignedTasks())
                 .movedTasks(movedTasks)
+                .overloadedDays(newPlan.getOverloadedDays())
+                .message(computeRebalanceMessage(newPlan))
                 .build();
     }
 
@@ -86,7 +89,26 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
                 .assignedBlocks(newPlan.getAssignedBlocks())
                 .unassignedTasks(newPlan.getUnassignedTasks())
                 .movedTasks(movedTasks)
+                .overloadedDays(newPlan.getOverloadedDays())
+                .message(computeRebalanceMessage(newPlan))
                 .build();
+    }
+
+    /**
+     * Determines the user-facing message for a rebalanced plan.
+     * Priority: critical alerts > overload protection > full assignment > default.
+     */
+    private String computeRebalanceMessage(WeeklyDistributionPlan plan) {
+        if (!plan.getCriticalTasks().isEmpty()) {
+            return "Hay tareas críticas que requieren tu atención inmediata.";
+        }
+        if (plan.getOverloadedDays() != null && !plan.getOverloadedDays().isEmpty()) {
+            return "Tu plan fue ajustado para respetar tu límite diario de estudio.";
+        }
+        if (plan.isFullyAssigned()) {
+            return "Plan reorganizado exitosamente.";
+        }
+        return null;
     }
 
     /**
@@ -114,12 +136,15 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
     }
 
     /**
-     * Computes which tasks were relocated by comparing the new plan against the original block map.
+     * Computes which tasks were relocated by comparing the new plan against the
+     * original block map.
      * Per R17 spec: movedTasks includes taskId, original block, and new block.
      *
-     * @param newPlan              The new distribution plan
-     * @param originalBlockByTask  Map of taskId → original ScheduledBlock before rebalancing
-     * @param failedDate           The date that triggered the rebalance (may be null for manual reorganize)
+     * @param newPlan             The new distribution plan
+     * @param originalBlockByTask Map of taskId → original ScheduledBlock before
+     *                            rebalancing
+     * @param failedDate          The date that triggered the rebalance (may be null
+     *                            for manual reorganize)
      * @return List of moved task records
      */
     private List<MovedTaskRecord> computeMovedTasks(
@@ -137,7 +162,8 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
             String taskId = newBlock.getTask().getId();
             ScheduledBlock originalBlock = originalBlockByTask.get(taskId);
 
-            if (originalBlock == null) continue;
+            if (originalBlock == null)
+                continue;
 
             boolean dateChanged = !originalBlock.getDate().equals(newBlock.getDate());
             boolean timeChanged = !originalBlock.getStartTime().equals(newBlock.getStartTime());
@@ -160,4 +186,3 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
         return moved;
     }
 }
-

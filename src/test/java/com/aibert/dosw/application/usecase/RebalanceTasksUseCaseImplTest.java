@@ -34,21 +34,21 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldReportFailureAndRebalanceWithCriticalAlert() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(1)).build();
+                .id("1").dueDate(LocalDate.now().plusDays(1)).build();
 
         List<ScheduledBlock> blocks = new ArrayList<>();
         blocks.add(ScheduledBlock.builder()
-            .task(task)
-            .date(LocalDate.now())
-            .startTime(LocalTime.of(9, 0))
-            .endTime(LocalTime.of(10, 0))
-            .build());
+                .task(task)
+                .date(LocalDate.now())
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .build());
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(blocks)
-            .unassignedTasks(new ArrayList<>())
-            .build();
+                .studentId("st1")
+                .assignedBlocks(blocks)
+                .unassignedTasks(new ArrayList<>())
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -63,10 +63,10 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldReorganizePlan() {
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(new ArrayList<>())
-            .unassignedTasks(new ArrayList<>())
-            .build();
+                .studentId("st1")
+                .assignedBlocks(new ArrayList<>())
+                .unassignedTasks(new ArrayList<>())
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -80,13 +80,13 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldMarkUnassignedTasksAsCriticalWhenDueSoon() {
         PlanningTask unassignedTask = PlanningTask.builder()
-            .id("u1").dueDate(LocalDate.now()).priorityScore(30.0).build();
+                .id("u1").dueDate(LocalDate.now()).priorityScore(30.0).build();
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(new ArrayList<>())
-            .unassignedTasks(new ArrayList<>(List.of(unassignedTask)))
-            .build();
+                .studentId("st1")
+                .assignedBlocks(new ArrayList<>())
+                .unassignedTasks(new ArrayList<>(List.of(unassignedTask)))
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -99,21 +99,21 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldNotMarkTasksWithFutureDueDateAsCritical() {
         PlanningTask task = PlanningTask.builder()
-            .id("1").dueDate(LocalDate.now().plusDays(10)).priorityScore(30.0).build();
+                .id("1").dueDate(LocalDate.now().plusDays(10)).priorityScore(30.0).build();
 
         List<ScheduledBlock> blocks = new ArrayList<>();
         blocks.add(ScheduledBlock.builder()
-            .task(task)
-            .date(LocalDate.now())
-            .startTime(LocalTime.of(9, 0))
-            .endTime(LocalTime.of(10, 0))
-            .build());
+                .task(task)
+                .date(LocalDate.now())
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .build());
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(blocks)
-            .unassignedTasks(new ArrayList<>())
-            .build();
+                .studentId("st1")
+                .assignedBlocks(blocks)
+                .unassignedTasks(new ArrayList<>())
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -127,10 +127,10 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldHandleNullAssignedBlocksInPlan() {
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(null)
-            .unassignedTasks(null)
-            .build();
+                .studentId("st1")
+                .assignedBlocks(null)
+                .unassignedTasks(null)
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -142,21 +142,21 @@ class RebalanceTasksUseCaseImplTest {
     @Test
     void shouldHandleTaskWithNullDueDateInCriticalCheck() {
         PlanningTask taskNullDue = PlanningTask.builder()
-            .id("1").dueDate(null).priorityScore(30.0).build();
+                .id("1").dueDate(null).priorityScore(30.0).build();
 
         List<ScheduledBlock> blocks = new ArrayList<>();
         blocks.add(ScheduledBlock.builder()
-            .task(taskNullDue)
-            .date(LocalDate.now())
-            .startTime(LocalTime.of(9, 0))
-            .endTime(LocalTime.of(10, 0))
-            .build());
+                .task(taskNullDue)
+                .date(LocalDate.now())
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .build());
 
         WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
-            .studentId("st1")
-            .assignedBlocks(blocks)
-            .unassignedTasks(new ArrayList<>())
-            .build();
+                .studentId("st1")
+                .assignedBlocks(blocks)
+                .unassignedTasks(new ArrayList<>())
+                .build();
 
         when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
 
@@ -165,5 +165,57 @@ class RebalanceTasksUseCaseImplTest {
         // Task with null due date should NOT be marked as critical
         assertNull(result.getAssignedBlocks().get(0).getTask().getPriorityLevel());
         assertEquals(30.0, result.getAssignedBlocks().get(0).getTask().getPriorityScore());
+    }
+
+    @Test
+    void shouldReturnCriticalAlertMessageWhenTaskDueSoon() {
+        PlanningTask task = PlanningTask.builder()
+                .id("c1").dueDate(LocalDate.now()).priorityScore(50.0).build();
+
+        List<ScheduledBlock> blocks = new ArrayList<>();
+        blocks.add(ScheduledBlock.builder()
+                .task(task)
+                .date(LocalDate.now())
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .build());
+
+        WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
+                .studentId("st1")
+                .assignedBlocks(blocks)
+                .unassignedTasks(new ArrayList<>())
+                .build();
+
+        when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
+
+        WeeklyDistributionPlan result = useCase.reorganizePlan("st1");
+
+        assertEquals("Hay tareas críticas que requieren tu atención inmediata.", result.getMessage());
+    }
+
+    @Test
+    void shouldReturnSuccessMessageWhenAllTasksRelocated() {
+        PlanningTask task = PlanningTask.builder()
+                .id("f1").dueDate(LocalDate.now().plusDays(7)).priorityScore(50.0).build();
+
+        List<ScheduledBlock> blocks = new ArrayList<>();
+        blocks.add(ScheduledBlock.builder()
+                .task(task)
+                .date(LocalDate.now())
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(10, 0))
+                .build());
+
+        WeeklyDistributionPlan mockPlan = WeeklyDistributionPlan.builder()
+                .studentId("st1")
+                .assignedBlocks(blocks)
+                .unassignedTasks(new ArrayList<>())
+                .build();
+
+        when(distributeTasksUseCase.distribute("st1")).thenReturn(mockPlan);
+
+        WeeklyDistributionPlan result = useCase.reorganizePlan("st1");
+
+        assertEquals("Plan reorganizado exitosamente.", result.getMessage());
     }
 }

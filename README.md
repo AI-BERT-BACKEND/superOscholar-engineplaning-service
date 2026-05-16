@@ -58,6 +58,14 @@
    - [6.3 R16 — Distribución Automática](#63-r16--distribución-automática)
    - [6.4 R17 — Rebalanceo Dinámico](#64-r17--rebalanceo-dinámico)
    - [6.5 AIB-22.1 — Priorización Automática](#65-aib-221--priorización-automática)
+   - [6.6 AIB-22.2 — Recomendación de Tareas Críticas](#66-aib-222--recomendación-de-tareas-críticas)
+   - [6.7 AIB-22.3 — Detección de Tareas de Alto Riesgo](#67-aib-223--detección-de-tareas-de-alto-riesgo)
+   - [6.8 AIB-22.4 — Ajuste Automático de Estimaciones](#68-aib-224--ajuste-automático-de-estimaciones)
+   - [6.9 AIB-23 — Balanceador de Tiempo](#69-aib-23--balanceador-de-tiempo)
+   - [6.10 AIB-24 — Distribución Automática de Tareas](#610-aib-24--distribución-automática-de-tareas)
+   - [6.11 AIB-25 — Protección del Tiempo Personal](#611-aib-25--protección-del-tiempo-personal)
+   - [6.12 AIB-26 — Rebalanceo Dinámico de Tareas](#612-aib-26--rebalanceo-dinámico-de-tareas)
+   - [6.13 AIB-27 — Protección de Sobrecarga Académica](#613-aib-27--protección-de-sobrecarga-académica)
 7. [🔌 Conexiones con Servicios Externos](#7--conexiones-con-servicios-externos)
 8. [⚠️ Manejo de Errores](#8--manejo-de-errores)
 9. [📋 Estrategia de Versionamiento y Branches](#9--estrategia-de-versionamiento-y-branches)
@@ -1190,7 +1198,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 
 ---
 
-### 6.5 AIB-22.2 — Critical Task Recommendations
+### 6.6 AIB-22.2 — Recomendación de Tareas Críticas
 
 Filters prioritized tasks to highlight up to 3 critical recommendations. A task is critical when
 its priority is `HIGH` or `CRITICAL` and the deadline is within 48 hours.
@@ -1264,6 +1272,782 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
   "timestamp": "2026-05-14T10:00:00"
 }
 ```
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Una tarea es **crítica** cuando su `priorityLevel` es `HIGH` o `CRITICAL` y el deadline está dentro de las 48 horas. |
+| RN-02 | Se retornan hasta **3** recomendaciones, ordenadas por urgencia (`CRITICAL` primero). |
+| RN-03 | Si no hay tareas críticas, se retorna una lista vacía con mensaje informativo. |
+
+</div>
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Unexpected server error"` |
+
+</div>
+
+#### 🔀 Flujo Alterno
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Sin tareas críticas → `"No hay tareas críticas en este momento."` |
+
+---
+
+### 6.7 AIB-22.3 — Detección de Tareas de Alto Riesgo
+
+Analiza las tareas activas del estudiante contra su disponibilidad horaria configurada e identifica aquellas con tiempo disponible insuficiente hasta el deadline. Las tareas se clasifican en dos niveles de riesgo: **HIGH** (menos del 70 % del tiempo estimado disponible) y **MEDIUM** (70–85 %). Las tareas con peso académico superior al 30 % se incluyen primero en el reporte.
+
+**Endpoint:**
+`GET /planning/risk/high-risk`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `highRiskTasks[].taskId` | `String` | Identificador único de la tarea. |
+| `highRiskTasks[].title` | `String` | Título de la tarea. |
+| `highRiskTasks[].riskLevel` | `String` | Nivel de riesgo: `HIGH` o `MEDIUM`. |
+| `highRiskTasks[].availableMinutes` | `Integer` | Minutos disponibles hasta el deadline según la agenda del estudiante. |
+| `highRiskTasks[].estimatedDurationMinutes` | `Integer` | Minutos estimados para completar la tarea. |
+| `highRiskTasks[].academicWeight` | `Double` | Peso académico de la materia (0–1). |
+| `riskSummary.totalAtRisk` | `Integer` | Total de tareas en riesgo. |
+| `riskSummary.affectedLoadPercentage` | `Double` | Porcentaje de carga académica afectada. |
+| `message` | `String` | Resumen del análisis de riesgo en español. |
+
+</div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Una tarea es **HIGH** si `availableMinutes / estimatedDurationMinutes < 0.70`. |
+| RN-02 | Una tarea es **MEDIUM** si el cociente está en el rango `[0.70, 0.85)`. |
+| RN-03 | Tareas con `academicWeight > 0.30` se ordenan primero en el resultado. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+GET /planning/risk/high-risk
+X-Student-Id: STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Se detectaron 2 tarea(s) en riesgo.",
+  "data": {
+    "highRiskTasks": [
+      {
+        "taskId": "TASK-101",
+        "title": "Parcial de Cálculo",
+        "riskLevel": "HIGH",
+        "availableMinutes": 60,
+        "estimatedDurationMinutes": 120,
+        "academicWeight": 0.40
+      }
+    ],
+    "riskSummary": {
+      "totalAtRisk": 2,
+      "affectedLoadPercentage": 35.0
+    },
+    "message": "Se detectaron 2 tarea(s) en riesgo."
+  },
+  "timestamp": "2026-05-16T10:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Unexpected server error"` |
+
+</div>
+
+#### 🔀 Flujo Alterno
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Sin tareas en riesgo → `"No se encontraron tareas en riesgo para el estudiante."` |
+
+---
+
+### 6.8 AIB-22.4 — Ajuste Automático de Estimaciones
+
+Registra el tiempo real empleado al completar una tarea y, cuando el estudiante acumula suficientes muestras del mismo tipo (mínimo 5), calcula un factor de corrección personalizado y lo aplica automáticamente a todas las tareas `TODO` pendientes del mismo tipo. El factor se acota al rango `[0.5, 2.0]` para evitar ajustes extremos, y el historial de las últimas 10 muestras se mantiene en memoria por `(studentId, taskType)`.
+
+**Endpoint:**
+`POST /planning/estimations/adjust`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
+| `completedTaskId` | `String` | Obligatorio | UUID de la tarea recién completada. |
+| `actualTime` | `Integer` | Obligatorio, > 0 | Tiempo real empleado, en minutos. |
+| `estimatedDurationMinutes` | `Integer` | Obligatorio, > 0 | Duración estimada original de la tarea completada, en minutos. |
+| `taskType` | `TaskType` | Obligatorio | `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO`. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `adjustmentFactor` | `Double` | Factor de corrección calculado, acotado a `[0.5, 2.0]`. Valores > 1 indican que el estudiante suele tardar más de lo estimado. |
+| `updatedEstimates[].id` | `String` | Identificador de la tarea ajustada. |
+| `updatedEstimates[].title` | `String` | Título de la tarea. |
+| `updatedEstimates[].taskType` | `String` | Tipo de tarea. |
+| `updatedEstimates[].originalEstimatedMinutes` | `Integer` | Estimación original antes del ajuste. |
+| `updatedEstimates[].adjustedEstimatedMinutes` | `Integer` | Nueva estimación tras aplicar el factor. |
+| `message` | `String` | Mensaje en español describiendo el resultado del ajuste. |
+
+</div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Se requieren mínimo **5** tareas completadas del mismo `taskType` para aplicar el factor. |
+| RN-02 | `factor = promedio(actualTime / estimatedDurationMinutes)` sobre las últimas **10** tareas del mismo tipo. |
+| RN-03 | El factor se acota al rango **[0.5, 2.0]** para evitar ajustes extremos. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+POST /planning/estimations/adjust
+X-Student-Id: STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+Content-Type: application/json
+
+{
+  "completedTaskId": "TASK-101",
+  "actualTime": 95,
+  "estimatedDurationMinutes": 60,
+  "taskType": "TAREA"
+}
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Hemos ajustado las estimaciones de 3 tarea(s) de tipo TAREA.",
+  "data": {
+    "adjustmentFactor": 1.3,
+    "updatedEstimates": [
+      {
+        "id": "TASK-205",
+        "title": "Taller de Programación",
+        "taskType": "TAREA",
+        "originalEstimatedMinutes": 90,
+        "adjustedEstimatedMinutes": 117
+      }
+    ],
+    "message": "Hemos ajustado las estimaciones de 3 tarea(s) de tipo TAREA."
+  },
+  "timestamp": "2026-05-16T10:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![400](https://img.shields.io/badge/400-Bad_Request-red?style=flat) | Cuerpo inválido | `"actualTime must be >= 1"` |
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Unexpected server error"` |
+
+</div>
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Menos de 5 muestras del mismo tipo → `adjustmentFactor: 1.0`, sin cambios en estimaciones, mensaje: `"Aún no hay suficientes datos para ajustar estimaciones. Se necesitan al menos 5 tareas completadas del mismo tipo."` |
+| FA-02 | `actualTime` no proporcionado o igual a 0 → no actualiza el factor, retorna sin cambios: `"No se registró tiempo real. El factor de ajuste no fue actualizado."` |
+
+---
+
+### 6.9 AIB-23 — Balanceador de Tiempo
+
+Analiza la distribución de carga de trabajo del estudiante durante la semana, detecta días sobrecargados (>80 % de disponibilidad) o con tiempo libre (<20 % de disponibilidad), y emite **hasta 5 sugerencias** de movimiento de tareas para lograr un balance óptimo. El servicio **nunca aplica cambios automáticamente**: solo recomienda (RN-03).
+
+**Endpoint:**
+`GET /planning/balance`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
+| `weekStartDate` | `LocalDate` | Opcional (Query param, ISO) | Lunes de la semana a analizar. Si se omite, se usa el lunes de la semana actual. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `studentId` | `String` | Identificador del estudiante. |
+| `weeklyLoadAnalysis[].date` | `LocalDate` | Fecha del día analizado. |
+| `weeklyLoadAnalysis[].availableMinutes` | `Integer` | Minutos disponibles ese día según el perfil del estudiante. |
+| `weeklyLoadAnalysis[].assignedMinutes` | `Integer` | Minutos asignados a tareas ese día (suma de duraciones). |
+| `weeklyLoadAnalysis[].occupancyPercentage` | `Double` | Porcentaje de ocupación: `(assignedMinutes / availableMinutes) × 100`. |
+| `weeklyLoadAnalysis[].status` | `String` | Estado del día: `OVERLOADED` / `FREE` / `BALANCED`. |
+| `overloadedDays` | `List<String>` | Etiquetas de días con carga > 80 % (e.g., `"lunes 2026-05-11"`). |
+| `emptyDays` | `List<String>` | Etiquetas de días con carga < 20 % (e.g., `"miércoles 2026-05-13"`). |
+| `balanceSuggestions[].taskId` | `String` | Identificador de la tarea sugerida para mover. |
+| `balanceSuggestions[].taskTitle` | `String` | Título de la tarea. |
+| `balanceSuggestions[].fromDay` | `LocalDate` | Día origen (sobrecargado) del cual se recomienda mover la tarea. |
+| `balanceSuggestions[].toDay` | `LocalDate` | Día destino (con tiempo libre) al que se recomienda mover la tarea. |
+| `balanceSuggestions[].reason` | `String` | Justificación de la sugerencia (máx 200 caracteres). |
+| `message` | `String` | Mensaje en español describiendo el resultado global del análisis. |
+
+</div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Un día se considera **sobrecargado** si `assignedMinutes / availableMinutes > 80 %`. |
+| RN-02 | Un día se considera **con tiempo libre** si `assignedMinutes / availableMinutes < 20 %`. |
+| RN-03 | El servicio emite **máximo 5 sugerencias** y **nunca aplica cambios automáticamente**. |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+GET /planning/balance?weekStartDate=2026-05-11
+X-Student-Id: STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "Se detectaron días con sobrecarga, se sugiere redistribuir",
+  "data": {
+    "studentId": "STU-001",
+    "weeklyLoadAnalysis": [
+      {
+        "date": "2026-05-11",
+        "availableMinutes": 360,
+        "assignedMinutes": 330,
+        "occupancyPercentage": 91.67,
+        "status": "OVERLOADED"
+      },
+      {
+        "date": "2026-05-13",
+        "availableMinutes": 360,
+        "assignedMinutes": 60,
+        "occupancyPercentage": 16.67,
+        "status": "FREE"
+      }
+    ],
+    "overloadedDays": ["lunes 2026-05-11"],
+    "emptyDays": ["miércoles 2026-05-13"],
+    "balanceSuggestions": [
+      {
+        "taskId": "TASK-205",
+        "taskTitle": "Parcial de Cálculo",
+        "fromDay": "2026-05-11",
+        "toDay": "2026-05-13",
+        "reason": "El día lunes está sobrecargado. El día miércoles tiene tiempo libre."
+      }
+    ],
+    "message": "Se detectaron días con sobrecarga, se sugiere redistribuir"
+  },
+  "timestamp": "2026-05-16T10:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Unexpected server error"` |
+
+</div>
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | No hay disponibilidad configurada → respuesta vacía, mensaje: `"Configura tu disponibilidad diaria para activar el balanceador."` |
+| FA-02 | No hay tareas planificadas para la semana → respuesta vacía, mensaje: `"No hay tareas registradas para esta semana."` |
+
+---
+
+### 6.10 AIB-24 — Distribución Automática de Tareas
+
+Distribuye automáticamente las tareas pendientes del estudiante en bloques de estudio diarios, respetando su disponibilidad horaria, la prioridad calculada por AIB-22 y el límite de **MAX_MINUTES_PER_DAY = 240 minutos** por día. Las tareas `CRITICAL` y `HIGH` se asignan antes que `MEDIUM` y `LOW` (algoritmo greedy). Aplica el factor de corrección de AIB-22.4 si está disponible. Nunca modifica los bloques de tiempo personal (integración con AIB-25 / AIB-27).
+
+**Endpoint:**
+`POST /planning/distribution`
+
+---
+
+#### 📦 Información de Entrada (Request)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | ⚠️ Restricciones | 📝 Descripción |
+|---|---|:---:|---|
+| `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
+| `weekStartDate` | `LocalDate` | Opcional (Query param, ISO) | Lunes de la semana a distribuir. Si se omite, se usa el lunes de la semana actual. |
+| `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
+
+</div>
+
+---
+
+#### 📦 Información de Salida (Response)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `assignedBlocks[].taskId` | `String` | Identificador de la tarea asignada al bloque. |
+| `assignedBlocks[].title` | `String` | Título de la tarea para visualización. |
+| `assignedBlocks[].scheduledDate` | `LocalDateTime` | Fecha y hora de inicio del bloque de estudio (ISO 8601). |
+| `assignedBlocks[].estimatedDurationMinutes` | `Integer` | Duración del bloque en minutos. Suma diaria ≤ `MAX_MINUTES_PER_DAY = 240`. |
+| `assignedBlocks[].priority` | `String` | Prioridad de la tarea: `LOW` / `MEDIUM` / `HIGH` / `CRITICAL`. |
+| `unassignedTasks[].id` | `String` | Identificador de las tareas que no pudieron asignarse por falta de disponibilidad. |
+| `message` | `String` | Resultado de la distribución. |
+
+</div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Las tareas `CRITICAL` y `HIGH` se asignan antes que `MEDIUM` y `LOW`. |
+| RN-02 | No se asignan tareas en bloques marcados como `PERSONAL`, `DESCANSO` o `SOCIAL` (AIB-25). |
+| RN-03 | La carga diaria no puede superar `MAX_MINUTES_PER_DAY = 240 minutos` (AIB-27). |
+
+</div>
+
+---
+
+#### ✅ Happy Path (Ejemplo de Uso Exitoso)
+
+**Request:**
+```http
+POST /planning/distribution?weekStartDate=2026-05-11
+X-Student-Id: STU-001
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+```
+
+**Response `200 OK`:**
+```json
+{
+  "message": "¡Plan de trabajo generado exitosamente!",
+  "data": {
+    "studentId": "STU-001",
+    "assignedBlocks": [
+      {
+        "taskId": "TASK-101",
+        "title": "Parcial de Cálculo",
+        "scheduledDate": "2026-05-11T09:00:00",
+        "estimatedDurationMinutes": 120,
+        "priority": "HIGH"
+      },
+      {
+        "taskId": "TASK-205",
+        "title": "Taller de Programación",
+        "scheduledDate": "2026-05-11T11:00:00",
+        "estimatedDurationMinutes": 90,
+        "priority": "MEDIUM"
+      }
+    ],
+    "unassignedTasks": [],
+    "message": "¡Plan de trabajo generado exitosamente!"
+  },
+  "timestamp": "2026-05-16T10:00:00"
+}
+```
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+| ![500](https://img.shields.io/badge/500-Internal_Error-critical?style=flat) | Error interno | `"Unexpected server error"` |
+
+</div>
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Disponibilidad insuficiente → las tareas `CRITICAL` y `HIGH` se asignan primero, las restantes van a `unassignedTasks`. Mensaje: `"Hay tareas que no pudieron asignarse por falta de disponibilidad"`. |
+| FA-02 | Sin tareas pendientes → `assignedBlocks` y `unassignedTasks` vacíos. Mensaje: `"No tienes tareas pendientes para distribuir."` |
+
+---
+
+### 6.11 AIB-25 — Protección del Tiempo Personal
+
+Garantiza que ningún bloque de tiempo marcado como `PERSONAL`, `DESCANSO` o `SOCIAL` reciba asignaciones de tareas académicas. La protección es **incondicional** y se aplica automáticamente dentro de AIB-24 y AIB-26. Solo los bloques de tipo `ACADEMICO` son elegibles para asignación. No expone un endpoint REST propio — opera como capa de filtrado dentro de `DistributeTasksUseCaseImpl`.
+
+---
+
+#### 📦 Datos de Entrada (internos)
+
+<div align="center">
+
+| 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
+|---|---|---|
+| `timeBlocks[].blockType` | `BlockType` | Tipo semántico: `ACADEMICO` \| `PERSONAL` \| `DESCANSO` \| `SOCIAL` \| `CLASE` \| `OTRO` |
+| `timeBlocks[].date` | `LocalDate` | Fecha del bloque. |
+| `timeBlocks[].startTime` / `endTime` | `LocalTime` | Ventana horaria del bloque. |
+
+</div>
+
+---
+
+#### 📦 Resultado del Filtrado
+
+<div align="center">
+
+| 🏷️ Campo | 📝 Descripción |
+|---|---|
+| `filteredBlocks` | Solo bloques `ACADEMICO` disponibles para asignación. |
+| `unassignedTasks` | Tareas que no pudieron asignarse por falta de bloques académicos. |
+| `message` | Mensaje específico según el FA detectado. |
+
+</div>
+
+---
+
+#### 📋 Reglas de Negocio
+
+<div align="center">
+
+| RN | Descripción |
+|----|-------------|
+| RN-01 | Los bloques `PERSONAL`, `DESCANSO` y `SOCIAL` no pueden recibir tareas académicas bajo ninguna circunstancia. |
+| RN-02 | El estudiante puede cambiar el tipo de un bloque desde su configuración de disponibilidad en cualquier momento. |
+| RN-03 | Si todas las tareas quedan sin asignar por falta de bloques `ACADEMICO`, el sistema notifica pero no modifica la configuración personal. |
+
+</div>
+
+---
+
+#### 📊 Tipos de Errores Manejados
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+
+</div>
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Todos los bloques son `PERSONAL`, `DESCANSO` o `SOCIAL` → `assignedBlocks` vacío, todas las tareas en `unassignedTasks`. Mensaje: `"No hay bloques académicos disponibles. Revisa tu configuración de disponibilidad."` |
+| FA-02 | Sin disponibilidad configurada → `assignedBlocks` vacío, tareas en `unassignedTasks`. Mensaje: `"Configura tu disponibilidad horaria para activar la distribución automática."` |
+
+---
+
+### 6.12 AIB-26 — Rebalanceo Dinámico de Tareas
+
+> **Épica:** Rebalanceo automático ante fallos y reorganización manual del plan semanal.
+
+#### 📌 Endpoints
+
+**`POST /planning/rebalance/failure`** — Reporte de bloque fallido
+
+**`POST /planning/rebalance/reorganize`** — Reorganización manual del plan
+
+---
+
+#### ➡️ Input — `POST /planning/rebalance/failure`
+
+<div align="center">
+
+| 📥 **Campo** | 📝 **Tipo** | ✅ **Validación** | 📌 **Descripción** |
+|:-------------|:-----------:|:-----------------:|:-------------------|
+| `studentId` | `String` | `@NotBlank` | Identificador del estudiante |
+| `taskId` | `String` | `@NotBlank` | Identificador de la tarea fallida |
+| `failedDate` | `LocalDate` | `@NotNull` | Fecha en que se perdió el bloque |
+| `hoursMissed` | `double` | `@Positive` | Horas de estudio perdidas (> 0) |
+| `reason` | `String` | `@Size(max=500)` | Motivo del fallo (opcional) |
+
+</div>
+
+#### ➡️ Input — `POST /planning/rebalance/reorganize`
+
+<div align="center">
+
+| 📥 **Header** | 📝 **Tipo** | ✅ **Validación** | 📌 **Descripción** |
+|:--------------|:-----------:|:-----------------:|:-------------------|
+| `X-Student-Id` | `String` | Requerido | Identificador del estudiante |
+
+</div>
+
+#### ⬅️ Output (ambos endpoints)
+
+<div align="center">
+
+| 📤 **Campo** | 📝 **Tipo** | 📌 **Descripción** |
+|:-------------|:-----------:|:-------------------|
+| `studentId` | `String` | Identificador del estudiante |
+| `assignedBlocks` | `List<ScheduledBlockResponse>` | Bloques de estudio reorganizados |
+| `unassignedTasks` | `List<PrioritizedTaskResponse>` | Tareas sin bloque disponible |
+| `movedTasks` | `List<MovedTaskResponse>` | Tareas que cambiaron de fecha u hora |
+| `criticalAlerts` | `List<PrioritizedTaskResponse>` | Tareas con deadline ≤ mañana marcadas como CRITICAL |
+| `fullyAssigned` | `boolean` | `true` si todas las tareas tienen bloque asignado |
+| `message` | `String` | Mensaje descriptivo del resultado |
+
+</div>
+
+#### 📏 Reglas de Negocio
+
+| Código | Descripción |
+|--------|-------------|
+| RN-01 | Al recibir un reporte de fallo (`/failure`), el sistema notifica al servicio externo via `TaskProviderPort.reportTaskFailure()` antes de redistribuir. |
+| RN-02 | Toda tarea con `dueDate ≤ mañana` es marcada automáticamente como `CRITICAL` (`priorityScore = max(actual, 100.0)`). Las tareas críticas aparecen en `criticalAlerts`. |
+| RN-03 | El campo `movedTasks` incluye toda tarea que cambió de fecha u hora respecto al plan anterior. El motivo indica si fue por fallo reportado o reorganización manual. |
+
+#### ✅ Happy Path
+
+```http
+POST /planning/rebalance/failure
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "studentId": "student-123",
+  "taskId": "task-456",
+  "failedDate": "2026-05-20",
+  "hoursMissed": 2.0,
+  "reason": "Tuve un imprevisto"
+}
+```
+
+```json
+{
+  "success": true,
+  "message": "Hay tareas críticas que requieren tu atención inmediata.",
+  "data": {
+    "studentId": "student-123",
+    "assignedBlocks": [...],
+    "unassignedTasks": [],
+    "movedTasks": [
+      {
+        "taskId": "task-789",
+        "taskTitle": "Álgebra Lineal",
+        "originalDate": "2026-05-20",
+        "originalStartTime": "10:00",
+        "newDate": "2026-05-21",
+        "newStartTime": "09:00",
+        "reason": "Rebalanceo por tarea no completada el 2026-05-20"
+      }
+    ],
+    "criticalAlerts": [{"id": "task-456", "title": "Examen Cálculo", ...}],
+    "fullyAssigned": true,
+    "message": "Hay tareas críticas que requieren tu atención inmediata."
+  }
+}
+```
+
+#### ⚠️ Errores HTTP
+
+<div align="center">
+
+| 🔢 **Código HTTP** | ⚠️ **Escenario** | 💬 **Mensaje de Error** |
+|:------------------:|:----------------|:------------------------|
+| ![400](https://img.shields.io/badge/400-BadRequest-yellow?style=flat) | Campo obligatorio ausente o inválido (`@NotBlank`, `@Positive`) | `"studentId is required"` / `"hoursMissed must be greater than 0"` |
+| ![401](https://img.shields.io/badge/401-Unauthorized-orange?style=flat) | Token inválido o ausente | `"Invalid or missing JWT token"` |
+| ![403](https://img.shields.io/badge/403-Forbidden-red?style=flat) | studentId ≠ autenticado | `"El studentId no coincide con el usuario autenticado"` |
+
+</div>
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Sin bloques académicos disponibles tras redistribución → `assignedBlocks` vacío, tareas en `unassignedTasks`. Mensaje: `"No hay bloques académicos disponibles. Revisa tu configuración de disponibilidad."` |
+| FA-02 | Sin disponibilidad configurada → `assignedBlocks` vacío. Mensaje: `"Configura tu disponibilidad horaria para activar la distribución automática."` |
+
+---
+
+### 6.13 AIB-27 — Protección de Sobrecarga Académica
+
+> **Épica:** Garantiza que ninguna distribución (AIB-24) ni rebalanceo (AIB-26) supere el límite de **`MAX_MINUTES_PER_DAY = 240 min`** por día. La protección tiene prioridad sobre la prioridad de las tareas: una tarea `CRITICAL` no puede violar el límite.
+
+#### 📌 Aplicación
+
+AIB-27 es una protección **interna** (sin endpoint propio) que se ejecuta dentro de `DistributeTasksUseCaseImpl` y, por extensión, dentro de `RebalanceTasksUseCaseImpl` (que llama al mismo caso de uso). El resultado se incluye en `DistributionPlanResponse`.
+
+#### ⬅️ Nuevos campos en `DistributionPlanResponse`
+
+<div align="center">
+
+| 📤 **Campo** | 📝 **Tipo** | 📌 **Descripción** |
+|:-------------|:-----------:|:-------------------|
+| `overloadedDays` | `List<OverloadedDayResponse>` | Días donde el plan propuesto habría superado 240 min. Vacío si no hubo sobrecarga. |
+| `overloadedDays[].date` | `LocalDate` | Fecha del día sobrecargado (ISO 8601) |
+| `overloadedDays[].excessMinutes` | `Integer` | Minutos en exceso = suma propuesta − 240 |
+| `message` | `String` | `"Tu plan fue ajustado para respetar tu límite diario de estudio."` si hubo ajustes; de lo contrario el mensaje habitual |
+
+</div>
+
+#### 📏 Reglas de Negocio
+
+| Código | Descripción |
+|--------|-------------|
+| RN-01 | No se pueden asignar tareas si el total acumulado del día superaría `MAX_MINUTES_PER_DAY = 240`. |
+| RN-02 | Si una tarea no cabe en ningún día sin superar el límite, se marca como no asignada (`unassignedTasks`). |
+| RN-03 | La protección tiene prioridad sobre la prioridad de la tarea: una tarea `CRITICAL` tampoco puede superar el límite. |
+
+#### 🔍 Cómo funciona internamente
+
+```
+1. Se ejecuta una simulación SIN cap (sobre clones de availableDays) para calcular los totales diarios propuestos.
+2. Los días donde ese total > 240 se registran en overloadedDays con sus excessMinutes.
+3. La distribución real corre CON el cap (lógica preexistente), respetando MAX_MINUTES_PER_DAY.
+4. Si se detectaron días sobrecargados, el mensaje del plan se fija en "Tu plan fue ajustado...".
+```
+
+#### ✅ Happy Path
+
+```http
+POST /planning/distribute   (o rebalance)
+X-Student-Id: student-123
+```
+
+```json
+{
+  "success": true,
+  "message": "Tu plan fue ajustado para respetar tu límite diario de estudio.",
+  "data": {
+    "studentId": "student-123",
+    "assignedBlocks": [...],
+    "unassignedTasks": [],
+    "overloadedDays": [
+      { "date": "2026-05-20", "excessMinutes": 60 }
+    ],
+    "fullyAssigned": true,
+    "message": "Tu plan fue ajustado para respetar tu límite diario de estudio."
+  }
+}
+```
+
+#### 🔀 Flujos Alternos
+
+| Código | Descripción |
+|--------|-------------|
+| FA-01 | Sin días con capacidad suficiente: la tarea queda en `unassignedTasks`. Mensaje: `"No es posible redistribuir sin superar tu límite diario. Revisa tu disponibilidad."` |
 
 ---
 

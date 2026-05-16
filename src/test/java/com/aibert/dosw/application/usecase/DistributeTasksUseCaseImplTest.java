@@ -1,6 +1,7 @@
 package com.aibert.dosw.application.usecase;
 
 import com.aibert.dosw.domain.model.schedule.DailySchedule;
+import com.aibert.dosw.domain.model.schedule.BlockType;
 import com.aibert.dosw.domain.model.schedule.TimeSlot;
 import com.aibert.dosw.domain.model.schedule.UnavailableBlock;
 import com.aibert.dosw.domain.model.schedule.WeeklyDistributionPlan;
@@ -35,15 +36,15 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldDistributeTasksProperly() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.HIGH).build();
-            
+                .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.HIGH).build();
+
         DailySchedule day = DailySchedule.builder()
-            .date(LocalDate.now())
-            .availableSlots(List.of(TimeSlot.builder()
-                .startTime(LocalTime.of(14, 0))
-                .endTime(LocalTime.of(18, 0))
-                .build()))
-            .build();
+                .date(LocalDate.now())
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(14, 0))
+                        .endTime(LocalTime.of(18, 0))
+                        .build()))
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("student1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("student1")).thenReturn(List.of(day));
@@ -92,16 +93,16 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldSkipDayAfterDeadline() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(2.0).dueDate(LocalDate.now())
-            .priorityLevel(TaskPriority.HIGH).build();
+                .id("1").estimatedHours(2.0).dueDate(LocalDate.now())
+                .priorityLevel(TaskPriority.HIGH).build();
 
         DailySchedule futureDay = DailySchedule.builder()
-            .date(LocalDate.now().plusDays(5))
-            .availableSlots(List.of(TimeSlot.builder()
-                .startTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(17, 0))
-                .build()))
-            .build();
+                .date(LocalDate.now().plusDays(5))
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(9, 0))
+                        .endTime(LocalTime.of(17, 0))
+                        .build()))
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(futureDay));
@@ -117,23 +118,23 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldDistributeWithUnavailableBlocks() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(1.0).priorityLevel(TaskPriority.HIGH).build();
+                .id("1").estimatedHours(1.0).priorityLevel(TaskPriority.HIGH).build();
 
         LocalDate today = LocalDate.now();
         DailySchedule day = DailySchedule.builder()
-            .date(today)
-            .availableSlots(List.of(TimeSlot.builder()
-                .startTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(17, 0))
-                .build()))
-            .build();
+                .date(today)
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(9, 0))
+                        .endTime(LocalTime.of(17, 0))
+                        .build()))
+                .build();
 
         UnavailableBlock block = UnavailableBlock.builder()
-            .date(today)
-            .startTime(LocalTime.of(12, 0))
-            .endTime(LocalTime.of(13, 0))
-            .reason("Lunch")
-            .build();
+                .date(today)
+                .startTime(LocalTime.of(12, 0))
+                .endTime(LocalTime.of(13, 0))
+                .reason("Lunch")
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
@@ -147,16 +148,15 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldSplitTaskAcrossMultipleSlots() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(3.0).priorityLevel(TaskPriority.HIGH).build();
+                .id("1").estimatedHours(3.0).priorityLevel(TaskPriority.HIGH).build();
 
         LocalDate today = LocalDate.now();
         DailySchedule day = DailySchedule.builder()
-            .date(today)
-            .availableSlots(List.of(
-                TimeSlot.builder().startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(10, 0)).build(),
-                TimeSlot.builder().startTime(LocalTime.of(14, 0)).endTime(LocalTime.of(16, 0)).build()
-            ))
-            .build();
+                .date(today)
+                .availableSlots(List.of(
+                        TimeSlot.builder().startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(10, 0)).build(),
+                        TimeSlot.builder().startTime(LocalTime.of(14, 0)).endTime(LocalTime.of(16, 0)).build()))
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
@@ -172,15 +172,15 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldMarkTaskAsUnassignedWhenNotEnoughTime() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(10.0).priorityLevel(TaskPriority.HIGH).build();
+                .id("1").estimatedHours(10.0).priorityLevel(TaskPriority.HIGH).build();
 
         DailySchedule day = DailySchedule.builder()
-            .date(LocalDate.now())
-            .availableSlots(List.of(TimeSlot.builder()
-                .startTime(LocalTime.of(14, 0))
-                .endTime(LocalTime.of(16, 0))
-                .build()))
-            .build();
+                .date(LocalDate.now())
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(14, 0))
+                        .endTime(LocalTime.of(16, 0))
+                        .build()))
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
@@ -195,19 +195,19 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldPrioritizeHighPriorityTasks() {
         PlanningTask high = PlanningTask.builder()
-            .id("1").estimatedHours(2.0)
-            .priorityLevel(TaskPriority.CRITICAL).priorityScore(90.0).build();
+                .id("1").estimatedHours(2.0)
+                .priorityLevel(TaskPriority.CRITICAL).priorityScore(90.0).build();
         PlanningTask low = PlanningTask.builder()
-            .id("2").estimatedHours(2.0)
-            .priorityLevel(TaskPriority.LOW).priorityScore(10.0).build();
+                .id("2").estimatedHours(2.0)
+                .priorityLevel(TaskPriority.LOW).priorityScore(10.0).build();
 
         DailySchedule day = DailySchedule.builder()
-            .date(LocalDate.now())
-            .availableSlots(List.of(TimeSlot.builder()
-                .startTime(LocalTime.of(9, 0))
-                .endTime(LocalTime.of(11, 0))
-                .build()))
-            .build();
+                .date(LocalDate.now())
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(9, 0))
+                        .endTime(LocalTime.of(11, 0))
+                        .build()))
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(low, high));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
@@ -224,12 +224,12 @@ class DistributeTasksUseCaseImplTest {
     @Test
     void shouldHandleNullAvailableSlots() {
         PlanningTask t1 = PlanningTask.builder()
-            .id("1").estimatedHours(2.0).build();
+                .id("1").estimatedHours(2.0).build();
 
         DailySchedule day = DailySchedule.builder()
-            .date(LocalDate.now())
-            .availableSlots(null)
-            .build();
+                .date(LocalDate.now())
+                .availableSlots(null)
+                .build();
 
         when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
         when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
@@ -238,5 +238,167 @@ class DistributeTasksUseCaseImplTest {
         WeeklyDistributionPlan result = useCase.distribute("st1");
 
         assertEquals(1, result.getUnassignedTasks().size());
+    }
+
+    // ── AIB-25: Protección del tiempo personal ─────────────────────────────────
+
+    @Test
+    void shouldExcludeProtectedBlocksFromAssignment() {
+        PlanningTask t1 = PlanningTask.builder()
+                .id("1").estimatedHours(1.0).priorityLevel(TaskPriority.HIGH).build();
+
+        LocalDate today = LocalDate.now();
+        DailySchedule day = DailySchedule.builder()
+                .date(today)
+                .availableSlots(List.of(
+                        TimeSlot.builder().startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(11, 0)).build(),
+                        TimeSlot.builder().startTime(LocalTime.of(14, 0)).endTime(LocalTime.of(16, 0)).build()))
+                .build();
+
+        // PERSONAL block covers 14:00-16:00 — must not receive tasks (AIB-25 RN-01)
+        UnavailableBlock personalBlock = UnavailableBlock.builder()
+                .date(today)
+                .startTime(LocalTime.of(14, 0))
+                .endTime(LocalTime.of(16, 0))
+                .blockType(BlockType.PERSONAL)
+                .build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
+        when(scheduleProviderPort.getUnavailableBlocks("st1")).thenReturn(List.of(personalBlock));
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        assertFalse(result.getAssignedBlocks().isEmpty());
+        result.getAssignedBlocks().forEach(block -> assertTrue(block.getStartTime().isBefore(LocalTime.of(14, 0)),
+                "No debe asignarse en el bloque PERSONAL (14:00-16:00)"));
+    }
+
+    @Test
+    void shouldReturnNoAcademicBlocksMessageWhenAllProtected() {
+        PlanningTask t1 = PlanningTask.builder()
+                .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.HIGH).build();
+
+        LocalDate today = LocalDate.now();
+        DailySchedule day = DailySchedule.builder()
+                .date(today)
+                .availableSlots(List.of(
+                        TimeSlot.builder().startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(17, 0)).build()))
+                .build();
+
+        // PERSONAL block covers the entire available window (AIB-25 FA-01)
+        UnavailableBlock personalBlock = UnavailableBlock.builder()
+                .date(today)
+                .startTime(LocalTime.of(9, 0))
+                .endTime(LocalTime.of(17, 0))
+                .blockType(BlockType.PERSONAL)
+                .build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
+        when(scheduleProviderPort.getUnavailableBlocks("st1")).thenReturn(List.of(personalBlock));
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        assertTrue(result.getAssignedBlocks().isEmpty());
+        assertEquals(1, result.getUnassignedTasks().size());
+        assertEquals(
+                "No hay bloques académicos disponibles. Revisa tu configuración de disponibilidad.",
+                result.getMessage());
+    }
+
+    @Test
+    void shouldReturnConfigureAvailabilityMessageWhenNoSchedule() {
+        PlanningTask t1 = PlanningTask.builder().id("1").estimatedHours(2.0).build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of());
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        assertEquals(
+                "Configura tu disponibilidad horaria para activar la distribución automática.",
+                result.getMessage());
+        assertEquals(1, result.getUnassignedTasks().size());
+    }
+
+    // ── AIB-27: Protección de sobrecarga académica ─────────────────────────────
+
+    @Test
+    void shouldDetectOverloadedDayWhenTasksExceedDailyLimit() {
+        // Two tasks totalling 300 min — over MAX_MINUTES_PER_DAY (240)
+        PlanningTask t1 = PlanningTask.builder()
+                .id("1").estimatedHours(2.5).priorityLevel(TaskPriority.HIGH).priorityScore(90.0).build();
+        PlanningTask t2 = PlanningTask.builder()
+                .id("2").estimatedHours(2.5).priorityLevel(TaskPriority.HIGH).priorityScore(80.0).build();
+
+        LocalDate today = LocalDate.now();
+        // Slot of 7 hours — plenty of raw time, but cap is 4 h (240 min)
+        DailySchedule day = DailySchedule.builder()
+                .date(today)
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(8, 0))
+                        .endTime(LocalTime.of(15, 0))
+                        .build()))
+                .build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1, t2));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
+        when(scheduleProviderPort.getUnavailableBlocks("st1")).thenReturn(List.of());
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        // Uncapped proposed total = 300 min > 240 → one overloaded day
+        assertEquals(1, result.getOverloadedDays().size());
+        assertEquals(today, result.getOverloadedDays().get(0).getDate());
+        assertEquals(60, result.getOverloadedDays().get(0).getExcessMinutes()); // 300 - 240
+    }
+
+    @Test
+    void shouldReturnEmptyOverloadedDaysWhenWithinDailyLimit() {
+        // Single task of 120 min — well within 240-min cap
+        PlanningTask t1 = PlanningTask.builder()
+                .id("1").estimatedHours(2.0).priorityLevel(TaskPriority.HIGH).build();
+
+        DailySchedule day = DailySchedule.builder()
+                .date(LocalDate.now())
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(9, 0))
+                        .endTime(LocalTime.of(12, 0))
+                        .build()))
+                .build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
+        when(scheduleProviderPort.getUnavailableBlocks("st1")).thenReturn(List.of());
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        assertTrue(result.getOverloadedDays().isEmpty());
+        assertNull(result.getMessage()); // no override message needed
+    }
+
+    @Test
+    void shouldReturnAdjustedMessageWhenOverloadDetected() {
+        PlanningTask t1 = PlanningTask.builder()
+                .id("1").estimatedHours(2.5).priorityLevel(TaskPriority.CRITICAL).priorityScore(95.0).build();
+        PlanningTask t2 = PlanningTask.builder()
+                .id("2").estimatedHours(2.5).priorityLevel(TaskPriority.HIGH).priorityScore(75.0).build();
+
+        DailySchedule day = DailySchedule.builder()
+                .date(LocalDate.now())
+                .availableSlots(List.of(TimeSlot.builder()
+                        .startTime(LocalTime.of(8, 0))
+                        .endTime(LocalTime.of(15, 0))
+                        .build()))
+                .build();
+
+        when(taskProviderPort.getPendingTasksByUser("st1")).thenReturn(List.of(t1, t2));
+        when(scheduleProviderPort.getWeeklySchedule("st1")).thenReturn(List.of(day));
+        when(scheduleProviderPort.getUnavailableBlocks("st1")).thenReturn(List.of());
+
+        WeeklyDistributionPlan result = useCase.distribute("st1");
+
+        assertEquals("Tu plan fue ajustado para respetar tu límite diario de estudio.", result.getMessage());
     }
 }

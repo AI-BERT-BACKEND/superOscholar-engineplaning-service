@@ -72,7 +72,7 @@ class PlanningTaskMapperTest {
                 assertNotNull(response);
                 assertTrue(response.isFullyAssigned());
                 assertEquals(1, response.getAssignedBlocks().size());
-                assertEquals(1.0, response.getAssignedBlocks().get(0).getDurationHours());
+                assertEquals(60, response.getAssignedBlocks().get(0).getEstimatedDurationMinutes());
                 assertEquals(1, response.getCriticalAlerts().size());
         }
 }

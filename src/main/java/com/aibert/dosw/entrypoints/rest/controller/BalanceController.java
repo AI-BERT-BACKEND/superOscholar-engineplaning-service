@@ -3,7 +3,6 @@ package com.aibert.dosw.entrypoints.rest.controller;
 import com.aibert.dosw.application.dto.response.BalanceSuggestionResponse;
 import com.aibert.dosw.application.dto.response.DayBalanceResponse;
 import com.aibert.dosw.application.dto.response.WorkloadBalanceResponse;
-import com.aibert.dosw.application.mapper.PlanningTaskMapper;
 import com.aibert.dosw.domain.model.balance.BalanceResult;
 import com.aibert.dosw.domain.model.balance.DifferentialBalance;
 import com.aibert.dosw.domain.ports.in.BalanceWorkloadUseCase;
@@ -17,27 +16,29 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * REST Controller for workload balance suggestions (R15).
+ * REST Controller for workload balance suggestions (AIB-23 / R15).
  */
 @RestController
 @RequestMapping("/planning/balance")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Balance", description = "Endpoints for analyzing weekly workload balance and receiving suggestions to optimize study time distribution")
 public class BalanceController {
 
         private final BalanceWorkloadUseCase balanceWorkloadUseCase;
-        private final PlanningTaskMapper planningTaskMapper;
 
         /**
          * Returns the complete balance analysis for a given week.
@@ -59,7 +60,7 @@ public class BalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<WorkloadBalanceResponse>> getBalanceSuggestions(
-                        @Parameter(description = "Student identifier used to calculate weekly workload balance", required = true, example = "student-123") @RequestParam String studentId,
+                        @Parameter(description = "Student identifier, provided via X-Student-Id request header", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
                         @Parameter(description = "Week start date (Monday) in ISO format; defaults to current week if omitted", example = "2026-05-12") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate,
                         Authentication authentication) {
 
@@ -70,6 +71,9 @@ public class BalanceController {
                                 ? weekStartDate
                                 : LocalDate.now().with(java.time.DayOfWeek.MONDAY);
 
+                log.info("Solicitud de balance semanal para el estudiante '{}', semana: {}", studentId,
+                                effectiveWeekStart);
+
                 BalanceResult result = balanceWorkloadUseCase.suggestBalance(studentId, effectiveWeekStart);
 
                 // Map domain DifferentialBalance → DayBalanceResponse (R15 weeklyLoadAnalysis)
@@ -77,14 +81,15 @@ public class BalanceController {
                                 .map(this::toDayBalanceResponse)
                                 .toList();
 
-                // Map suggestions
+                // Map suggestions (AIB-23: taskId, taskTitle, fromDay, toDay, reason — max 5
+                // via use case)
                 List<BalanceSuggestionResponse> suggestions = result.getBalanceSuggestions().stream()
                                 .map(s -> BalanceSuggestionResponse.builder()
-                                                .task(planningTaskMapper.toPrioritizedResponse(s.getTaskToMove()))
-                                                .fromDate(s.getFromDate())
-                                                .toDate(s.getToDate())
+                                                .taskId(s.getTaskToMove().getId())
+                                                .taskTitle(s.getTaskToMove().getTitle())
+                                                .fromDay(s.getFromDate())
+                                                .toDay(s.getToDate())
                                                 .reason(s.getReason())
-                                                .suggestionMessage(s.getSuggestionMessage())
                                                 .build())
                                 .toList();
 
@@ -100,15 +105,18 @@ public class BalanceController {
                 return ResponseEntity.ok(ApiResponse.success(result.getMessage(), response));
         }
 
+        // Map domain DifferentialBalance → DayBalanceResponse (AIB-23: minutes-based)
         private DayBalanceResponse toDayBalanceResponse(DifferentialBalance balance) {
-                double occupancy = balance.getAvailableHours() > 0
-                                ? (balance.getScheduledHours() / balance.getAvailableHours()) * 100.0
+                int availableMinutes = (int) Math.round(balance.getAvailableHours() * 60);
+                int assignedMinutes = (int) Math.round(balance.getScheduledHours() * 60);
+                double occupancy = availableMinutes > 0
+                                ? (assignedMinutes * 100.0) / availableMinutes
                                 : 0.0;
                 return DayBalanceResponse.builder()
                                 .date(balance.getDate())
-                                .availableHours(balance.getAvailableHours())
-                                .assignedHours(balance.getScheduledHours())
-                                .occupancyPercent(Math.round(occupancy * 100.0) / 100.0)
+                                .availableMinutes(availableMinutes)
+                                .assignedMinutes(assignedMinutes)
+                                .occupancyPercentage(Math.round(occupancy * 100.0) / 100.0)
                                 .status(balance.getStatus().name())
                                 .build();
         }
