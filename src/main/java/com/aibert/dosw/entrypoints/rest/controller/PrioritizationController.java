@@ -2,11 +2,11 @@ package com.aibert.dosw.entrypoints.rest.controller;
 
 import com.aibert.dosw.application.dto.request.CriticalRecommendationsRequest;
 import com.aibert.dosw.application.dto.request.CriticalTaskCandidateRequest;
-import com.aibert.dosw.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
-import com.aibert.dosw.application.service.CriticalRecommendationsService;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
+import com.aibert.dosw.recommendation.application.dto.response.CriticalRecommendationsResponse;
+import com.aibert.dosw.recommendation.domain.ports.in.CriticalRecommendationsUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,7 +39,7 @@ public class PrioritizationController {
 
         private final PrioritizeTasksUseCase prioritizeTasksUseCase;
         private final PlanningTaskMapper planningTaskMapper;
-        private final CriticalRecommendationsService criticalRecommendationsService;
+        private final CriticalRecommendationsUseCase criticalRecommendationsUseCase;
 
         /**
          * Exposes a REST endpoint that returns active tasks ordered by
@@ -61,13 +61,16 @@ public class PrioritizationController {
         })
         public ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> getPrioritizedTasks(
                         @Parameter(description = "Student identifier used to fetch prioritized tasks", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
-                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(defaultValue = "false") boolean forceRecalculate,
+                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
+                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
 
                 // 1. Execute the use case
-                var tasks = prioritizeTasksUseCase.prioritize(studentId, forceRecalculate);
+                boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
+                                || Boolean.TRUE.equals(forzarRecalculo);
+                var tasks = prioritizeTasksUseCase.prioritize(studentId, shouldRecalculate);
 
                 // 2. Map domain models to DTOs
                 List<PrioritizedTaskResponse> responseList = tasks.stream()
@@ -95,14 +98,17 @@ public class PrioritizationController {
         public ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> getCriticalRecommendations(
                         @Parameter(description = "Student identifier used to fetch critical recommendations", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
                         @RequestBody(required = false) CriticalRecommendationsRequest request,
-                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(defaultValue = "false") boolean forceRecalculate,
+                        @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
+                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
 
-                List<PrioritizedTaskResponse> orderedTasks = resolveOrderedTasks(studentId, request, forceRecalculate);
-                CriticalRecommendationsResponse response = criticalRecommendationsService
-                                .buildRecommendations(orderedTasks);
+                boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
+                                || Boolean.TRUE.equals(forzarRecalculo);
+                List<PrioritizedTaskResponse> orderedTasks = resolveOrderedTasks(studentId, request, shouldRecalculate);
+                CriticalRecommendationsResponse response = criticalRecommendationsUseCase
+                                .getRecommendations(studentId, orderedTasks, shouldRecalculate);
 
                 return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
         }
@@ -113,9 +119,8 @@ public class PrioritizationController {
                         boolean forceRecalculate) {
                 List<CriticalTaskCandidateRequest> candidates = request != null ? request.getOrderedTasks() : null;
                 if (candidates == null || candidates.isEmpty()) {
-                        return prioritizeTasksUseCase.prioritize(studentId, forceRecalculate).stream()
-                                        .map(planningTaskMapper::toPrioritizedResponse)
-                                        .toList();
+                        // The use case handles internal prioritization when the list is null
+                        return null;
                 }
 
                 return candidates.stream()
@@ -132,6 +137,7 @@ public class PrioritizationController {
                 String safeStatus = candidate.getStatus() != null ? candidate.getStatus() : "TODO";
 
                 return PrioritizedTaskResponse.builder()
+                                .id(safeTaskId)
                                 .taskId(safeTaskId)
                                 .title(safeTitle)
                                 .subjectId(safeSubjectId)
@@ -141,13 +147,23 @@ public class PrioritizationController {
                                 .estimatedDurationMinutes(candidate.getEstimatedDurationMinutes() != null
                                                 ? candidate.getEstimatedDurationMinutes()
                                                 : 0)
-                                .priorityScore(candidate.getPriorityScore() != null
-                                                ? candidate.getPriorityScore()
-                                                : 0.0)
+                                .priorityScore(normalizePriorityScore(candidate.getPriorityScore()))
                                 .priorityLevel(safePriorityLevel)
+                                .priority(safePriorityLevel)
                                 .status(safeStatus)
                                 .lastUpdated(java.time.LocalDateTime.now())
                                 .build();
+        }
+
+        private int normalizePriorityScore(Double score) {
+                if (score == null) {
+                        return 0;
+                }
+                int rounded = (int) Math.round(score);
+                if (rounded < 0) {
+                        return 0;
+                }
+                return Math.min(rounded, 100);
         }
 
         private void assertStudentIdMatchesAuthenticatedUser(
@@ -155,7 +171,7 @@ public class PrioritizationController {
                         String studentId) {
                 if (authentication == null || !StringUtils.hasText(authentication.getName())
                                 || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("studentId does not match authenticated user");
+                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
         }
 }

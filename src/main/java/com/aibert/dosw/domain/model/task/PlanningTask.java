@@ -4,6 +4,7 @@ import com.aibert.dosw.domain.model.context.NoteRiskCalculator;
 import com.aibert.dosw.domain.model.context.NoteRiskCalculator.RiskLevel;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.Builder;
@@ -28,6 +29,7 @@ public class PlanningTask {
     private final double estimatedHours;
     private final int difficulty; // 1 to 5
     private final LocalDate dueDate;
+    private final LocalDateTime dueDateTime;
 
     private final String subjectName;
     private final int subjectCredits;
@@ -39,6 +41,8 @@ public class PlanningTask {
     private TaskPriority priorityLevel;
     private double priorityScore;
     private LocalDate scheduledDate;
+    private LocalDateTime scheduledDateTime;
+    private Integer correctedEstimatedMinutes;
 
     /**
      * Applies a calculated priority to this task.
@@ -71,7 +75,17 @@ public class PlanningTask {
      */
     public void scheduleFor(LocalDate date) {
         this.scheduledDate = date;
+        this.scheduledDateTime = date != null ? date.atStartOfDay() : null;
         this.status = TaskStatus.SCHEDULED;
+    }
+
+    /**
+     * Stores the corrected duration minutes used for prioritization outputs.
+     *
+     * @param minutes corrected duration minutes (non-negative)
+     */
+    public void applyDurationCorrection(int minutes) {
+        this.correctedEstimatedMinutes = Math.max(minutes, 0);
     }
 
     /**

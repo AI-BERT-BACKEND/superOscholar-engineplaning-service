@@ -59,6 +59,16 @@ public class TaskServiceAdapter implements TaskProviderPort {
      * Converts a PlanningTask back to TaskServiceResponse for outbound updates.
      */
     private TaskServiceResponse toTaskServiceResponse(PlanningTask task) {
+        var deadline = task.getDueDateTime();
+        if (deadline == null && task.getDueDate() != null) {
+            deadline = task.getDueDate().atTime(23, 59);
+        }
+
+        var scheduled = task.getScheduledDateTime();
+        if (scheduled == null && task.getScheduledDate() != null) {
+            scheduled = task.getScheduledDate().atStartOfDay();
+        }
+
         return TaskServiceResponse.builder()
                 .id(task.getId())
                 .studentId(task.getUserId())
@@ -66,8 +76,8 @@ public class TaskServiceAdapter implements TaskProviderPort {
                 .description(task.getDescription())
                 .estimatedDurationMinutes(
                         task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
-                .deadline(task.getDueDate() != null ? task.getDueDate().atStartOfDay() : null)
-                .scheduledDate(task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : null)
+                .deadline(deadline)
+                .scheduledDate(scheduled)
                 .priority(task.getPriorityLevel() != null ? task.getPriorityLevel().name() : null)
                 .type(task.getType() != null ? task.getType().name() : null)
                 .status(convertStatusToTaskService(task))

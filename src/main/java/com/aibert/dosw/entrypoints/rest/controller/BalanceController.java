@@ -118,7 +118,7 @@ public class BalanceController {
                         String studentId) {
                 if (authentication == null || !StringUtils.hasText(authentication.getName())
                                 || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("studentId does not match authenticated user");
+                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
         }
 }

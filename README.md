@@ -223,28 +223,46 @@ El microservicio implementa **Clean Architecture** con enfoque **Hexagonal (Port
 
 ### 4.4 Algoritmo de priorización
 
-El motor calcula un **score de prioridad** combinando tres factores:
+El motor calcula un **score de prioridad** combinando tres factores ponderables:
 
 ```
+minutosCorregidos = estimatedHours * 60 * timeCorrectionFactor
+
 score = (pesoAcademico * 100) * weightAcademic
-  + (puntuacionProximidad) * weightProximity
-  + (puntuacionTiempo) * weightTime
+      + (puntuacionProximidad) * weightProximity
+      + (puntuacionTiempo) * weightTime
+
+score final → redondeado a Integer en [0, 100]
 ```
 
-**Proximidad (horas restantes):**
+**Precisión del deadline:** cuando la tarea tiene un campo `dueDateTime` (`LocalDateTime`), se usa ese timestamp exacto para calcular las horas restantes; si no existe, se infiere `dueDate.atTime(23:59)`.
+
+**Proximidad (horas restantes hasta el deadline):**
 
 | Horas restantes | puntuacionProximidad |
 |----------------|----------------------|
-| <= 24 | 100 |
-| <= 48 | 80 |
-| <= 120 | 60 |
+| ≤ 24 | CRITICAL automático (score = 100) |
+| ≤ 48 | 80 |
+| ≤ 120 | 60 |
 | > 120 | 40 |
 
-**Tiempo estimado:**
+**Tiempo estimado (AIB-22.4):**
 
 ```
-puntuacionTiempo = min((minutosEstimados / 3), 100)
+puntuacionTiempo = min((minutosCorregidos / 3), 100)
 ```
+
+**Factor de corrección de duración (AIB-22.4):**  
+Configurable vía `planning.priority.time-correction-factor` (default `1.0`). Permite ajustar los minutos estimados antes del cálculo sin modificar el dato original de la tarea.
+
+**Pesos por defecto (configurables vía `PriorityWeightsProperties`):**
+
+| Factor | Propiedad | Default |
+|--------|-----------|---------|
+| Proximidad al deadline | `planning.priority.weight-proximity` | 0.40 |
+| Peso académico | `planning.priority.weight-academic` | 0.40 |
+| Tiempo estimado | `planning.priority.weight-time` | 0.20 |
+| Factor de corrección | `planning.priority.time-correction-factor` | 1.0 |
 
 Si no hay deadline, la prioridad es `LOW` y el score es `0`.
 
@@ -347,6 +365,7 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante c
 |---|---|:---:|---|
 | `X-Student-Id` | `String` | Obligatorio (Header) | Identificador del estudiante. |
 | `forceRecalculate` | `Boolean` | Opcional (default: false) | Si es `true`, recalcula todos los scores aunque ya existan. |
+| `forzarRecalculo` | `Boolean` | Opcional (alias español) | Equivalente a `forceRecalculate`. Cualquiera de los dos activa el recálculo. |
 | `Authorization` | `String` | Obligatorio (Header) | Token JWT Bearer. |
 
 </div>
@@ -360,34 +379,40 @@ Calcula automáticamente la prioridad de las tareas académicas del estudiante c
 | 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
 |---|---|---|
 | `message` | `String` | `"¡Tareas priorizadas exitosamente!"` o `"No hay tareas activas para priorizar"` |
+| `data[].id` | `String` | Alias de `taskId`. Identificador único de la tarea. |
 | `data[].taskId` | `String` | Identificador único de la tarea. |
 | `data[].title` | `String` | Nombre de la tarea académica. |
 | `data[].subjectId` | `String` | ID de la materia asociada. |
 | `data[].taskType` | `String` | Tipo: `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO`. |
-| `data[].deadline` | `LocalDateTime` | Fecha límite de la tarea (ISO 8601). |
-| `data[].scheduledDate` | `LocalDateTime` | Fecha de estudio asignada. `null` si no distribuida. |
-| `data[].estimatedDurationMinutes` | `Integer` | Tiempo estimado en minutos. |
+| `data[].deadline` | `LocalDateTime` | Fecha límite con hora exacta (ISO 8601). Preserva el tiempo original del task-service. |
+| `data[].scheduledDate` | `LocalDateTime` | Fecha y hora de estudio asignada. `null` si no distribuida. |
+| `data[].estimatedDurationMinutes` | `Integer` | Minutos estimados **corregidos** (tras aplicar `timeCorrectionFactor`). |
 | `data[].status` | `String` | Estado: `TODO` / `IN_PROGRESS` / `COMPLETED` / `SCHEDULED`. |
-| `data[].priorityScore` | `Float` | Puntaje calculado (0.0 – 100.0). |
+| `data[].priorityScore` | `Integer` | Puntaje calculado redondeado, rango [0 – 100]. |
 | `data[].priorityLevel` | `String` | Nivel: `CRITICAL` / `HIGH` / `MEDIUM` / `LOW`. |
+| `data[].priority` | `String` | Alias de `priorityLevel`. |
 | `data[].lastUpdated` | `LocalDateTime` | Timestamp ISO 8601 del último recálculo de prioridad. |
 
 </div>
 
-#### 🧮 Algoritmo de Prioridad (R14)
+#### 🧮 Algoritmo de Prioridad (R14 / AIB-22.4)
 
 ```
+minutosCorregidos = estimatedHours * 60 * timeCorrectionFactor
+
 score = (pesoAcademico * 100) * weightAcademic
       + (puntuacionProximidad) * weightProximity
       + (puntuacionTiempo) * weightTime
 
-puntuacionProximidad:
-  <= 24h  -> 100
-  <= 48h  -> 80
-  <= 120h -> 60
-  > 120h  -> 40
+resultado → Integer redondeado en [0, 100]
 
-puntuacionTiempo = min((minutosEstimados / 3), 100)
+puntuacionProximidad (horasLeft calculadas sobre dueDateTime exacto):
+  <= 24h  → CRITICAL automático (score = 100)
+  <= 48h  → 80
+  <= 120h → 60
+  > 120h  → 40
+
+puntuacionTiempo = min((minutosCorregidos / 3), 100)
 ```
 
 ---
@@ -406,6 +431,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
   "message": "¡Tareas priorizadas exitosamente!",
   "data": [
     {
+      "id": "TASK-101",
       "taskId": "TASK-101",
       "title": "Parcial de Cálculo Diferencial",
       "subjectId": "CALC-201",
@@ -414,11 +440,13 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
       "scheduledDate": "2026-05-12T08:00:00",
       "estimatedDurationMinutes": 180,
       "status": "TODO",
-      "priorityScore": 100.0,
+      "priorityScore": 100,
       "priorityLevel": "CRITICAL",
+      "priority": "CRITICAL",
       "lastUpdated": "2026-05-12T19:00:00"
     },
     {
+      "id": "TASK-102",
       "taskId": "TASK-102",
       "title": "Taller de Programación",
       "subjectId": "PROG-101",
@@ -427,8 +455,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
       "scheduledDate": null,
       "estimatedDurationMinutes": 120,
       "status": "TODO",
-      "priorityScore": 62.50,
+      "priorityScore": 63,
       "priorityLevel": "MEDIUM",
+      "priority": "MEDIUM",
       "lastUpdated": "2026-05-12T19:00:00"
     }
   ],
@@ -814,15 +843,17 @@ Sub-funcionalidad del Motor de Priorización (AIB-22). El sistema recalcula y as
 | 🏷️ Campo | 🗃️ Tipo | 📝 Descripción |
 |---|---|---|
 | `taskId` | `String` | Identificador de la tarea (UUID). |
+| `id` | `String` | Alias de `taskId`. |
 | `title` | `String` | Título de la tarea (máx. 200 caracteres). |
 | `subjectId` | `String` | ID de la materia asociada. |
 | `taskType` | `String` | `TAREA` / `EXAMEN` / `PROYECTO` / `LECTURA` / `OTRO` |
-| `deadline` | `LocalDateTime` | Fecha límite (ISO 8601). |
-| `priorityScore` | `Float` | Puntuación 0.0 – 100.0 (mayor = más urgente). |
+| `deadline` | `LocalDateTime` | Fecha límite con hora exacta (ISO 8601). |
+| `priorityScore` | `Integer` | Puntuación entera [0 – 100] (mayor = más urgente). |
 | `priorityLevel` | `String` | `LOW` (< 40) / `MEDIUM` (40-69) / `HIGH` (≥ 70) / `CRITICAL` (deadline < 24h). |
-| `estimatedDurationMinutes` | `Integer` | Minutos estimados de trabajo. |
+| `priority` | `String` | Alias de `priorityLevel`. |
+| `estimatedDurationMinutes` | `Integer` | Minutos estimados corregidos por `timeCorrectionFactor`. |
 | `status` | `String` | `TODO` / `IN_PROGRESS`. |
-| `scheduledDate` | `LocalDateTime` | Fecha de estudio asignada. `null` si no distribuida. |
+| `scheduledDate` | `LocalDateTime` | Fecha y hora de estudio asignada. `null` si no distribuida. |
 | `lastUpdated` | `LocalDateTime` | Timestamp ISO 8601 del último recálculo. |
 
 </div>
@@ -1220,8 +1251,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
         "taskType": "EXAMEN",
         "deadline": "2026-05-15T10:00:00",
         "estimatedDurationMinutes": 120,
-        "priorityScore": 92.5,
+        "priorityScore": 92,
         "priorityLevel": "CRITICAL",
+        "priority": "CRITICAL",
         "status": "IN_PROGRESS",
         "scheduledDate": "2026-05-14T08:00:00"
       }
@@ -1914,6 +1946,17 @@ GROQ_API_KEY=your_groq_api_key_here
 # Servidor
 SERVER_PORT=8004
 SPRING_PROFILES_ACTIVE=dev
+```
+
+### ⚙️ Propiedades del Motor de Priorización (application.yml)
+
+```yaml
+planning:
+  priority:
+    weight-proximity: 0.40            # Peso del factor proximidad al deadline
+    weight-academic: 0.40             # Peso del factor peso académico de la materia
+    weight-time: 0.20                 # Peso del factor tiempo estimado
+    time-correction-factor: 1.0       # AIB-22.4 — Factor de corrección de duración (valor a definir)
 ```
 
 > ⚠️ **Nunca subas el archivo `.env` al repositorio.** Usa `.env.example` como plantilla y agrega `.env` a tu `.gitignore`.

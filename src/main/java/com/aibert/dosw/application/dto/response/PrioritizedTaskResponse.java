@@ -14,6 +14,9 @@ import lombok.Getter;
 @Builder
 @Schema(description = "Task details enriched with a computed priority score")
 public class PrioritizedTaskResponse {
+    @Schema(description = "Task identifier (alias of taskId)", example = "task-456")
+    private final String id;
+
     @Schema(description = "Task identifier", example = "task-456")
     private final String taskId;
 
@@ -38,11 +41,14 @@ public class PrioritizedTaskResponse {
     @Schema(description = "Task status", example = "TODO")
     private final String status;
 
-    @Schema(description = "Priority score computed by the engine", example = "82.5")
-    private final double priorityScore;
+    @Schema(description = "Priority score computed by the engine", example = "83")
+    private final int priorityScore;
 
     @Schema(description = "Priority level label", example = "HIGH")
     private final String priorityLevel;
+
+    @Schema(description = "Priority level label (alias of priorityLevel)", example = "HIGH")
+    private final String priority;
 
     @Schema(description = "Timestamp of the last priority recalculation (ISO 8601)", example = "2026-05-15T12:00:00")
     private final LocalDateTime lastUpdated;

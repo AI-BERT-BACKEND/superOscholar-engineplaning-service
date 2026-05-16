@@ -26,20 +26,24 @@ import org.mapstruct.Mapping;
 public interface PlanningTaskMapper {
 
     /**
-     * Converts a {@link PlanningTask} domain model into a {@link PrioritizedTaskResponse} DTO.
+     * Converts a {@link PlanningTask} domain model into a
+     * {@link PrioritizedTaskResponse} DTO.
      *
      * @param task The domain task
      * @return The response DTO aligned with AIB-22 output contract
      */
-    @Mapping(target = "taskId",    source = "id")
+    @Mapping(target = "taskId", source = "id")
+    @Mapping(target = "id", source = "id")
     @Mapping(target = "subjectId", source = "subjectName")
-    @Mapping(target = "taskType",  expression = "java(task.getType() != null ? task.getType().name() : \"OTRO\")")
-    @Mapping(target = "estimatedDurationMinutes", expression = "java((int) Math.round(task.getEstimatedHours() * 60))")
-    @Mapping(target = "deadline",      expression = "java(task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : null)")
-    @Mapping(target = "scheduledDate", expression = "java(task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : null)")
-    @Mapping(target = "status",        expression = "java(mapStatus(task))")
+    @Mapping(target = "taskType", expression = "java(task.getType() != null ? task.getType().name() : \"OTRO\")")
+    @Mapping(target = "estimatedDurationMinutes", expression = "java(mapEstimatedMinutes(task))")
+    @Mapping(target = "deadline", expression = "java(mapDeadline(task))")
+    @Mapping(target = "scheduledDate", expression = "java(mapScheduledDate(task))")
+    @Mapping(target = "status", expression = "java(mapStatus(task))")
     @Mapping(target = "priorityLevel", expression = "java(mapPriority(task))")
-    @Mapping(target = "lastUpdated",   expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "priority", expression = "java(mapPriority(task))")
+    @Mapping(target = "priorityScore", expression = "java(mapPriorityScore(task))")
+    @Mapping(target = "lastUpdated", expression = "java(java.time.LocalDateTime.now())")
     PrioritizedTaskResponse toPrioritizedResponse(PlanningTask task);
 
     /**
@@ -54,6 +58,59 @@ public interface PlanningTaskMapper {
     }
 
     /**
+     * Maps the deadline using the most precise timestamp available.
+     */
+    default java.time.LocalDateTime mapDeadline(PlanningTask task) {
+        if (task == null) {
+            return null;
+        }
+        if (task.getDueDateTime() != null) {
+            return task.getDueDateTime();
+        }
+        return task.getDueDate() != null ? task.getDueDate().atTime(23, 59) : null;
+    }
+
+    /**
+     * Maps the scheduled date using the most precise timestamp available.
+     */
+    default java.time.LocalDateTime mapScheduledDate(PlanningTask task) {
+        if (task == null) {
+            return null;
+        }
+        if (task.getScheduledDateTime() != null) {
+            return task.getScheduledDateTime();
+        }
+        return task.getScheduledDate() != null ? task.getScheduledDate().atStartOfDay() : null;
+    }
+
+    /**
+     * Maps priority score to an integer in the range [0, 100].
+     */
+    default int mapPriorityScore(PlanningTask task) {
+        if (task == null) {
+            return 0;
+        }
+        int score = (int) Math.round(task.getPriorityScore());
+        if (score < 0) {
+            return 0;
+        }
+        return Math.min(score, 100);
+    }
+
+    /**
+     * Uses corrected duration when present; falls back to raw estimate.
+     */
+    default int mapEstimatedMinutes(PlanningTask task) {
+        if (task == null) {
+            return 0;
+        }
+        if (task.getCorrectedEstimatedMinutes() != null) {
+            return Math.max(task.getCorrectedEstimatedMinutes(), 0);
+        }
+        return (int) Math.round(task.getEstimatedHours() * 60);
+    }
+
+    /**
      * Maps the internal TaskStatus enum to the task-service canonical string.
      * Internal states (SCHEDULED, OVERLOADED) are projected back to TODO.
      */
@@ -62,10 +119,10 @@ public interface PlanningTaskMapper {
             return "TODO";
         }
         return switch (task.getStatus()) {
-            case TODO       -> "TODO";
+            case TODO -> "TODO";
             case IN_PROGRESS -> "IN_PROGRESS";
-            case COMPLETED  -> "COMPLETED";
-            case SCHEDULED  -> "SCHEDULED";
+            case COMPLETED -> "COMPLETED";
+            case SCHEDULED -> "SCHEDULED";
             case OVERLOADED -> "TODO";
         };
     }
@@ -76,18 +133,18 @@ public interface PlanningTaskMapper {
     /**
      * Converts a MovedTaskRecord domain model to a MovedTaskResponse DTO.
      */
-    @Mapping(target = "taskId",           source = "taskId")
-    @Mapping(target = "taskTitle",        source = "taskTitle")
-    @Mapping(target = "originalDate",     source = "originalDate")
+    @Mapping(target = "taskId", source = "taskId")
+    @Mapping(target = "taskTitle", source = "taskTitle")
+    @Mapping(target = "originalDate", source = "originalDate")
     @Mapping(target = "originalStartTime", source = "originalStartTime")
-    @Mapping(target = "newDate",          source = "newDate")
-    @Mapping(target = "newStartTime",     source = "newStartTime")
-    @Mapping(target = "reason",           source = "reason")
+    @Mapping(target = "newDate", source = "newDate")
+    @Mapping(target = "newStartTime", source = "newStartTime")
+    @Mapping(target = "reason", source = "reason")
     MovedTaskResponse toMovedTaskResponse(MovedTaskRecord record);
 
-    @Mapping(target = "fullyAssigned",  expression = "java(plan.isFullyAssigned())")
+    @Mapping(target = "fullyAssigned", expression = "java(plan.isFullyAssigned())")
     @Mapping(target = "criticalAlerts", expression = "java(plan.getCriticalTasks().stream().map(this::toPrioritizedResponse).toList())")
-    @Mapping(target = "movedTasks",     expression = "java(plan.getMovedTasks() != null ? plan.getMovedTasks().stream().map(this::toMovedTaskResponse).toList() : java.util.List.of())")
-    @Mapping(target = "message",        expression = "java(plan.isFullyAssigned() ? \"¡Plan de trabajo generado exitosamente!\" : \"Plan generado. Hay tareas que no pudieron ser asignadas por falta de disponibilidad.\")")
+    @Mapping(target = "movedTasks", expression = "java(plan.getMovedTasks() != null ? plan.getMovedTasks().stream().map(this::toMovedTaskResponse).toList() : java.util.List.of())")
+    @Mapping(target = "message", expression = "java(plan.isFullyAssigned() ? \"¡Plan de trabajo generado exitosamente!\" : \"Plan generado. Hay tareas que no pudieron ser asignadas por falta de disponibilidad.\")")
     DistributionPlanResponse toDistributionPlanResponse(WeeklyDistributionPlan plan);
 }

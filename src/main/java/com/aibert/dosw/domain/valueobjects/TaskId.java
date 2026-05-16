@@ -16,7 +16,7 @@ public final class TaskId {
     private TaskId(String value) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
-                    "TaskId cannot be null or blank");
+                    "El identificador de tarea no puede ser nulo o vacío");
         }
         this.value = value;
     }

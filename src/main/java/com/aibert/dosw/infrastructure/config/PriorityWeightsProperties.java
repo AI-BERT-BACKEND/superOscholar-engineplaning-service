@@ -37,4 +37,7 @@ public class PriorityWeightsProperties {
 
     /** Weight for estimated time factor (default 20%). */
     private double weightTime = 0.20;
+
+    /** Correction factor for estimated duration minutes (AIB-22.4). */
+    private double timeCorrectionFactor = 1.0;
 }

@@ -29,7 +29,7 @@ public class PlanningExceptionHandler {
                         PlanningDomainException ex,
                         HttpServletRequest request) {
 
-                log.warn("Domain error [{}]: {}",
+                log.warn("Error de dominio [{}]: {}",
                                 ex.getErrorCode(), ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
@@ -52,7 +52,7 @@ public class PlanningExceptionHandler {
                                 .map(FieldError::getDefaultMessage)
                                 .toList();
 
-                log.warn("Validation error: {}", errors);
+                log.warn("Error de validación: {}", errors);
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.validationError(
@@ -69,7 +69,7 @@ public class PlanningExceptionHandler {
                         Exception ex,
                         HttpServletRequest request) {
 
-                log.error("Unexpected error at: {}", request.getRequestURI(), ex);
+                log.error("Error inesperado en: {}", request.getRequestURI(), ex);
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(ApiResponse.error(
@@ -85,7 +85,7 @@ public class PlanningExceptionHandler {
                         AccessDeniedException ex,
                         HttpServletRequest request) {
 
-                log.warn("Access denied at {}: {}", request.getRequestURI(), ex.getMessage());
+                log.warn("Acceso denegado en {}: {}", request.getRequestURI(), ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.FORBIDDEN)
                                 .body(ApiResponse.error(

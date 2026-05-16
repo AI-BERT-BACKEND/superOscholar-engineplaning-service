@@ -39,7 +39,7 @@ class PlanningTaskMapperTest {
                 assertEquals("math", response.getSubjectId());
                 assertEquals(90, response.getEstimatedDurationMinutes());
                 assertEquals(LocalDateTime.of(2026, 5, 5, 23, 59), response.getDeadline());
-                assertEquals(42.5, response.getPriorityScore());
+                assertEquals(43, response.getPriorityScore());
                 assertEquals("HIGH", response.getPriorityLevel());
                 assertEquals("TODO", response.getStatus());
                 assertNotNull(response.getLastUpdated(), "lastUpdated must be set by the mapper");

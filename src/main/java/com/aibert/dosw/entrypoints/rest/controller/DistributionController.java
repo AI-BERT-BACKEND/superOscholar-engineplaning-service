@@ -59,7 +59,7 @@ public class DistributionController {
         DistributionPlanResponse response = planningTaskMapper.toDistributionPlanResponse(distributionPlan);
 
         return ResponseEntity.ok(
-                ApiResponse.success("Weekly distribution generated successfully", response));
+                ApiResponse.success("¡Plan de distribución semanal generado exitosamente!", response));
     }
 
     private void assertStudentIdMatchesAuthenticatedUser(
@@ -67,7 +67,7 @@ public class DistributionController {
             String studentId) {
         if (authentication == null || !StringUtils.hasText(authentication.getName())
                 || !authentication.getName().equals(studentId)) {
-            throw new AccessDeniedException("studentId does not match authenticated user");
+            throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
         }
     }
 }

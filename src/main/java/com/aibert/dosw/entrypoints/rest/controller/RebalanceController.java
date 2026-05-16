@@ -61,7 +61,7 @@ public class RebalanceController {
                                 request.getReason());
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Failure reported and schedule rebalanced successfully",
+                                ApiResponse.success("Fallo reportado y plan redistribuido exitosamente",
                                                 planningTaskMapper.toDistributionPlanResponse(newPlan)));
         }
 
@@ -87,7 +87,7 @@ public class RebalanceController {
                 var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
 
                 return ResponseEntity.ok(
-                                ApiResponse.success("Weekly schedule reorganized successfully",
+                                ApiResponse.success("¡Plan semanal reorganizado exitosamente!",
                                                 planningTaskMapper.toDistributionPlanResponse(updatedPlan)));
         }
 
@@ -96,7 +96,7 @@ public class RebalanceController {
                         String studentId) {
                 if (authentication == null || !StringUtils.hasText(authentication.getName())
                                 || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("studentId does not match authenticated user");
+                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
         }
 }

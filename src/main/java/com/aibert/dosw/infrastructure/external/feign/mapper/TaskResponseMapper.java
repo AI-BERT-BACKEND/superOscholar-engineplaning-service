@@ -17,15 +17,27 @@ import org.mapstruct.Named;
  * Mapper that converts {@link TaskServiceResponse} (task-service DTO) to
  * {@link PlanningTask} (domain model).
  *
- * <p>Resolves type and naming incompatibilities between the two microservices:</p>
+ * <p>
+ * Resolves type and naming incompatibilities between the two microservices:
+ * </p>
  * <ul>
- *   <li>{@code studentId} → {@code userId}</li>
- *   <li>{@code estimatedDurationMinutes} (Integer) → {@code estimatedHours} (double): ÷ 60</li>
- *   <li>{@code deadline} (LocalDateTime) → {@code dueDate} (LocalDate): toLocalDate()</li>
- *   <li>{@code scheduledDate} (LocalDateTime) → {@code scheduledDate} (LocalDate)</li>
- *   <li>{@code priority} (String: LOW/MEDIUM/HIGH/CRITICAL) → {@code priorityLevel} (TaskPriority)</li>
- *   <li>{@code status} (String: TODO/IN_PROGRESS/COMPLETED) → {@code status} (TaskStatus)</li>
- *   <li>{@code subjectId} → {@code subjectName} (planning-service internal field)</li>
+ * <li>{@code studentId} → {@code userId}</li>
+ * <li>{@code estimatedDurationMinutes} (Integer) → {@code estimatedHours}
+ * (double): ÷ 60</li>
+ * <li>{@code deadline} (LocalDateTime) → {@code dueDateTime}
+ * (LocalDateTime)</li>
+ * <li>{@code deadline} (LocalDateTime) → {@code dueDate} (LocalDate):
+ * toLocalDate()</li>
+ * <li>{@code scheduledDate} (LocalDateTime) → {@code scheduledDateTime}
+ * (LocalDateTime)</li>
+ * <li>{@code scheduledDate} (LocalDateTime) → {@code scheduledDate}
+ * (LocalDate)</li>
+ * <li>{@code priority} (String: LOW/MEDIUM/HIGH/CRITICAL) →
+ * {@code priorityLevel} (TaskPriority)</li>
+ * <li>{@code status} (String: TODO/IN_PROGRESS/COMPLETED) → {@code status}
+ * (TaskStatus)</li>
+ * <li>{@code subjectId} → {@code subjectName} (planning-service internal
+ * field)</li>
  * </ul>
  */
 @Mapper(componentModel = "spring")
@@ -49,19 +61,21 @@ public interface TaskResponseMapper {
     /**
      * Converts a single {@link TaskServiceResponse} to a {@link PlanningTask}.
      */
-    @Mapping(target = "userId",           source = "studentId")
-    @Mapping(target = "estimatedHours",   source = "estimatedDurationMinutes", qualifiedByName = "minutesToHours")
-    @Mapping(target = "dueDate",          source = "deadline",                 qualifiedByName = "toLocalDate")
-    @Mapping(target = "scheduledDate",    source = "scheduledDate",            qualifiedByName = "toLocalDate")
-    @Mapping(target = "priorityLevel",    source = "priority",                 qualifiedByName = "priorityFromString")
-    @Mapping(target = "status",           source = "status",                   qualifiedByName = "statusFromString")
-    @Mapping(target = "difficulty",       source = "difficulty",               qualifiedByName = "difficultyOrDefault")
-    @Mapping(target = "subjectName",      source = "subjectId")
-    @Mapping(target = "type",            source = "type",                     qualifiedByName = "typeFromString")
-    @Mapping(target = "subjectCredits",      ignore = true)
-    @Mapping(target = "taskWeightInGrade",   ignore = true)
-    @Mapping(target = "evaluationCuts",      ignore = true)
-    @Mapping(target = "priorityScore",       ignore = true)
+    @Mapping(target = "userId", source = "studentId")
+    @Mapping(target = "estimatedHours", source = "estimatedDurationMinutes", qualifiedByName = "minutesToHours")
+    @Mapping(target = "dueDate", source = "deadline", qualifiedByName = "toLocalDate")
+    @Mapping(target = "dueDateTime", source = "deadline")
+    @Mapping(target = "scheduledDate", source = "scheduledDate", qualifiedByName = "toLocalDate")
+    @Mapping(target = "scheduledDateTime", source = "scheduledDate")
+    @Mapping(target = "priorityLevel", source = "priority", qualifiedByName = "priorityFromString")
+    @Mapping(target = "status", source = "status", qualifiedByName = "statusFromString")
+    @Mapping(target = "difficulty", source = "difficulty", qualifiedByName = "difficultyOrDefault")
+    @Mapping(target = "subjectName", source = "subjectId")
+    @Mapping(target = "type", source = "type", qualifiedByName = "typeFromString")
+    @Mapping(target = "subjectCredits", ignore = true)
+    @Mapping(target = "taskWeightInGrade", ignore = true)
+    @Mapping(target = "evaluationCuts", ignore = true)
+    @Mapping(target = "priorityScore", ignore = true)
     PlanningTask toPlanningTask(TaskServiceResponse response);
 
     // ─────────────────────────────────────────────────────────────────
@@ -71,7 +85,8 @@ public interface TaskResponseMapper {
     /** Converts minutes (Integer) to hours (double). E.g. 90 min → 1.5 h. */
     @Named("minutesToHours")
     default double convertMinutesToHours(Integer minutes) {
-        if (minutes == null || minutes <= 0) return 0.0;
+        if (minutes == null || minutes <= 0)
+            return 0.0;
         return minutes / 60.0;
     }
 
@@ -82,17 +97,19 @@ public interface TaskResponseMapper {
     }
 
     /**
-     * Converts the task-service priority string to the domain {@link TaskPriority} enum.
+     * Converts the task-service priority string to the domain {@link TaskPriority}
+     * enum.
      * Accepted values (case-insensitive): CRITICAL, HIGH, MEDIUM, LOW.
      */
     @Named("priorityFromString")
     default TaskPriority convertPriority(String priority) {
-        if (priority == null || priority.isBlank()) return null;
+        if (priority == null || priority.isBlank())
+            return null;
         return switch (priority.toUpperCase()) {
             case "CRITICAL" -> TaskPriority.CRITICAL;
-            case "HIGH"     -> TaskPriority.HIGH;
-            case "MEDIUM"   -> TaskPriority.MEDIUM;
-            case "LOW"      -> TaskPriority.LOW;
+            case "HIGH" -> TaskPriority.HIGH;
+            case "MEDIUM" -> TaskPriority.MEDIUM;
+            case "LOW" -> TaskPriority.LOW;
             default -> {
                 try {
                     yield TaskPriority.valueOf(priority.toUpperCase());
@@ -104,19 +121,21 @@ public interface TaskResponseMapper {
     }
 
     /**
-     * Converts the task-service status string to the domain {@link TaskStatus} enum.
+     * Converts the task-service status string to the domain {@link TaskStatus}
+     * enum.
      * Mapping: TODO → TODO, IN_PROGRESS → IN_PROGRESS, COMPLETED → COMPLETED,
      * SCHEDULED → SCHEDULED. Unknown values default to TODO.
      */
     @Named("statusFromString")
     default TaskStatus convertStatus(String status) {
-        if (status == null || status.isBlank()) return TaskStatus.TODO;
+        if (status == null || status.isBlank())
+            return TaskStatus.TODO;
         return switch (status.toUpperCase()) {
-            case "TODO"        -> TaskStatus.TODO;
+            case "TODO" -> TaskStatus.TODO;
             case "IN_PROGRESS" -> TaskStatus.IN_PROGRESS;
-            case "COMPLETED"   -> TaskStatus.COMPLETED;
-            case "SCHEDULED"   -> TaskStatus.SCHEDULED;
-            default            -> TaskStatus.TODO;
+            case "COMPLETED" -> TaskStatus.COMPLETED;
+            case "SCHEDULED" -> TaskStatus.SCHEDULED;
+            default -> TaskStatus.TODO;
         };
     }
 
@@ -129,13 +148,14 @@ public interface TaskResponseMapper {
     /** Converts the task type string to the {@link TaskType} enum. */
     @Named("typeFromString")
     default TaskType convertType(String type) {
-        if (type == null || type.isBlank()) return TaskType.OTRO;
+        if (type == null || type.isBlank())
+            return TaskType.OTRO;
         return switch (type.toUpperCase()) {
-            case "TAREA"    -> TaskType.TAREA;
-            case "EXAMEN"   -> TaskType.EXAMEN;
+            case "TAREA" -> TaskType.TAREA;
+            case "EXAMEN" -> TaskType.EXAMEN;
             case "PROYECTO" -> TaskType.PROYECTO;
-            case "LECTURA"  -> TaskType.LECTURA;
-            default         -> TaskType.OTRO;
+            case "LECTURA" -> TaskType.LECTURA;
+            default -> TaskType.OTRO;
         };
     }
 }

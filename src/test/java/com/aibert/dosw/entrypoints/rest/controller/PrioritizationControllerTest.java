@@ -1,13 +1,13 @@
 package com.aibert.dosw.entrypoints.rest.controller;
 
 import com.aibert.dosw.application.dto.request.CriticalRecommendationsRequest;
-import com.aibert.dosw.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
-import com.aibert.dosw.application.service.CriticalRecommendationsService;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.in.PrioritizeTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
+import com.aibert.dosw.recommendation.application.dto.response.CriticalRecommendationsResponse;
+import com.aibert.dosw.recommendation.domain.ports.in.CriticalRecommendationsUseCase;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,7 +30,7 @@ class PrioritizationControllerTest {
     @Mock
     private PlanningTaskMapper planningTaskMapper;
     @Mock
-    private CriticalRecommendationsService criticalRecommendationsService;
+    private CriticalRecommendationsUseCase criticalRecommendationsUseCase;
     @InjectMocks
     private PrioritizationController controller;
 
@@ -42,13 +43,13 @@ class PrioritizationControllerTest {
         when(authentication.getName()).thenReturn("st1");
 
         ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks("st1",
-                false, authentication);
+                false, null, authentication);
         assertNotNull(response.getBody());
     }
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, null));
+        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, null, null));
     }
 
     @Test
@@ -56,7 +57,8 @@ class PrioritizationControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, authentication));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.getPrioritizedTasks("st1", false, null, authentication));
     }
 
     @Test
@@ -64,7 +66,8 @@ class PrioritizationControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("");
 
-        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, authentication));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.getPrioritizedTasks("st1", false, null, authentication));
     }
 
     @Test
@@ -72,17 +75,18 @@ class PrioritizationControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("st1");
 
-        when(criticalRecommendationsService.buildRecommendations(anyList()))
+        when(criticalRecommendationsUseCase.getRecommendations(eq("st1"), isNull(), eq(false)))
                 .thenReturn(CriticalRecommendationsResponse.builder()
-                        .totalCritical(0)
+                        .criticalCount(0)
                         .criticalRecommendations(List.of())
-                        .message("You have no critical tasks at the moment")
+                        .message("No tienes tareas críticas en este momento")
                         .build());
 
         ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> response = controller.getCriticalRecommendations(
                 "st1",
                 new CriticalRecommendationsRequest(),
                 false,
+                null,
                 authentication);
 
         assertNotNull(response.getBody());

@@ -32,8 +32,8 @@ public class CriticalRecommendationsService {
                 .toList();
 
         String message = totalCritical > 0
-                ? "You have " + totalCritical + " critical tasks that require immediate attention"
-                : "You have no critical tasks at the moment";
+                ? "Tienes " + totalCritical + " tarea(s) crítica(s) que requieren atención inmediata"
+                : "No tienes tareas críticas en este momento";
 
         return CriticalRecommendationsResponse.builder()
                 .criticalRecommendations(recommendations)
