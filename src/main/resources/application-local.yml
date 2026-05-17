@@ -1,22 +1,31 @@
 spring:
   config:
     activate:
-      on-profile: dev
+      on-profile: local
+
   cloud:
     openfeign:
       circuitbreaker:
-        enabled: true  # activa los fallbacks
+        enabled: true
 
+# ─── JWT ──────────────────────────────────────────────────────────────────────
 jwt:
   secret: "VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24="
 
+# ─── Seguridad: desactiva JWT para pruebas Swagger locales ───────────────────
+# WARNING: nunca usar en prod/qa
+planning:
+  security:
+    enabled: false
+
+# ─── URLs de servicios externos (locales) ────────────────────────────────────
 feign:
   task-service:
-    url: "http://localhost:8084"    # puerto correcto de task-service
+    url: "http://localhost:8084"
   profile-service:
-    url: "http://localhost:8082"    # puerto de profile-service
+    url: "http://localhost:8082"
   academic-service:
-    url: "http://localhost:8083"    # puerto de academic-service
+    url: "http://localhost:8083"
   client:
     config:
       default:
@@ -59,6 +68,15 @@ management:
   health:
     circuitbreakers:
       enabled: true
+
+# ─── SpringDoc / Swagger UI ───────────────────────────────────────────────────
+springdoc:
+  swagger-ui:
+    try-it-out-enabled: true        # abre directamente en modo "prueba"
+    operations-sorter: alpha        # endpoints en orden alfabético
+    tags-sorter: alpha
+    display-request-duration: true  # muestra el tiempo de respuesta
+  show-actuator: false
 
 # ─── Logging ──────────────────────────────────────────────────────────────────
 logging:

@@ -13,7 +13,7 @@ import lombok.Getter;
 @Builder
 @Schema(description = "Weekly distribution plan produced by the scheduling engine")
 public class DistributionPlanResponse {
-    @Schema(description = "Student identifier for the plan", example = "student-123")
+    @Schema(description = "Student identifier for the plan", example = "100095379")
     private final String studentId;
 
     /**

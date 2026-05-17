@@ -19,7 +19,7 @@ import lombok.Setter;
 @Schema(description = "Payload used to report a missed or failed study block for a student")
 public class FailureReportRequest {
     @NotBlank(message = "studentId is required")
-    @Schema(description = "Student identifier reporting the failure", example = "student-123")
+    @Schema(description = "Student identifier reporting the failure", example = "100095379")
     private String studentId;
 
     @NotBlank(message = "taskId is required")

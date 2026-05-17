@@ -63,7 +63,7 @@ public class CriticalRecommendationsController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     public ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> getCriticalRecommendations(
-            @Parameter(description = "Student identifier", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
+            @Parameter(description = "Student identifier", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
             @RequestBody(required = false) CriticalRecommendationsRequest request,
             @Parameter(description = "Forces recalculation of priority scores when no task list is supplied", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
             @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,

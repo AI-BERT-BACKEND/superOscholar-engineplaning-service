@@ -15,7 +15,7 @@ import lombok.Getter;
 @Builder
 @Schema(description = "Complete weekly workload balance analysis and suggestions")
 public class WorkloadBalanceResponse {
-    @Schema(description = "Student identifier for the analysis", example = "student-123")
+    @Schema(description = "Student identifier for the analysis", example = "100095379")
     private final String studentId;
 
     /**

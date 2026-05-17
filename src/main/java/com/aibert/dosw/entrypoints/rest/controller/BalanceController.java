@@ -60,7 +60,7 @@ public class BalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<WorkloadBalanceResponse>> getBalanceSuggestions(
-                        @Parameter(description = "Student identifier, provided via X-Student-Id request header", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
+                        @Parameter(description = "Student identifier, provided via X-Student-Id request header", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
                         @Parameter(description = "Week start date (Monday) in ISO format; defaults to current week if omitted", example = "2026-05-12") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate,
                         Authentication authentication) {
 

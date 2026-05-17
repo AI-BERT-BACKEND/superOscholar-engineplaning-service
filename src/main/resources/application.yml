@@ -34,6 +34,14 @@ management:
     health:
       show-details: never
 
+# ─── Logging ──────────────────────────────────────────────────────────────────
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] [%X{requestId:-no-req}] %-5level %logger{36} - %msg%n"
+  level:
+    com.aibert.dosw: INFO
+    feign: WARN
+
 ---
 spring:
   config:

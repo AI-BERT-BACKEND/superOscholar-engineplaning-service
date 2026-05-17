@@ -58,7 +58,7 @@ public class RiskDetectionController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     public ResponseEntity<ApiResponse<HighRiskDetectionResponse>> detectHighRiskTasks(
-            @Parameter(description = "Student identifier", required = true, example = "student-123") @RequestHeader("X-Student-Id") String studentId,
+            @Parameter(description = "Student identifier", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
             Authentication authentication) {
 
         assertStudentIdMatchesAuthenticatedUser(authentication, studentId);

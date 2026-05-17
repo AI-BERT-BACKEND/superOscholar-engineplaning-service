@@ -31,67 +31,64 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BalanceControllerTest {
 
-    @Mock
-    private BalanceWorkloadUseCase balanceWorkloadUseCase;
+        @Mock
+        private BalanceWorkloadUseCase balanceWorkloadUseCase;
 
-    @Mock
-    private PlanningTaskMapper planningTaskMapper;
+        @Mock
+        private PlanningTaskMapper planningTaskMapper;
 
-    @InjectMocks
-    private BalanceController controller;
+        @InjectMocks
+        private BalanceController controller;
 
-    @Test
-    void shouldReturnBalanceSuggestions() {
-        PlanningTask task = PlanningTask.builder().id("t1").title("Task").build();
+        @Test
+        void shouldReturnBalanceSuggestions() {
+                PlanningTask task = PlanningTask.builder().id("t1").title("Task").build();
 
-        BalanceSuggestion suggestion = BalanceSuggestion.builder()
-                .taskToMove(task)
-                .fromDate(LocalDate.of(2026, 5, 5))
-                .toDate(LocalDate.of(2026, 5, 6))
-                .reason("Free time")
-                .build();
+                BalanceSuggestion suggestion = BalanceSuggestion.builder()
+                                .taskToMove(task)
+                                .fromDate(LocalDate.of(2026, 5, 5))
+                                .toDate(LocalDate.of(2026, 5, 6))
+                                .reason("Free time")
+                                .build();
 
-        DifferentialBalance balance = DifferentialBalance.of(
-                LocalDate.of(2026, 5, 5), 8.0, 7.0);
+                DifferentialBalance balance = DifferentialBalance.of(
+                                LocalDate.of(2026, 5, 5), 8.0, 7.0);
 
-        BalanceResult balanceResult = BalanceResult.builder()
-                .weeklyLoadAnalysis(List.of(balance))
-                .overloadedDays(List.of("lunes 2026-05-05"))
-                .emptyDays(List.of())
-                .balanceSuggestions(List.of(suggestion))
-                .message("Se detectaron días con sobrecarga, se sugiere redistribuir")
-                .build();
+                BalanceResult balanceResult = BalanceResult.builder()
+                                .weeklyLoadAnalysis(List.of(balance))
+                                .overloadedDays(List.of("lunes 2026-05-05"))
+                                .emptyDays(List.of())
+                                .balanceSuggestions(List.of(suggestion))
+                                .message("Se detectaron días con sobrecarga, se sugiere redistribuir")
+                                .build();
 
-        when(balanceWorkloadUseCase.suggestBalance(eq("st1"), any(LocalDate.class)))
-                .thenReturn(balanceResult);
-        when(planningTaskMapper.toPrioritizedResponse(any()))
-                .thenReturn(PrioritizedTaskResponse.builder().build());
+                when(balanceWorkloadUseCase.suggestBalance(eq("st1"), any(LocalDate.class)))
+                                .thenReturn(balanceResult);
 
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getName()).thenReturn("st1");
 
-        ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response =
-                controller.getBalanceSuggestions("st1", null, authentication);
+                ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response = controller.getBalanceSuggestions("st1",
+                                null, authentication);
 
-        ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
-        assertEquals(1, body.getData().getBalanceSuggestions().size());
-        assertNotNull(body.getData().getMessage());
-        assertFalse(body.getData().getOverloadedDays().isEmpty());
-        assertFalse(body.getData().getWeeklyLoadAnalysis().isEmpty());
-    }
+                ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
+                assertEquals(1, body.getData().getBalanceSuggestions().size());
+                assertNotNull(body.getData().getMessage());
+                assertFalse(body.getData().getOverloadedDays().isEmpty());
+                assertFalse(body.getData().getWeeklyLoadAnalysis().isEmpty());
+        }
 
-    @Test
-    void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () ->
-            controller.getBalanceSuggestions("st1", null, null));
-    }
+        @Test
+        void shouldThrowAccessDeniedWhenAuthNull() {
+                assertThrows(AccessDeniedException.class, () -> controller.getBalanceSuggestions("st1", null, null));
+        }
 
-    @Test
-    void shouldThrowAccessDeniedWhenNameMismatch() {
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("other-user");
+        @Test
+        void shouldThrowAccessDeniedWhenNameMismatch() {
+                Authentication authentication = mock(Authentication.class);
+                when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.getBalanceSuggestions("st1", null, authentication));
-    }
+                assertThrows(AccessDeniedException.class,
+                                () -> controller.getBalanceSuggestions("st1", null, authentication));
+        }
 }

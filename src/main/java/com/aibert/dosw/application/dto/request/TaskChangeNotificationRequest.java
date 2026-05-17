@@ -19,7 +19,7 @@ import lombok.Setter;
 public class TaskChangeNotificationRequest {
 
     @NotBlank
-    @Schema(description = "Student identifier whose tasks need to be reprioritized", example = "student-123")
+    @Schema(description = "Student identifier whose tasks need to be reprioritized", example = "100095379")
     private String studentId;
 
     @NotBlank
