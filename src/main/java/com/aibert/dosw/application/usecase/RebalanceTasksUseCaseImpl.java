@@ -96,7 +96,8 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
 
     /**
      * Determines the user-facing message for a rebalanced plan.
-     * Priority: critical alerts > overload protection > full assignment > default.
+     * Priority: critical alerts > overload protection > full assignment > FA-01 (no
+     * time).
      */
     private String computeRebalanceMessage(WeeklyDistributionPlan plan) {
         if (!plan.getCriticalTasks().isEmpty()) {
@@ -108,7 +109,8 @@ public class RebalanceTasksUseCaseImpl implements RebalanceTasksUseCase {
         if (plan.isFullyAssigned()) {
             return "Plan reorganizado exitosamente.";
         }
-        return null;
+        // FA-01: no hay tiempo disponible para reubicar todas las tareas
+        return "No hay tiempo disponible para reorganizar. Revisa tus prioridades.";
     }
 
     /**

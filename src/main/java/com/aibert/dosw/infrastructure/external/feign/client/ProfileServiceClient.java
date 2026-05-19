@@ -9,13 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Feign Client para comunicarse con profile-service.
- * El fallback se activa si profile-service no responde o el circuit breaker está abierto.
+ * El fallback se activa si profile-service no responde o el circuit breaker
+ * está abierto.
  */
-@FeignClient(
-    name = "profile-service",
-    url = "${feign.profile-service.url}",
-    fallback = ProfileServiceClientFallback.class
-)
+@FeignClient(name = "profile-service", url = "${feign.profile-service.url}", fallback = ProfileServiceClientFallback.class)
 public interface ProfileServiceClient {
 
     @GetMapping("/schedule/weekly")
@@ -23,4 +20,7 @@ public interface ProfileServiceClient {
 
     @GetMapping("/schedule/unavailable")
     List<UnavailableBlock> getUnavailableBlocks(@RequestParam("studentId") String studentId);
+
+    @GetMapping("/profile/daily-max-minutes")
+    int getDailyMaxMinutes(@RequestParam("studentId") String studentId);
 }

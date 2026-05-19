@@ -14,7 +14,7 @@ import lombok.Getter;
 public class UpdatedEstimateResponse {
 
     @Schema(description = "Task identifier", example = "task-xyz-456")
-    private final String id;
+    private final String taskId;
 
     @Schema(description = "Task title", example = "Parcial de Cálculo")
     private final String title;

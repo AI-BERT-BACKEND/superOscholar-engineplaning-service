@@ -32,7 +32,7 @@ class RebalanceControllerTest {
     @Test
     void shouldReportFailure() {
         FailureReportRequest req = new FailureReportRequest();
-        req.setStudentId("st1");
+        req.setStudentId("00000000-0000-0000-0000-000000000001");
         req.setTaskId("t1");
         req.setFailedDate(LocalDate.now());
         req.setHoursMissed(2.0);
@@ -43,7 +43,7 @@ class RebalanceControllerTest {
                 .thenReturn(DistributionPlanResponse.builder().build());
 
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+        when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
         ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reportFailure(req, authentication);
         assertNotNull(response.getBody());
@@ -51,42 +51,42 @@ class RebalanceControllerTest {
 
     @Test
     void shouldReorganize() {
-        when(rebalanceTasksUseCase.reorganizePlan("st1")).thenReturn(WeeklyDistributionPlan.builder().build());
+        when(rebalanceTasksUseCase.reorganizePlan("00000000-0000-0000-0000-000000000001"))
+                .thenReturn(WeeklyDistributionPlan.builder().build());
         when(planningTaskMapper.toDistributionPlanResponse(any()))
                 .thenReturn(DistributionPlanResponse.builder().build());
 
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+        when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reorganize("st1", authentication);
+        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller
+                .reorganize("00000000-0000-0000-0000-000000000001", authentication);
         assertNotNull(response.getBody());
     }
 
     @Test
     void shouldThrowAccessDeniedOnFailureWhenAuthNull() {
         FailureReportRequest req = new FailureReportRequest();
-        req.setStudentId("st1");
+        req.setStudentId("00000000-0000-0000-0000-000000000001");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.reportFailure(req, null));
+        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(req, null));
     }
 
     @Test
     void shouldThrowAccessDeniedOnFailureWhenNameMismatch() {
         FailureReportRequest req = new FailureReportRequest();
-        req.setStudentId("st1");
+        req.setStudentId("00000000-0000-0000-0000-000000000001");
 
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.reportFailure(req, authentication));
+        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(req, authentication));
     }
 
     @Test
     void shouldThrowAccessDeniedOnReorganizeWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () ->
-            controller.reorganize("st1", null));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.reorganize("00000000-0000-0000-0000-000000000001", null));
     }
 
     @Test
@@ -94,7 +94,7 @@ class RebalanceControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () ->
-            controller.reorganize("st1", authentication));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.reorganize("00000000-0000-0000-0000-000000000001", authentication));
     }
 }

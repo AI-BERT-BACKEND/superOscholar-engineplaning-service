@@ -12,14 +12,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Feign Client para comunicarse con task-service.
- * Retorna TaskServiceResponse (DTO) — la conversión a PlanningTask se hace en el adaptador.
- * El fallback se activa si task-service no responde o el circuit breaker está abierto.
+ * Retorna TaskServiceResponse (DTO) — la conversión a PlanningTask se hace en
+ * el adaptador.
+ * El fallback se activa si task-service no responde o el circuit breaker está
+ * abierto.
  */
-@FeignClient(
-    name = "task-service",
-    url = "${feign.task-service.url}",
-    fallback = TaskServiceClientFallback.class
-)
+@FeignClient(name = "task-service", url = "${feign.task-service.url}", fallback = TaskServiceClientFallback.class)
 public interface TaskServiceClient {
 
     // R14 / R16 — Obtener tareas pendientes (TODO e IN_PROGRESS)
@@ -41,4 +39,8 @@ public interface TaskServiceClient {
             @RequestParam("taskId") String taskId,
             @RequestParam("hoursMissed") double hoursMissed,
             @RequestParam("reason") String reason);
+
+    // AIB-22.4 — Obtener tarea por ID (incluye tareas completadas)
+    @GetMapping("/api/tasks/{taskId}")
+    TaskServiceResponse getTaskById(@PathVariable("taskId") String taskId);
 }

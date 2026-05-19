@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import com.aibert.dosw.entrypoints.support.StudentIdValidator;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
@@ -80,6 +81,7 @@ public class AdjustEstimationsController {
     // -------------------------------------------------------------------------
 
     private void assertStudentIdMatchesAuthenticatedUser(Authentication authentication, String studentId) {
+        StudentIdValidator.validate(studentId);
         if (authentication == null || !StringUtils.hasText(authentication.getName())
                 || !authentication.getName().equals(studentId)) {
             throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");

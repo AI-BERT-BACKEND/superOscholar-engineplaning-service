@@ -36,20 +36,23 @@ class PrioritizationControllerTest {
 
     @Test
     void shouldPrioritizeTasks() {
-        when(prioritizeTasksUseCase.prioritize("st1", false)).thenReturn(List.of(PlanningTask.builder().build()));
+        when(prioritizeTasksUseCase.prioritize("00000000-0000-0000-0000-000000000001", false))
+                .thenReturn(List.of(PlanningTask.builder().build()));
         when(planningTaskMapper.toPrioritizedResponse(any())).thenReturn(PrioritizedTaskResponse.builder().build());
 
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+        when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks("st1",
+        ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> response = controller.getPrioritizedTasks(
+                "00000000-0000-0000-0000-000000000001",
                 false, null, authentication);
         assertNotNull(response.getBody());
     }
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () -> controller.getPrioritizedTasks("st1", false, null, null));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.getPrioritizedTasks("00000000-0000-0000-0000-000000000001", false, null, null));
     }
 
     @Test
@@ -58,7 +61,8 @@ class PrioritizationControllerTest {
         when(authentication.getName()).thenReturn("other-user");
 
         assertThrows(AccessDeniedException.class,
-                () -> controller.getPrioritizedTasks("st1", false, null, authentication));
+                () -> controller.getPrioritizedTasks("00000000-0000-0000-0000-000000000001", false, null,
+                        authentication));
     }
 
     @Test
@@ -67,15 +71,17 @@ class PrioritizationControllerTest {
         when(authentication.getName()).thenReturn("");
 
         assertThrows(AccessDeniedException.class,
-                () -> controller.getPrioritizedTasks("st1", false, null, authentication));
+                () -> controller.getPrioritizedTasks("00000000-0000-0000-0000-000000000001", false, null,
+                        authentication));
     }
 
     @Test
     void shouldReturnCriticalRecommendations() {
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+        when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        when(criticalRecommendationsUseCase.getRecommendations(eq("st1"), isNull(), eq(false)))
+        when(criticalRecommendationsUseCase.getRecommendations(eq("00000000-0000-0000-0000-000000000001"), isNull(),
+                eq(false)))
                 .thenReturn(CriticalRecommendationsResponse.builder()
                         .criticalCount(0)
                         .criticalRecommendations(List.of())
@@ -83,7 +89,7 @@ class PrioritizationControllerTest {
                         .build());
 
         ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> response = controller.getCriticalRecommendations(
-                "st1",
+                "00000000-0000-0000-0000-000000000001",
                 new CriticalRecommendationsRequest(),
                 false,
                 null,

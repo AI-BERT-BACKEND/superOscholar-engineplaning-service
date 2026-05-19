@@ -13,7 +13,7 @@ public class CriticalRecommendationsResponse {
     private final List<PrioritizedTaskResponse> criticalRecommendations;
 
     @Schema(description = "Total number of critical tasks", example = "2")
-    private final Integer totalCritical;
+    private final Integer criticalCount;
 
     @Schema(description = "Message for the student", example = "You have 2 critical tasks that require immediate attention")
     private final String message;

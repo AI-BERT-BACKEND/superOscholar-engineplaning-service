@@ -48,66 +48,90 @@ public class DetectHighRiskTasksUseCaseImpl implements DetectHighRiskTasksUseCas
 
         @Override
         public HighRiskTaskResult detectHighRiskTasks(String studentId) {
+                try {
+                        // 1. Fetch active tasks
+                        List<PlanningTask> allTasks = taskProviderPort.getPendingTasksByUser(studentId);
+                        List<PlanningTask> activeTasks = allTasks != null
+                                        ? allTasks.stream()
+                                                        .filter(t -> t.getStatus() == TaskStatus.TODO
+                                                                        || t.getStatus() == TaskStatus.IN_PROGRESS)
+                                                        .toList()
+                                        : List.of();
 
-                // 1. Fetch active tasks
-                List<PlanningTask> allTasks = taskProviderPort.getPendingTasksByUser(studentId);
-                List<PlanningTask> activeTasks = allTasks != null
-                                ? allTasks.stream()
-                                                .filter(t -> t.getStatus() == TaskStatus.TODO
-                                                                || t.getStatus() == TaskStatus.IN_PROGRESS)
-                                                .toList()
-                                : List.of();
+                        if (activeTasks.isEmpty()) {
+                                log.info("AIB-22.3: Sin tareas activas para el estudiante '{}'. Se omite la detección de riesgos.",
+                                                studentId);
+                                return buildEmptyResult("No hay tareas activas para analizar.");
+                        }
 
-                if (activeTasks.isEmpty()) {
-                        log.info("AIB-22.3: Sin tareas activas para el estudiante '{}'. Se omite la detección de riesgos.",
+                        // 2. Fetch availability as Map<LocalDate, Integer> (minutes per day)
+                        List<DailySchedule> schedules = scheduleProviderPort.getWeeklySchedule(studentId);
+                        if (schedules == null || schedules.isEmpty()) {
+                                log.info("AIB-22.3 FA-01: Sin disponibilidad configurada para el estudiante '{}'.",
+                                                studentId);
+                                return buildEmptyResult(
+                                                "Configura tu disponibilidad para activar la detección de riesgos.");
+                        }
+
+                        Map<LocalDate, Integer> availabilityMap = schedules.stream()
+                                        .collect(Collectors.toMap(
+                                                        DailySchedule::getDate,
+                                                        s -> (int) Math.round(s.getTotalAvailableHours() * 60),
+                                                        Integer::sum));
+
+                        // 3. Evaluate ALL tasks first (needed to compute affectedLoadPercentage
+                        // correctly — Bug 1 fix)
+                        List<RiskTaskDetail> allEvaluated = activeTasks.stream()
+                                        .map(task -> evaluateTask(task, availabilityMap, studentId))
+                                        .toList();
+
+                        // Filter and sort: weight > 0.30 first (RN-02), then HIGH before MEDIUM (Bug 3
+                        // fix)
+                        List<RiskTaskDetail> riskyTasks = allEvaluated.stream()
+                                        .filter(detail -> detail.getRiskLevel() != RiskLevel.NONE)
+                                        .sorted(Comparator
+                                                        .comparingInt((RiskTaskDetail d) -> d.getAcademicWeight() > 0.30
+                                                                        ? 0
+                                                                        : 1)
+                                                        .thenComparingInt(d -> d.getRiskLevel() == RiskLevel.HIGH ? 0
+                                                                        : 1))
+                                        .toList();
+
+                        // 4. Build summary using academic weight sum (Bug 1 fix)
+                        int totalAtRisk = riskyTasks.size();
+                        double totalActiveWeight = allEvaluated.stream()
+                                        .mapToDouble(RiskTaskDetail::getAcademicWeight)
+                                        .sum();
+                        double atRiskWeight = riskyTasks.stream()
+                                        .mapToDouble(RiskTaskDetail::getAcademicWeight)
+                                        .sum();
+                        double affectedLoadPercent = totalActiveWeight <= 0 ? 0.0
+                                        : Math.round(atRiskWeight / totalActiveWeight * 10000.0) / 100.0;
+
+                        RiskSummary summary = RiskSummary.builder()
+                                        .totalAtRisk(totalAtRisk)
+                                        .affectedLoadPercent(affectedLoadPercent)
+                                        .build();
+
+                        String message = totalAtRisk == 0
+                                        ? "No se detectaron tareas en riesgo."
+                                        : String.format("Se detectaron %d tarea(s) en riesgo académico.", totalAtRisk);
+
+                        log.info("AIB-22.3: Se detectaron {} tarea(s) en riesgo para el estudiante '{}'", totalAtRisk,
                                         studentId);
-                        return buildEmptyResult("No hay tareas activas para analizar.");
+
+                        return HighRiskTaskResult.builder()
+                                        .highRiskTasks(riskyTasks)
+                                        .riskSummary(summary)
+                                        .message(message)
+                                        .build();
+                } catch (Exception e) {
+                        // FA-03: report error gracefully instead of propagating a 500
+                        log.error("AIB-22.3 FA-03: Error al calcular detección de riesgos para '{}': {}",
+                                        studentId, e.getMessage(), e);
+                        return buildEmptyResult(
+                                        "No se pudo realizar el calculo de prioridad por favor espere o intente mas tarde");
                 }
-
-                // 2. Fetch availability as Map<LocalDate, Integer> (minutes per day)
-                List<DailySchedule> schedules = scheduleProviderPort.getWeeklySchedule(studentId);
-                if (schedules == null || schedules.isEmpty()) {
-                        log.info("AIB-22.3 FA-01: Sin disponibilidad configurada para el estudiante '{}'.", studentId);
-                        return buildEmptyResult("Configura tu disponibilidad para activar la detección de riesgos.");
-                }
-
-                Map<LocalDate, Integer> availabilityMap = schedules.stream()
-                                .collect(Collectors.toMap(
-                                                DailySchedule::getDate,
-                                                s -> (int) Math.round(s.getTotalAvailableHours() * 60),
-                                                Integer::sum));
-
-                // 3. Evaluate each task
-                List<RiskTaskDetail> riskyTasks = activeTasks.stream()
-                                .map(task -> evaluateTask(task, availabilityMap, studentId))
-                                .filter(detail -> detail.getRiskLevel() != RiskLevel.NONE)
-                                .sorted(Comparator
-                                                .comparingDouble(RiskTaskDetail::getAcademicWeight).reversed()
-                                                .thenComparing(d -> d.getRiskLevel() == RiskLevel.HIGH ? 0 : 1))
-                                .toList();
-
-                // 4. Build summary
-                int totalAtRisk = riskyTasks.size();
-                double affectedLoadPercent = activeTasks.isEmpty() ? 0.0
-                                : Math.round((double) totalAtRisk / activeTasks.size() * 10000.0) / 100.0;
-
-                RiskSummary summary = RiskSummary.builder()
-                                .totalAtRisk(totalAtRisk)
-                                .affectedLoadPercent(affectedLoadPercent)
-                                .build();
-
-                String message = totalAtRisk == 0
-                                ? "No se detectaron tareas en riesgo."
-                                : String.format("Se detectaron %d tarea(s) en riesgo académico.", totalAtRisk);
-
-                log.info("AIB-22.3: Se detectaron {} tarea(s) en riesgo para el estudiante '{}'", totalAtRisk,
-                                studentId);
-
-                return HighRiskTaskResult.builder()
-                                .highRiskTasks(riskyTasks)
-                                .riskSummary(summary)
-                                .message(message)
-                                .build();
         }
 
         private RiskTaskDetail evaluateTask(PlanningTask task, Map<LocalDate, Integer> availabilityMap,
@@ -139,8 +163,9 @@ public class DetectHighRiskTasksUseCaseImpl implements DetectHighRiskTasksUseCas
                 LocalDate today = LocalDate.now();
                 LocalDate deadline = task.getDueDate();
 
+                // Bug 2 fix: include the deadline day itself (!isAfter instead of isBefore)
                 return availabilityMap.entrySet().stream()
-                                .filter(entry -> !entry.getKey().isBefore(today) && entry.getKey().isBefore(deadline))
+                                .filter(entry -> !entry.getKey().isBefore(today) && !entry.getKey().isAfter(deadline))
                                 .mapToInt(Map.Entry::getValue)
                                 .sum();
         }

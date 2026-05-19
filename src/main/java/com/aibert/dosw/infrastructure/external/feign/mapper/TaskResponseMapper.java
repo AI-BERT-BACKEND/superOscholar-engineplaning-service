@@ -70,12 +70,14 @@ public interface TaskResponseMapper {
     @Mapping(target = "priorityLevel", source = "priority", qualifiedByName = "priorityFromString")
     @Mapping(target = "status", source = "status", qualifiedByName = "statusFromString")
     @Mapping(target = "difficulty", source = "difficulty", qualifiedByName = "difficultyOrDefault")
-    @Mapping(target = "subjectName", source = "subjectId")
+    @Mapping(target = "subjectId", source = "subjectId")
+    @Mapping(target = "subjectName", ignore = true)
     @Mapping(target = "type", source = "type", qualifiedByName = "typeFromString")
     @Mapping(target = "subjectCredits", ignore = true)
     @Mapping(target = "taskWeightInGrade", ignore = true)
     @Mapping(target = "evaluationCuts", ignore = true)
     @Mapping(target = "priorityScore", ignore = true)
+    @Mapping(target = "lastPrioritizedAt", ignore = true)
     PlanningTask toPlanningTask(TaskServiceResponse response);
 
     // ─────────────────────────────────────────────────────────────────

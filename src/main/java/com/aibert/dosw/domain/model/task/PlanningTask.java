@@ -31,6 +31,7 @@ public class PlanningTask {
     private final LocalDate dueDate;
     private final LocalDateTime dueDateTime;
 
+    private final String subjectId;
     private final String subjectName;
     private final int subjectCredits;
     private final Double taskWeightInGrade; // optional weight of this specific task
@@ -43,6 +44,7 @@ public class PlanningTask {
     private LocalDate scheduledDate;
     private LocalDateTime scheduledDateTime;
     private Integer correctedEstimatedMinutes;
+    private LocalDateTime lastPrioritizedAt;
 
     /**
      * Applies a calculated priority to this task.
@@ -52,6 +54,7 @@ public class PlanningTask {
     public void assignPriority(PriorityScore score) {
         this.priorityScore = score.getFinalScore();
         this.priorityLevel = score.getLevel();
+        this.lastPrioritizedAt = LocalDateTime.now();
     }
 
     /**

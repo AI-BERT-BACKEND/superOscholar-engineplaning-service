@@ -27,9 +27,10 @@ services:
     restart: unless-stopped
 
     ports:
-      - "8087:8080"
+      - "1504:1504"
 
     environment:
+      SERVER_PORT: 1504
       MONGO_URI: ${MONGO_URI}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
 

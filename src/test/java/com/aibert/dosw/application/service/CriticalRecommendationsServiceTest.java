@@ -39,7 +39,7 @@ class CriticalRecommendationsServiceTest {
                 CriticalRecommendationsResponse response = service.buildRecommendations(
                                 List.of(critical, high, outsideWindow));
 
-                assertEquals(2, response.getTotalCritical());
+                assertEquals(2, response.getCriticalCount());
                 assertEquals(2, response.getCriticalRecommendations().size());
                 assertEquals("t1", response.getCriticalRecommendations().get(0).getTaskId());
                 assertTrue(response.getMessage().startsWith("Tienes"));
@@ -56,7 +56,7 @@ class CriticalRecommendationsServiceTest {
 
                 CriticalRecommendationsResponse response = service.buildRecommendations(List.of(normal));
 
-                assertEquals(0, response.getTotalCritical());
+                assertEquals(0, response.getCriticalCount());
                 assertTrue(response.getCriticalRecommendations().isEmpty());
                 assertEquals("No tienes tareas críticas en este momento", response.getMessage());
         }

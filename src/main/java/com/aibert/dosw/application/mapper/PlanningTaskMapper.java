@@ -36,7 +36,7 @@ public interface PlanningTaskMapper {
      */
     @Mapping(target = "taskId", source = "id")
     @Mapping(target = "id", source = "id")
-    @Mapping(target = "subjectId", source = "subjectName")
+    @Mapping(target = "subjectId", source = "subjectId")
     @Mapping(target = "taskType", expression = "java(task.getType() != null ? task.getType().name() : \"OTRO\")")
     @Mapping(target = "estimatedDurationMinutes", expression = "java(mapEstimatedMinutes(task))")
     @Mapping(target = "deadline", expression = "java(mapDeadline(task))")
@@ -45,7 +45,7 @@ public interface PlanningTaskMapper {
     @Mapping(target = "priorityLevel", expression = "java(mapPriority(task))")
     @Mapping(target = "priority", expression = "java(mapPriority(task))")
     @Mapping(target = "priorityScore", expression = "java(mapPriorityScore(task))")
-    @Mapping(target = "lastUpdated", expression = "java(java.time.LocalDateTime.now())")
+    @Mapping(target = "lastUpdated", source = "lastPrioritizedAt")
     PrioritizedTaskResponse toPrioritizedResponse(PlanningTask task);
 
     /**

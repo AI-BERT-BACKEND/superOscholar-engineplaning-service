@@ -37,7 +37,7 @@ public class CriticalRecommendationsService {
 
         return CriticalRecommendationsResponse.builder()
                 .criticalRecommendations(recommendations)
-                .totalCritical(totalCritical)
+                .criticalCount(totalCritical)
                 .message(message)
                 .build();
     }

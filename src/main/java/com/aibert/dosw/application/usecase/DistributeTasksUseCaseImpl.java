@@ -113,14 +113,17 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
                     .build();
         }
 
+        // AIB-27 RN-03: Retrieve the student's configured daily study limit
+        int dailyMaxMinutes = scheduleProviderPort.getDailyMaxMinutes(studentId);
+
         // AIB-27: Detect proposed overloaded days (uncapped simulation) — must run
         // before the actual capped loop, using clones of availableDays.
         Map<LocalDate, Integer> proposedDailyMinutes = computeProposedDailyMinutes(sortedTasks, availableDays);
         List<OverloadedDayRecord> overloadedDays = proposedDailyMinutes.entrySet().stream()
-                .filter(e -> e.getValue() > MAX_MINUTES_PER_DAY)
+                .filter(e -> e.getValue() > dailyMaxMinutes)
                 .map(e -> OverloadedDayRecord.builder()
                         .date(e.getKey())
-                        .excessMinutes(e.getValue() - MAX_MINUTES_PER_DAY)
+                        .excessMinutes(e.getValue() - dailyMaxMinutes)
                         .build())
                 .sorted(Comparator.comparing(OverloadedDayRecord::getDate))
                 .toList();
@@ -144,11 +147,11 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
                     continue;
                 }
 
-                // RN-03: Enforce MAX_MINUTES_PER_DAY = 240
+                // RN-03: Enforce daily study limit (configurable from profile, default 240 min)
                 int dayMinutesUsed = dailyMinutesUsed.getOrDefault(day.date, 0);
-                if (dayMinutesUsed >= MAX_MINUTES_PER_DAY)
+                if (dayMinutesUsed >= dailyMaxMinutes)
                     continue;
-                int remainingDailyCapMinutes = MAX_MINUTES_PER_DAY - dayMinutesUsed;
+                int remainingDailyCapMinutes = dailyMaxMinutes - dayMinutesUsed;
 
                 for (int i = 0; i < day.slots.size(); i++) {
                     TimeSlot slot = day.slots.get(i);
@@ -205,8 +208,22 @@ public class DistributeTasksUseCaseImpl implements DistributeTasksUseCase {
             }
         }
 
-        String overloadMessage = overloadedDays.isEmpty() ? null
-                : "Tu plan fue ajustado para respetar tu límite diario de estudio.";
+        // AIB-27: Determine message based on overload protection outcome
+        String overloadMessage;
+        boolean capBlockedAll = !overloadedDays.isEmpty() && assignedBlocks.isEmpty() && !unassignedTasks.isEmpty();
+        if (capBlockedAll) {
+            // FA-01 AIB-27: daily cap prevented all scheduling
+            overloadMessage = "No es posible redistribuir sin superar tu límite diario. Revisa tu disponibilidad.";
+        } else if (!overloadedDays.isEmpty()) {
+            // Cap applied, but tasks were placed (plan adjusted)
+            overloadMessage = "Tu plan fue ajustado para respetar tu límite diario de estudio.";
+        } else if (unassignedTasks.isEmpty()) {
+            // No cap needed and all tasks placed
+            overloadMessage = "Tu plan está dentro de tu límite diario.";
+        } else {
+            // No cap issues but tasks unassigned (availability/deadline issue — AIB-24)
+            overloadMessage = null;
+        }
 
         return WeeklyDistributionPlan.builder()
                 .studentId(studentId)

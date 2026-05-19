@@ -26,11 +26,12 @@ class PlanningTaskMapperTest {
                 PlanningTask task = PlanningTask.builder()
                                 .id("t1")
                                 .title("Task")
-                                .subjectName("math")
+                                .subjectId("math")
                                 .estimatedHours(1.5)
                                 .dueDate(LocalDate.of(2026, 5, 5))
                                 .priorityScore(42.5)
                                 .priorityLevel(TaskPriority.HIGH)
+                                .lastPrioritizedAt(LocalDateTime.of(2026, 5, 5, 10, 0))
                                 .build();
 
                 PrioritizedTaskResponse response = mapper.toPrioritizedResponse(task);

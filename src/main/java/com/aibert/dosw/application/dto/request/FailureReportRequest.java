@@ -1,5 +1,6 @@
 package com.aibert.dosw.application.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -26,15 +27,18 @@ public class FailureReportRequest {
     @Schema(description = "Identifier of the task that failed", example = "task-456")
     private String taskId;
 
-    @NotNull(message = "failedDate is required")
+    @JsonProperty("date")
+    @NotNull(message = "date is required")
     @Schema(description = "Date when the study block was missed", example = "2026-05-12")
     private LocalDate failedDate;
 
-    @Positive(message = "hoursMissed must be greater than 0")
+    @JsonProperty("lostHours")
+    @Positive(message = "lostHours must be greater than 0")
     @Schema(description = "Number of study hours missed in the block", example = "2.5")
     private double hoursMissed;
 
-    @Size(max = 500, message = "reason must not exceed 500 characters")
+    @JsonProperty("failureReason")
+    @Size(max = 500, message = "failureReason must not exceed 500 characters")
     @Schema(description = "Short reason or note for the failure", example = "Sick day")
     private String reason;
 }

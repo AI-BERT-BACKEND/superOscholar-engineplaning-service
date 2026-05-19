@@ -14,11 +14,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import com.aibert.dosw.entrypoints.support.StudentIdValidator;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
@@ -77,9 +81,14 @@ public class BalanceController {
                 BalanceResult result = balanceWorkloadUseCase.suggestBalance(studentId, effectiveWeekStart);
 
                 // Map domain DifferentialBalance → DayBalanceResponse (R15 weeklyLoadAnalysis)
-                List<DayBalanceResponse> weeklyLoadAnalysis = result.getWeeklyLoadAnalysis().stream()
-                                .map(this::toDayBalanceResponse)
-                                .toList();
+                // Always 7 entries (Mon–Sun), ordered by date, per AIB-23 spec
+                Map<LocalDate, DayBalanceResponse> weeklyLoadAnalysis = result.getWeeklyLoadAnalysis().stream()
+                                .sorted(Comparator.comparing(DifferentialBalance::getDate))
+                                .collect(java.util.stream.Collectors.toMap(
+                                                DifferentialBalance::getDate,
+                                                this::toDayBalanceResponse,
+                                                (a, b2) -> a,
+                                                LinkedHashMap::new));
 
                 // Map suggestions (AIB-23: taskId, taskTitle, fromDay, toDay, reason — max 5
                 // via use case)
@@ -124,6 +133,7 @@ public class BalanceController {
         private void assertStudentIdMatchesAuthenticatedUser(
                         Authentication authentication,
                         String studentId) {
+                StudentIdValidator.validate(studentId);
                 if (authentication == null || !StringUtils.hasText(authentication.getName())
                                 || !authentication.getName().equals(studentId)) {
                         throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");

@@ -27,4 +27,11 @@ public class ProfileServiceClientFallback implements ProfileServiceClient {
         log.warn("profile-service no disponible al obtener bloques no disponibles del estudiante '{}'.", studentId);
         return Collections.emptyList();
     }
+
+    @Override
+    public int getDailyMaxMinutes(String studentId) {
+        log.warn("profile-service no disponible al obtener límite diario del estudiante '{}'. Usando 240 min.",
+                studentId);
+        return 240;
+    }
 }

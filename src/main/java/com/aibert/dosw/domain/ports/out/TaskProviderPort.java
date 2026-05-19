@@ -2,6 +2,7 @@ package com.aibert.dosw.domain.ports.out;
 
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Output port to retrieve and update tasks from the external task-service.
@@ -42,4 +43,13 @@ public interface TaskProviderPort {
      * @param reason      The reason for the failure
      */
     void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason);
+
+    /**
+     * Fetches a single task by its ID from the task-service.
+     * Returns empty if the task is not found or the service is unavailable.
+     *
+     * @param taskId the task identifier
+     * @return the task wrapped in Optional, or empty
+     */
+    Optional<PlanningTask> getTaskById(String taskId);
 }

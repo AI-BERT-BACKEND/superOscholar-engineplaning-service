@@ -1,6 +1,7 @@
 package com.aibert.dosw.domain.model.balance;
 
 import com.aibert.dosw.domain.model.balance.DifferentialBalance;
+import java.time.LocalDate;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,14 +23,15 @@ public class BalanceResult {
 
     /**
      * Days where the load exceeds 80% of declared availability (RN-01).
-     * Contains the date as string (e.g. "2026-05-13" or "LUNES 13-May").
+     * Contains the ISO date (e.g. 2026-05-13) per AIB-23 spec.
      */
-    private final List<String> overloadedDays;
+    private final List<LocalDate> overloadedDays;
 
     /**
      * Days where the load is below 20% of declared availability (RN-02).
+     * Contains the ISO date (e.g. 2026-05-15) per AIB-23 spec.
      */
-    private final List<String> emptyDays;
+    private final List<LocalDate> emptyDays;
 
     /**
      * Suggestions: which tasks to move and towards which days.

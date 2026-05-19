@@ -1,7 +1,5 @@
 package com.aibert.dosw.entrypoints.rest.controller;
 
-import com.aibert.dosw.application.dto.response.DayBalanceResponse;
-import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.application.dto.response.WorkloadBalanceResponse;
 import com.aibert.dosw.application.mapper.PlanningTaskMapper;
 import com.aibert.dosw.domain.model.balance.BalanceResult;
@@ -56,19 +54,21 @@ class BalanceControllerTest {
 
                 BalanceResult balanceResult = BalanceResult.builder()
                                 .weeklyLoadAnalysis(List.of(balance))
-                                .overloadedDays(List.of("lunes 2026-05-05"))
+                                .overloadedDays(List.of(LocalDate.of(2026, 5, 5)))
                                 .emptyDays(List.of())
                                 .balanceSuggestions(List.of(suggestion))
                                 .message("Se detectaron días con sobrecarga, se sugiere redistribuir")
                                 .build();
 
-                when(balanceWorkloadUseCase.suggestBalance(eq("st1"), any(LocalDate.class)))
+                when(balanceWorkloadUseCase.suggestBalance(eq("00000000-0000-0000-0000-000000000001"),
+                                any(LocalDate.class)))
                                 .thenReturn(balanceResult);
 
                 Authentication authentication = mock(Authentication.class);
-                when(authentication.getName()).thenReturn("st1");
+                when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-                ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response = controller.getBalanceSuggestions("st1",
+                ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response = controller.getBalanceSuggestions(
+                                "00000000-0000-0000-0000-000000000001",
                                 null, authentication);
 
                 ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
@@ -80,7 +80,8 @@ class BalanceControllerTest {
 
         @Test
         void shouldThrowAccessDeniedWhenAuthNull() {
-                assertThrows(AccessDeniedException.class, () -> controller.getBalanceSuggestions("st1", null, null));
+                assertThrows(AccessDeniedException.class, () -> controller
+                                .getBalanceSuggestions("00000000-0000-0000-0000-000000000001", null, null));
         }
 
         @Test
@@ -89,6 +90,7 @@ class BalanceControllerTest {
                 when(authentication.getName()).thenReturn("other-user");
 
                 assertThrows(AccessDeniedException.class,
-                                () -> controller.getBalanceSuggestions("st1", null, authentication));
+                                () -> controller.getBalanceSuggestions("00000000-0000-0000-0000-000000000001", null,
+                                                authentication));
         }
 }

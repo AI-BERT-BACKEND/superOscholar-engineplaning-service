@@ -12,9 +12,11 @@ import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,16 +81,31 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
                 Map<LocalDate, List<PlanningTask>> tasksByDate = scheduledTasks.stream()
                                 .collect(Collectors.groupingBy(PlanningTask::getScheduledDate));
 
-                // 2. Calculate daily balances
+                // 2. Calculate daily balances for configured days
+                Set<LocalDate> configuredDates = new HashSet<>();
                 List<DifferentialBalance> dailyBalances = new ArrayList<>();
                 for (DailySchedule schedule : weeklySchedules) {
                         LocalDate date = schedule.getDate();
+                        configuredDates.add(date);
                         double availableHours = schedule.getTotalAvailableHours();
                         double scheduledHours = tasksByDate.getOrDefault(date, List.of()).stream()
                                         .mapToDouble(PlanningTask::getEstimatedHours)
                                         .sum();
                         dailyBalances.add(DifferentialBalance.of(date, availableHours, scheduledHours));
                 }
+
+                // Fill in remaining days of the week with 0 available hours (AIB-23: always 7
+                // entries)
+                for (int i = 0; i < 7; i++) {
+                        LocalDate day = weekStartDate.plusDays(i);
+                        if (!configuredDates.contains(day)) {
+                                double scheduledHours = tasksByDate.getOrDefault(day, List.of()).stream()
+                                                .mapToDouble(PlanningTask::getEstimatedHours)
+                                                .sum();
+                                dailyBalances.add(DifferentialBalance.of(day, 0.0, scheduledHours));
+                        }
+                }
+                dailyBalances.sort(Comparator.comparing(DifferentialBalance::getDate));
 
                 // 3. Identify overloaded and free days
                 List<DifferentialBalance> overloadedBalances = dailyBalances.stream()
@@ -98,11 +115,11 @@ public class BalanceWorkloadUseCaseImpl implements BalanceWorkloadUseCase {
                                 .filter(DifferentialBalance::hasFreeTime)
                                 .toList());
 
-                List<String> overloadedDayLabels = overloadedBalances.stream()
-                                .map(b -> formatDate(b.getDate()))
+                List<LocalDate> overloadedDayLabels = overloadedBalances.stream()
+                                .map(DifferentialBalance::getDate)
                                 .toList();
-                List<String> emptyDayLabels = freeBalances.stream()
-                                .map(b -> formatDate(b.getDate()))
+                List<LocalDate> emptyDayLabels = freeBalances.stream()
+                                .map(DifferentialBalance::getDate)
                                 .toList();
 
                 // 4. Generate suggestions if there are overloaded AND free days

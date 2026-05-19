@@ -285,7 +285,7 @@ class TaskResponseMapperTest {
     }
 
     @Test
-    void toPlanningTask_mapsSubjectIdToSubjectName() {
+    void toPlanningTask_mapsSubjectIdToSubjectId() {
         TaskServiceResponse response = TaskServiceResponse.builder()
                 .id("1")
                 .subjectId("MATH-201")
@@ -293,7 +293,7 @@ class TaskResponseMapperTest {
 
         PlanningTask result = mapper.toPlanningTask(response);
 
-        assertEquals("MATH-201", result.getSubjectName());
+        assertEquals("MATH-201", result.getSubjectId());
     }
 
     // ========== Full conversion integration ==========
@@ -327,6 +327,6 @@ class TaskResponseMapperTest {
                 () -> assertEquals(TaskPriority.HIGH, result.getPriorityLevel()),
                 () -> assertEquals(TaskStatus.IN_PROGRESS, result.getStatus()),
                 () -> assertEquals(3, result.getDifficulty()),
-                () -> assertEquals("CALC-101", result.getSubjectName()));
+                () -> assertEquals("CALC-101", result.getSubjectId()));
     }
 }

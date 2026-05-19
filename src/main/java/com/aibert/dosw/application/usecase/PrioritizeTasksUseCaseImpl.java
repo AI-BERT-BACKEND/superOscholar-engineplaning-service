@@ -8,7 +8,6 @@ import com.aibert.dosw.domain.ports.out.TaskProviderPort;
 import com.aibert.dosw.domain.valueobjects.AcademicWeight;
 import com.aibert.dosw.domain.valueobjects.PriorityScore;
 import com.aibert.dosw.infrastructure.config.PriorityWeightsProperties;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -55,7 +54,7 @@ public class PrioritizeTasksUseCaseImpl implements PrioritizeTasksUseCase {
 
                         if (forceRecalculate || task.getPriorityLevel() == null) {
                                 double academicWeight = academicWeightProviderPort
-                                                .getAcademicWeight(studentId, task.getSubjectName())
+                                                .getAcademicWeight(studentId, task.getSubjectId())
                                                 .map(AcademicWeight::getValue)
                                                 .orElse(0.0);
                                 LocalDateTime deadline = resolveDeadline(task);

@@ -26,4 +26,9 @@ public class ScheduleServiceAdapter implements ScheduleProviderPort {
     public List<UnavailableBlock> getUnavailableBlocks(String studentId) {
         return profileServiceClient.getUnavailableBlocks(studentId);
     }
+
+    @Override
+    public int getDailyMaxMinutes(String studentId) {
+        return profileServiceClient.getDailyMaxMinutes(studentId);
+    }
 }

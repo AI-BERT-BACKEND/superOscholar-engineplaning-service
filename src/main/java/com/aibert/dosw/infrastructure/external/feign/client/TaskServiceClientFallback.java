@@ -8,7 +8,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Fallback para TaskServiceClient.
- * Se activa cuando task-service no está disponible o el circuit breaker está abierto.
+ * Se activa cuando task-service no está disponible o el circuit breaker está
+ * abierto.
  * Devuelve valores seguros para no interrumpir el flujo del planning-service.
  */
 @Component
@@ -38,5 +39,11 @@ public class TaskServiceClientFallback implements TaskServiceClient {
         log.warn("task-service no disponible. No se reportó el fallo de taskId='{}' ({}h, razón: {}).",
                 taskId, hoursMissed, reason);
         // Silencioso: el rebalanceo local igual se ejecuta
+    }
+
+    @Override
+    public TaskServiceResponse getTaskById(String taskId) {
+        log.warn("task-service no disponible al obtener la tarea '{}'.", taskId);
+        return null;
     }
 }

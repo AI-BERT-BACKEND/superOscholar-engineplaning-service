@@ -11,7 +11,8 @@ import lombok.Setter;
 
 /**
  * Request DTO for AIB-22.4: automatic estimation adjustment.
- * Sent when a student marks a task as COMPLETED and provides the actual time spent.
+ * Sent when a student marks a task as COMPLETED and provides the actual time
+ * spent.
  */
 @Getter
 @Setter
@@ -27,11 +28,6 @@ public class AdjustEstimationsRequest {
     @Min(1)
     @Schema(description = "Actual time spent completing the task, in minutes (must be > 0)", example = "95")
     private Integer actualTime;
-
-    @NotNull
-    @Min(1)
-    @Schema(description = "Original estimated duration of the completed task in minutes (used to compute the correction ratio)", example = "60")
-    private Integer estimatedDurationMinutes;
 
     @NotNull
     @Schema(description = "Task type used to segment the correction factor (TAREA | EXAMEN | PROYECTO | LECTURA | OTRO)", example = "TAREA")

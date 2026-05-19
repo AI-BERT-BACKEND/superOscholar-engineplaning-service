@@ -34,16 +34,18 @@ class DistributionControllerTest {
                 .thenReturn(DistributionPlanResponse.builder().build());
 
         Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("st1");
+        when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.generateDistribution("st1",
+        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.generateDistribution(
+                "00000000-0000-0000-0000-000000000001",
                 null, authentication);
         assertNotNull(response.getBody());
     }
 
     @Test
     void shouldThrowAccessDeniedWhenAuthNull() {
-        assertThrows(AccessDeniedException.class, () -> controller.generateDistribution("st1", null, null));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.generateDistribution("00000000-0000-0000-0000-000000000001", null, null));
     }
 
     @Test
@@ -51,6 +53,7 @@ class DistributionControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () -> controller.generateDistribution("st1", null, authentication));
+        assertThrows(AccessDeniedException.class,
+                () -> controller.generateDistribution("00000000-0000-0000-0000-000000000001", null, authentication));
     }
 }

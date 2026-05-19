@@ -34,13 +34,25 @@ public class CriticalRecommendationsServiceImpl implements CriticalRecommendatio
             List<PrioritizedTaskResponse> orderedTasks,
             boolean forceRecalculate) {
 
-        List<PrioritizedTaskResponse> tasks = resolveTaskList(studentId, orderedTasks, forceRecalculate);
+        List<PrioritizedTaskResponse> tasks;
+        try {
+            tasks = resolveTaskList(studentId, orderedTasks, forceRecalculate);
+        } catch (Exception e) {
+            log.error("No se pudo obtener la lista de tareas para '{}': {}", studentId, e.getMessage(), e);
+            return CriticalRecommendationsResponse.builder()
+                    .criticalRecommendations(List.of())
+                    .criticalCount(0)
+                    .message("No se pudo realizar el calculo de prioridad por favor espere o intente mas tarde")
+                    .build();
+        }
+
         log.info("Evaluando recomendaciones críticas para el estudiante '{}' — total de tareas recibidas: {}",
                 studentId, tasks.size());
 
         LocalDateTime cutoff = LocalDateTime.now().plusHours(CRITICAL_WINDOW_HOURS);
 
-        List<PrioritizedTaskResponse> candidates = tasks.stream()
+        // Collect ALL qualifying tasks first to get the real total count (RN-01)
+        List<PrioritizedTaskResponse> allCritical = tasks.stream()
                 .filter(task -> isActive(task.getStatus()))
                 .filter(task -> isCriticalPriority(task.getPriorityLevel()))
                 .filter(task -> isWithinWindow(task.getDeadline(), cutoff))
@@ -49,15 +61,21 @@ public class CriticalRecommendationsServiceImpl implements CriticalRecommendatio
                         .thenComparing(Comparator.comparing(
                                 PrioritizedTaskResponse::getDeadline,
                                 Comparator.nullsLast(Comparator.naturalOrder()))))
+                .toList();
+
+        // criticalCount reflects total critical tasks; recommendations are capped at
+        // MAX_RECOMMENDATIONS (RN-02)
+        int criticalCount = allCritical.size();
+        List<PrioritizedTaskResponse> candidates = allCritical.stream()
                 .limit(MAX_RECOMMENDATIONS)
                 .toList();
 
-        int criticalCount = candidates.size();
         String message = criticalCount > 0
                 ? "Tienes " + criticalCount + " tarea(s) crítica(s) que requieren atención inmediata"
                 : "No tienes tareas críticas en este momento";
 
-        log.info("Recomendaciones críticas generadas para '{}': {} resultado(s)", studentId, criticalCount);
+        log.info("Recomendaciones críticas generadas para '{}': {} resultado(s) ({} mostradas)",
+                studentId, criticalCount, candidates.size());
 
         return CriticalRecommendationsResponse.builder()
                 .criticalRecommendations(candidates)

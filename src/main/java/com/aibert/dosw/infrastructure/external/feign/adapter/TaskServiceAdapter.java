@@ -6,6 +6,7 @@ import com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClient;
 import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
 import com.aibert.dosw.infrastructure.external.feign.mapper.TaskResponseMapper;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +50,15 @@ public class TaskServiceAdapter implements TaskProviderPort {
     @Override
     public void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason) {
         taskServiceClient.reportTaskFailure(studentId, taskId, hoursMissed, reason);
+    }
+
+    @Override
+    public Optional<PlanningTask> getTaskById(String taskId) {
+        TaskServiceResponse response = taskServiceClient.getTaskById(taskId);
+        if (response == null) {
+            return Optional.empty();
+        }
+        return Optional.of(taskResponseMapper.toPlanningTask(response));
     }
 
     // ─────────────────────────────────────────────────────────────────
