@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "engineplanning-service [local]",
+      "request": "launch",
+      "mainClass": "com.aibert.dosw.PlanningApplication",
+      "projectName": "engineplaning-service",
+      "args": "",
+      "vmArgs": "-Dspring.profiles.active=local",
+      "env": {}
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 package com.aibert.dosw.misc;
 
+import com.aibert.dosw.application.dto.request.BalanceRequest;
+import com.aibert.dosw.application.dto.request.RebalanceRequest;
 import com.aibert.dosw.application.dto.response.DayBalanceResponse;
 import com.aibert.dosw.application.dto.response.RebalanceResultResponse;
 import com.aibert.dosw.application.mapper.ScheduleMapper;
@@ -28,5 +30,8 @@ class EmptyClassesInstantiationTest {
         assertNotNull(new PlanningResponseMapper());
         assertNotNull(DayBalanceResponse.builder().build());
         assertNotNull(new RebalanceResultResponse());
+        // Empty DTO request classes
+        assertNotNull(new BalanceRequest());
+        assertNotNull(new RebalanceRequest());
     }
 }

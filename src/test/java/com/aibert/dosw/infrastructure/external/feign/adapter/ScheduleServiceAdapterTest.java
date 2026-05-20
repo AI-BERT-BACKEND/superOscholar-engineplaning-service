@@ -26,7 +26,7 @@ class ScheduleServiceAdapterTest {
     @Test
     void shouldGetWeeklySchedule() {
         DailySchedule schedule = DailySchedule.builder()
-            .date(LocalDate.now()).totalAvailableHours(5.0).build();
+                .date(LocalDate.now()).totalAvailableHours(5.0).build();
         when(profileServiceClient.getWeeklySchedule("st1")).thenReturn(List.of(schedule));
 
         List<DailySchedule> result = adapter.getWeeklySchedule("st1");
@@ -38,12 +38,22 @@ class ScheduleServiceAdapterTest {
     @Test
     void shouldGetUnavailableBlocks() {
         UnavailableBlock block = UnavailableBlock.builder()
-            .date(LocalDate.now()).reason("class").build();
+                .date(LocalDate.now()).reason("class").build();
         when(profileServiceClient.getUnavailableBlocks("st1")).thenReturn(List.of(block));
 
         List<UnavailableBlock> result = adapter.getUnavailableBlocks("st1");
 
         assertEquals(1, result.size());
         verify(profileServiceClient).getUnavailableBlocks("st1");
+    }
+
+    @Test
+    void shouldGetDailyMaxMinutes() {
+        when(profileServiceClient.getDailyMaxMinutes("st1")).thenReturn(180);
+
+        int result = adapter.getDailyMaxMinutes("st1");
+
+        assertEquals(180, result);
+        verify(profileServiceClient).getDailyMaxMinutes("st1");
     }
 }

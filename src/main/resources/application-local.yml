@@ -26,6 +26,8 @@ feign:
     url: "http://localhost:8082"
   academic-service:
     url: "http://localhost:8083"
+  recommendation-service:
+    url: "http://localhost:8086"
   client:
     config:
       default:

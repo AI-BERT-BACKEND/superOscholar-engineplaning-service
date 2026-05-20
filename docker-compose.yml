@@ -21,9 +21,12 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
+    networks:
+      - dosw-network
+
+  engineplanning-service:
     build: .
-    container_name: engineplaning-service
+    container_name: engineplanning-service
     restart: unless-stopped
 
     ports:
@@ -37,6 +40,7 @@ services:
       FEIGN_TASK_SERVICE_URL: ${FEIGN_TASK_SERVICE_URL}
       FEIGN_PROFILE_SERVICE_URL: ${FEIGN_PROFILE_SERVICE_URL}
       FEIGN_ACADEMIC_SERVICE_URL: ${FEIGN_ACADEMIC_SERVICE_URL}
+      FEIGN_RECOMMENDATION_SERVICE_URL: ${FEIGN_RECOMMENDATION_SERVICE_URL}
 
       JWT_SECRET: ${JWT_SECRET}
 
@@ -44,5 +48,27 @@ services:
       mongo:
         condition: service_healthy
 
+    networks:
+      - dosw-network
+
 volumes:
   engineplaning_mongo_data:
+
+# ─── Red compartida DOSW ───────────────────────────────────────────────────────
+# Para conectar recommendation-service en Docker, añade en su docker-compose.yml:
+#
+#   networks:
+#     dosw-network:
+#       external: true
+#
+# Y agrega a su servicio:
+#   networks:
+#     - dosw-network
+#
+# En local (sin Docker): recommendation-service llama a http://localhost:8087
+# En Docker: recommendation-service llama a http://engineplanning-service:1504
+# Y usa: PLANNING_SERVICE_URL=http://engineplanning-service:1504
+networks:
+  dosw-network:
+    name: dosw-network
+    driver: bridge

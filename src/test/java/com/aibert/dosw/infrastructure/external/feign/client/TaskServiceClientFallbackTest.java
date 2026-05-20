@@ -32,7 +32,12 @@ class TaskServiceClientFallbackTest {
 
     @Test
     void reportTaskFailure_doesNotThrow() {
-        assertDoesNotThrow(() ->
-            fallback.reportTaskFailure("st1", "t1", 2.0, "reason"));
+        assertDoesNotThrow(() -> fallback.reportTaskFailure("st1", "t1", 2.0, "reason"));
+    }
+
+    @Test
+    void getTaskById_returnsNull() {
+        TaskServiceResponse result = fallback.getTaskById("task-999");
+        assertNull(result);
     }
 }

@@ -15,6 +15,9 @@ feign:
   academic-service:
     url: ${FEIGN_ACADEMIC_SERVICE_URL}
 
+  recommendation-service:
+    url: ${FEIGN_RECOMMENDATION_SERVICE_URL}
+
 jwt:
   secret: ${JWT_SECRET}
 

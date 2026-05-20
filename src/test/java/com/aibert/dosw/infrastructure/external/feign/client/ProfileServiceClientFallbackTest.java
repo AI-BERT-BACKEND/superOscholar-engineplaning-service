@@ -24,4 +24,10 @@ class ProfileServiceClientFallbackTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    void getDailyMaxMinutes_returns240() {
+        int result = fallback.getDailyMaxMinutes("student1");
+        assertEquals(240, result);
+    }
 }
