@@ -56,8 +56,8 @@ public class RebalanceController {
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, request.getStudentId());
-                log.info("Reporte de fallo recibido para estudiante={} tarea={}", request.getStudentId(),
-                                request.getTaskId());
+                log.info("Reporte de fallo recibido para estudiante={} tarea={}", sl(request.getStudentId()),
+                                sl(request.getTaskId()));
 
                 var newPlan = rebalanceTasksUseCase.reportFailureAndRebalance(
                                 request.getStudentId(),
@@ -89,7 +89,7 @@ public class RebalanceController {
                         Authentication authentication) {
 
                 assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
-                log.info("Reorganización manual del plan semanal para estudiante={}", studentId);
+                log.info("Reorganización manual del plan semanal para estudiante={}", sl(studentId));
 
                 var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
 
@@ -106,5 +106,9 @@ public class RebalanceController {
                                 || !authentication.getName().equals(studentId)) {
                         throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
+        }
+
+        private static String sl(String s) {
+                return s == null ? "" : s.replaceAll("[\r\n]", "_");
         }
 }

@@ -18,13 +18,13 @@ public class TaskServiceClientFallback implements TaskServiceClient {
 
     @Override
     public List<TaskServiceResponse> getPendingTasks(String studentId) {
-        log.warn("task-service no disponible al obtener tareas pendientes del estudiante '{}'.", studentId);
+        log.warn("task-service no disponible al obtener tareas pendientes del estudiante '{}'.", sl(studentId));
         return Collections.emptyList();
     }
 
     @Override
     public List<TaskServiceResponse> getScheduledTasks(String studentId) {
-        log.warn("task-service no disponible al obtener tareas programadas del estudiante '{}'.", studentId);
+        log.warn("task-service no disponible al obtener tareas programadas del estudiante '{}'.", sl(studentId));
         return Collections.emptyList();
     }
 
@@ -37,13 +37,17 @@ public class TaskServiceClientFallback implements TaskServiceClient {
     @Override
     public void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason) {
         log.warn("task-service no disponible. No se reportó el fallo de taskId='{}' ({}h, razón: {}).",
-                taskId, hoursMissed, reason);
+                sl(taskId), hoursMissed, sl(reason));
         // Silencioso: el rebalanceo local igual se ejecuta
     }
 
     @Override
     public TaskServiceResponse getTaskById(String taskId) {
-        log.warn("task-service no disponible al obtener la tarea '{}'.", taskId);
+        log.warn("task-service no disponible al obtener la tarea '{}'.", sl(taskId));
         return null;
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

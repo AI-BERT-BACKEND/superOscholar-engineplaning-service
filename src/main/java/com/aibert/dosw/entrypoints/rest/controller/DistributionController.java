@@ -71,7 +71,7 @@ public class DistributionController {
                                 ? weekStartDate
                                 : LocalDate.now().with(java.time.DayOfWeek.MONDAY);
 
-                log.info("Solicitud de distribución automática para el estudiante '{}', semana: {}", studentId,
+                log.info("Solicitud de distribución automática para el estudiante '{}', semana: {}", sl(studentId),
                                 effectiveWeekStart);
 
                 var distributionPlan = distributeTasksUseCase.distribute(studentId, effectiveWeekStart);
@@ -89,5 +89,9 @@ public class DistributionController {
                                 || !authentication.getName().equals(studentId)) {
                         throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
+        }
+
+        private static String sl(String s) {
+                return s == null ? "" : s.replaceAll("[\r\n]", "_");
         }
 }

@@ -71,7 +71,7 @@ public class CriticalRecommendationsController {
             Authentication authentication) {
 
         assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
-        log.info("Solicitud de recomendaciones críticas recibida para el estudiante '{}'", studentId);
+        log.info("Solicitud de recomendaciones críticas recibida para el estudiante '{}'", sl(studentId));
 
         boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
                 || Boolean.TRUE.equals(forzarRecalculo);
@@ -141,5 +141,9 @@ public class CriticalRecommendationsController {
                 || !authentication.getName().equals(studentId)) {
             throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
         }
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

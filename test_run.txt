@@ -1,0 +1,792 @@
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------< ai.bert-backend:engineplaning-service >----------------
+[INFO] Building engineplaning-service 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.4.1:clean (default-clean) @ engineplaning-service ---
+[INFO] Deleting E:\DOSW\superOscholar-engineplaning-service\target
+[INFO] 
+[INFO] --- jacoco:0.8.12:prepare-agent (default) @ engineplaning-service ---
+[INFO] argLine set to -javaagent:C:\\Users\\ASUS\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.12\\org.jacoco.agent-0.8.12-runtime.jar=destfile=E:\\DOSW\\superOscholar-engineplaning-service\\target\\jacoco.exec
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ engineplaning-service ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] Copying 0 resource from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ engineplaning-service ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 116 source files with javac [debug parameters release 21] to target\classes
+[WARNING] /E:/DOSW/superOscholar-engineplaning-service/src/main/java/com/aibert/dosw/infrastructure/external/feign/mapper/TaskResponseMapper.java:[81,18] Unmapped target property: "correctedEstimatedMinutes".
+[INFO] /E:/DOSW/superOscholar-engineplaning-service/src/main/java/com/aibert/dosw/application/usecase/BalanceWorkloadUseCaseImpl.java: E:\DOSW\superOscholar-engineplaning-service\src\main\java\com\aibert\dosw\application\usecase\BalanceWorkloadUseCaseImpl.java uses or overrides a deprecated API.
+[INFO] /E:/DOSW/superOscholar-engineplaning-service/src/main/java/com/aibert/dosw/application/usecase/BalanceWorkloadUseCaseImpl.java: Recompile with -Xlint:deprecation for details.
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ engineplaning-service ---
+[INFO] Copying 1 resource from src\test\resources to target\test-classes
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ engineplaning-service ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 48 source files with javac [debug parameters release 21] to target\test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ engineplaning-service ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+Picked up JAVA_TOOL_OPTIONS: -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8
+[INFO] Running com.aibert.dosw.application.dto.request.FailureReportRequestTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.326 s -- in com.aibert.dosw.application.dto.request.FailureReportRequestTest
+[INFO] Running com.aibert.dosw.application.event.TaskChangeEventListenerTest
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build what is described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html#0.3
+WARNING: A Java agent has been loaded dynamically (C:\Users\ASUS\.m2\repository\net\bytebuddy\byte-buddy-agent\1.15.11\byte-buddy-agent-1.15.11.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+15:53:58.020 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Evento 'COMPLETADO' recibido para el estudiante '00000000-0000-0000-0000-000000000001' (taskId='task-789'). Iniciando recálculo automático de prioridades.
+15:53:58.108 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Recálculo automático completado para el estudiante '00000000-0000-0000-0000-000000000001'.
+15:53:58.213 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Evento 'NUEVA_TAREA' recibido para el estudiante '00000000-0000-0000-0000-000000000002' (taskId='task-000'). Iniciando recálculo automático de prioridades.
+15:53:58.217 [main] ERROR com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Error durante el recálculo automático para el estudiante '00000000-0000-0000-0000-000000000002': No tasks found
+java.lang.IllegalStateException: No tasks found
+	at com.aibert.dosw.application.event.TaskChangeEventListener.onTaskChange(TaskChangeEventListener.java:37)
+	at com.aibert.dosw.application.event.TaskChangeEventListenerTest.lambda$shouldNotPropagateExceptionWhenPrioritizationFails$1(TaskChangeEventListenerTest.java:75)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3199)
+	at com.aibert.dosw.application.event.TaskChangeEventListenerTest.shouldNotPropagateExceptionWhenPrioritizationFails(TaskChangeEventListenerTest.java:75)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+15:53:58.244 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Evento 'EDICION' recibido para el estudiante '00000000-0000-0000-0000-000000000001' (taskId='task-999'). Iniciando recálculo automático de prioridades.
+15:53:58.247 [main] ERROR com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Error durante el recálculo automático para el estudiante '00000000-0000-0000-0000-000000000001': Service unavailable
+java.lang.RuntimeException: Service unavailable
+	at com.aibert.dosw.application.event.TaskChangeEventListener.onTaskChange(TaskChangeEventListener.java:37)
+	at com.aibert.dosw.application.event.TaskChangeEventListenerTest.lambda$shouldHandleExceptionGracefully$0(TaskChangeEventListenerTest.java:64)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:49)
+	at org.junit.jupiter.api.AssertDoesNotThrow.assertDoesNotThrow(AssertDoesNotThrow.java:36)
+	at org.junit.jupiter.api.Assertions.assertDoesNotThrow(Assertions.java:3199)
+	at com.aibert.dosw.application.event.TaskChangeEventListenerTest.shouldHandleExceptionGracefully(TaskChangeEventListenerTest.java:64)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+15:53:58.262 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Evento 'EDICION' recibido para el estudiante '00000000-0000-0000-0000-000000000001' (taskId='task-456'). Iniciando recálculo automático de prioridades.
+15:53:58.262 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Recálculo automático completado para el estudiante '00000000-0000-0000-0000-000000000001'.
+15:53:58.279 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Evento 'NUEVA_TAREA' recibido para el estudiante '00000000-0000-0000-0000-000000000001' (taskId='task-123'). Iniciando recálculo automático de prioridades.
+15:53:58.280 [main] INFO com.aibert.dosw.application.event.TaskChangeEventListener -- AIB-22.1: Recálculo automático completado para el estudiante '00000000-0000-0000-0000-000000000001'.
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.568 s -- in com.aibert.dosw.application.event.TaskChangeEventListenerTest
+[INFO] Running com.aibert.dosw.application.mapper.PlanningTaskMapperTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 s -- in com.aibert.dosw.application.mapper.PlanningTaskMapperTest
+[INFO] Running com.aibert.dosw.application.service.CorrectionFactorStoreTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.090 s -- in com.aibert.dosw.application.service.CorrectionFactorStoreTest
+[INFO] Running com.aibert.dosw.application.service.CriticalRecommendationsServiceTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.025 s -- in com.aibert.dosw.application.service.CriticalRecommendationsServiceTest
+[INFO] Running com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImplTest
+15:53:59.471 [main] WARN com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: No se pudo obtener la tarea 'task-abc-123' desde task-service. No se registra el ratio.
+15:53:59.566 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4 FA-02: Sin tiempo real para la tarea 'task-abc-123' del estudiante 'stu-001'. No se actualiza el factor.
+15:53:59.593 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4 FA-02: Sin tiempo real para la tarea 'task-abc-123' del estudiante 'stu-001'. No se actualiza el factor.
+15:53:59.623 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: Factor de corrección para 'stu-001'/TAREA: 1.2 (promedio sin clamp: 1.2)
+15:53:59.651 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: Factor de corrección para 'stu-001'/TAREA: 0.5 (promedio sin clamp: 0.1)
+15:53:59.664 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: Factor de corrección para 'stu-001'/TAREA: 2.0 (promedio sin clamp: 3.0)
+15:53:59.680 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4 FA-01: El estudiante 'stu-001' tiene 2 muestra(s) del tipo 'TAREA'. Se requieren mínimo 5.
+15:53:59.693 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: Factor de corrección para 'stu-001'/TAREA: 1.0 (promedio sin clamp: 1.0)
+15:53:59.722 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: Factor de corrección para 'stu-001'/TAREA: 1.2 (promedio sin clamp: 1.2)
+15:53:59.725 [main] INFO com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: 1 tarea(s) actualizadas en task-service para el estudiante 'stu-001'.
+15:53:59.786 [main] WARN com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImpl -- AIB-22.4: No se pudo obtener la tarea 'task-abc-123' desde task-service. No se registra el ratio.
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.224 s -- in com.aibert.dosw.application.usecase.AdjustEstimationsUseCaseImplTest
+[INFO] Running com.aibert.dosw.application.usecase.BalanceWorkloadUseCaseImplTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.575 s -- in com.aibert.dosw.application.usecase.BalanceWorkloadUseCaseImplTest
+[INFO] Running com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImplTest
+15:54:00.645 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 0 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.668 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 1 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.683 [main] ERROR com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3 FA-03: Error al calcular detección de riesgos para 'student-1': Schedule service down
+java.lang.RuntimeException: Schedule service down
+	at com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl.detectHighRiskTasks(DetectHighRiskTasksUseCaseImpl.java:68)
+	at com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImplTest.shouldReturnFa03MessageWhenSchedulePortThrows(DetectHighRiskTasksUseCaseImplTest.java:334)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+15:54:00.702 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 0 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.719 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 1 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.726 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3 FA-01: Sin disponibilidad configurada para el estudiante 'student-1'.
+15:54:00.735 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 0 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.744 [main] ERROR com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3 FA-03: Error al calcular detección de riesgos para 'student-1': Service unavailable
+java.lang.RuntimeException: Service unavailable
+	at com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl.detectHighRiskTasks(DetectHighRiskTasksUseCaseImpl.java:53)
+	at com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImplTest.shouldReturnFa03MessageWhenExceptionOccursDuringCalculation(DetectHighRiskTasksUseCaseImplTest.java:318)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+15:54:00.755 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 2 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.766 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Se detectaron 1 tarea(s) en riesgo para el estudiante 'student-1'
+15:54:00.775 [main] INFO com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImpl -- AIB-22.3: Sin tareas activas para el estudiante 'student-1'. Se omite la detección de riesgos.
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.293 s -- in com.aibert.dosw.application.usecase.DetectHighRiskTasksUseCaseImplTest
+[INFO] Running com.aibert.dosw.application.usecase.DistributeTasksUseCaseImplTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.178 s -- in com.aibert.dosw.application.usecase.DistributeTasksUseCaseImplTest
+[INFO] Running com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImplTest
+15:54:01.023 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.036 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.063 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.070 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.076 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- FA-01: Sin tareas activas para el estudiante 'stu-001'. Se omite la priorización.
+15:54:01.086 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.101 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.108 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 2 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.114 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- FA-01: Sin tareas activas para el estudiante 'stu-001'. Se omite la priorización.
+15:54:01.123 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.129 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+15:54:01.136 [main] INFO com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImpl -- Se priorizaron 1 tarea(s) correctamente para el estudiante 'stu-001'
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.138 s -- in com.aibert.dosw.application.usecase.PrioritizeTasksUseCaseImplTest
+[INFO] Running com.aibert.dosw.application.usecase.RebalanceTasksUseCaseImplTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.145 s -- in com.aibert.dosw.application.usecase.RebalanceTasksUseCaseImplTest
+[INFO] Running com.aibert.dosw.domain.exceptions.PlanningDomainExceptionTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.aibert.dosw.domain.exceptions.PlanningDomainExceptionTest
+[INFO] Running com.aibert.dosw.domain.model.balance.BalanceSuggestionTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.aibert.dosw.domain.model.balance.BalanceSuggestionTest
+[INFO] Running com.aibert.dosw.domain.model.balance.DifferentialBalanceTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in com.aibert.dosw.domain.model.balance.DifferentialBalanceTest
+[INFO] Running com.aibert.dosw.domain.model.context.EmptyContextClassesTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.aibert.dosw.domain.model.context.EmptyContextClassesTest
+[INFO] Running com.aibert.dosw.domain.model.context.NoteRiskCalculatorTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.aibert.dosw.domain.model.context.NoteRiskCalculatorTest
+[INFO] Running com.aibert.dosw.domain.model.schedule.AvailabilityFilterTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.aibert.dosw.domain.model.schedule.AvailabilityFilterTest
+[INFO] Running com.aibert.dosw.domain.model.schedule.ScheduleModelTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.024 s -- in com.aibert.dosw.domain.model.schedule.ScheduleModelTest
+[INFO] Running com.aibert.dosw.domain.model.task.PlanningTaskTest
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.044 s -- in com.aibert.dosw.domain.model.task.PlanningTaskTest
+[INFO] Running com.aibert.dosw.domain.valueobjects.EmptyValueObjectsTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.aibert.dosw.domain.valueobjects.EmptyValueObjectsTest
+[INFO] Running com.aibert.dosw.domain.valueobjects.PriorityScoreTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.aibert.dosw.domain.valueobjects.PriorityScoreTest
+[INFO] Running com.aibert.dosw.domain.valueobjects.TaskIdTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.aibert.dosw.domain.valueobjects.TaskIdTest
+[INFO] Running com.aibert.dosw.entrypoints.advice.PlanningExceptionHandlerTest
+15:54:01.620 [main] ERROR com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error en llamada a servicio externo [status=404] en /planning/prioritization: [404 Not Found] during [GET] to [http://task-service/tasks] [GET]: []
+15:54:01.651 [main] ERROR com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error en llamada a servicio externo [status=503] en /planning/distribution: [503 Service Unavailable] during [GET] to [http://task-service/tasks] [GET]: []
+15:54:02.045 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error de validación de campos en /api/test: [must not be null]
+15:54:02.244 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Violación de restricción en /api/test: [studentId: must not be blank]
+15:54:02.405 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Cuerpo de solicitud ilegible en /planning/distribution: JSON parse error
+15:54:02.443 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Header obligatorio ausente en /planning/prioritization: 'X-Student-Id'
+15:54:02.445 [main] ERROR com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error inesperado no controlado en /api/test
+java.lang.Exception: Internal error
+	at com.aibert.dosw.entrypoints.advice.PlanningExceptionHandlerTest.shouldHandleGenericException(PlanningExceptionHandlerTest.java:155)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+15:54:02.567 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error de tipo de parámetro en /planning/test: El parámetro 'page' tiene un formato inválido: 'abc'
+15:54:02.570 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Acceso denegado en /planning/prioritization: studentId does not match authenticated user
+15:54:02.572 [main] WARN com.aibert.dosw.entrypoints.advice.PlanningExceptionHandler -- Error de dominio [codigo=TEST_ERROR] en /api/test: Domain error occurred
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.072 s -- in com.aibert.dosw.entrypoints.advice.PlanningExceptionHandlerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsControllerTest
+15:54:02.807 [main] INFO com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsController -- Solicitud de ajuste de estimaciones recibida para el estudiante '00000000-0000-0000-0000-000000000099', tipo de tarea: TAREA
+15:54:02.808 [main] INFO com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsController -- Ajuste completado para '00000000-0000-0000-0000-000000000099': factor=1.2, tareas actualizadas=1
+15:54:02.839 [main] INFO com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsController -- Solicitud de ajuste de estimaciones recibida para el estudiante '00000000-0000-0000-0000-000000000099', tipo de tarea: TAREA
+15:54:02.839 [main] INFO com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsController -- Ajuste completado para '00000000-0000-0000-0000-000000000099': factor=1.0, tareas actualizadas=0
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.263 s -- in com.aibert.dosw.entrypoints.rest.controller.AdjustEstimationsControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.BalanceControllerTest
+15:54:03.005 [main] INFO com.aibert.dosw.entrypoints.rest.controller.BalanceController -- Solicitud de balance semanal para el estudiante '00000000-0000-0000-0000-000000000001', semana: 2026-05-18
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.176 s -- in com.aibert.dosw.entrypoints.rest.controller.BalanceControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.DistributionControllerTest
+15:54:03.039 [main] INFO com.aibert.dosw.entrypoints.rest.controller.DistributionController -- Solicitud de distribución automática para el estudiante '00000000-0000-0000-0000-000000000001', semana: 2026-05-18
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in com.aibert.dosw.entrypoints.rest.controller.DistributionControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.PrioritizationControllerTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.099 s -- in com.aibert.dosw.entrypoints.rest.controller.PrioritizationControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.RebalanceControllerTest
+15:54:03.226 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RebalanceController -- Reporte de fallo recibido para estudiante=00000000-0000-0000-0000-000000000001 tarea=t1
+15:54:03.234 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RebalanceController -- Reorganización manual del plan semanal para estudiante=00000000-0000-0000-0000-000000000001
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.097 s -- in com.aibert.dosw.entrypoints.rest.controller.RebalanceControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.RiskDetectionControllerTest
+15:54:03.318 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RiskDetectionController -- Solicitud de detección de alto riesgo recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+15:54:03.356 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RiskDetectionController -- Solicitud de detección de alto riesgo recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+15:54:03.364 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RiskDetectionController -- Solicitud de detección de alto riesgo recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+15:54:03.370 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RiskDetectionController -- Solicitud de detección de alto riesgo recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+15:54:03.382 [main] INFO com.aibert.dosw.entrypoints.rest.controller.RiskDetectionController -- Solicitud de detección de alto riesgo recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.135 s -- in com.aibert.dosw.entrypoints.rest.controller.RiskDetectionControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.rest.controller.TaskEventControllerTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.107 s -- in com.aibert.dosw.entrypoints.rest.controller.TaskEventControllerTest
+[INFO] Running com.aibert.dosw.entrypoints.support.StudentIdValidatorTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.aibert.dosw.entrypoints.support.StudentIdValidatorTest
+[INFO] Running com.aibert.dosw.infrastructure.config.RequestCorrelationFilterTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.967 s -- in com.aibert.dosw.infrastructure.config.RequestCorrelationFilterTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.adapter.AcademicServiceAdapterTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.156 s -- in com.aibert.dosw.infrastructure.external.feign.adapter.AcademicServiceAdapterTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.adapter.ScheduleServiceAdapterTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.100 s -- in com.aibert.dosw.infrastructure.external.feign.adapter.ScheduleServiceAdapterTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.adapter.TaskServiceAdapterTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.271 s -- in com.aibert.dosw.infrastructure.external.feign.adapter.TaskServiceAdapterTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClientFallbackTest
+15:54:05.040 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClientFallback -- academic-service no disponible. Usando peso academico 0.0 para subjectId='CS202'.
+15:54:05.043 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClientFallback -- academic-service no disponible. Usando peso academico 0.0 para subjectId='MATH101'.
+15:54:05.045 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClientFallback -- academic-service no disponible. Usando peso academico 0.0 para subjectId=''.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClientFallbackTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.client.PlanningServiceClientFallbackTest
+15:54:05.054 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.PlanningServiceClientFallback -- [Fallback] planning-service no disponible al generar distribución para el estudiante 'student1'.
+15:54:05.057 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.PlanningServiceClientFallback -- [Fallback] planning-service no disponible al obtener tareas priorizadas del estudiante 'student1'.
+15:54:05.059 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.PlanningServiceClientFallback -- [Fallback] planning-service no disponible al obtener recomendaciones críticas del estudiante 'student1'.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.aibert.dosw.infrastructure.external.feign.client.PlanningServiceClientFallbackTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.client.ProfileServiceClientFallbackTest
+15:54:05.065 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.ProfileServiceClientFallback -- profile-service no disponible al obtener bloques no disponibles del estudiante 'student1'.
+15:54:05.068 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.ProfileServiceClientFallback -- profile-service no disponible al obtener límite diario del estudiante 'student1'. Usando 240 min.
+15:54:05.070 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.ProfileServiceClientFallback -- profile-service no disponible al obtener horario semanal del estudiante 'student1'.
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.aibert.dosw.infrastructure.external.feign.client.ProfileServiceClientFallbackTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallbackTest
+15:54:05.077 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallback -- task-service no disponible. No se reportó el fallo de taskId='t1' (2.0h, razón: reason).
+15:54:05.079 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallback -- task-service no disponible al obtener tareas pendientes del estudiante 'student1'.
+15:54:05.081 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallback -- task-service no disponible. No se pudieron actualizar 1 prioridades.
+15:54:05.084 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallback -- task-service no disponible al obtener tareas programadas del estudiante 'student1'.
+15:54:05.086 [main] WARN com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallback -- task-service no disponible al obtener la tarea 'task-999'.
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClientFallbackTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.config.FeignClientInterceptorTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.048 s -- in com.aibert.dosw.infrastructure.external.feign.config.FeignClientInterceptorTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponseTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponseTest
+[INFO] Running com.aibert.dosw.infrastructure.external.feign.mapper.TaskResponseMapperTest
+[INFO] Tests run: 31, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.394 s -- in com.aibert.dosw.infrastructure.external.feign.mapper.TaskResponseMapperTest
+[INFO] Running com.aibert.dosw.infrastructure.security.JwtAuthenticationFilterTest
+15:54:05.671 [main] ERROR com.aibert.dosw.infrastructure.security.JwtAuthenticationFilter -- No se pudo establecer la autenticación del usuario en el contexto de seguridad
+java.lang.RuntimeException: Unexpected error
+	at com.aibert.dosw.infrastructure.security.JwtTokenProvider.validateToken(JwtTokenProvider.java:42)
+	at com.aibert.dosw.infrastructure.security.JwtAuthenticationFilter.doFilterInternal(JwtAuthenticationFilter.java:42)
+	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116)
+	at com.aibert.dosw.infrastructure.security.JwtAuthenticationFilterTest.shouldContinueFilterChainWhenExceptionThrown(JwtAuthenticationFilterTest.java:95)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767)
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147)
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45)
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92)
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148)
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122)
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385)
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162)
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507)
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495)
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.159 s -- in com.aibert.dosw.infrastructure.security.JwtAuthenticationFilterTest
+[INFO] Running com.aibert.dosw.infrastructure.security.JwtTokenProviderTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.510 s -- in com.aibert.dosw.infrastructure.security.JwtTokenProviderTest
+[INFO] Running com.aibert.dosw.infrastructure.security.SecurityConfigTest
+15:54:07.513 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.aibert.dosw.infrastructure.security.SecurityConfigTest]: SecurityConfigTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+15:54:08.053 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.aibert.dosw.PlanningApplication for test class com.aibert.dosw.infrastructure.security.SecurityConfigTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.3)
+
+2026-05-20T15:54:10.683-05:00  INFO 16876 --- [           main] c.a.d.i.security.SecurityConfigTest      : Starting SecurityConfigTest using Java 21.0.8 with PID 16876 (started by ASUS in E:\DOSW\superOscholar-engineplaning-service)
+2026-05-20T15:54:10.686-05:00  INFO 16876 --- [           main] c.a.d.i.security.SecurityConfigTest      : No active profile set, falling back to 1 default profile: "default"
+2026-05-20T15:54:16.441-05:00  INFO 16876 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=af7d7619-0c2f-3a15-b436-b1132339b686
+2026-05-20T15:54:19.375-05:00  INFO 16876 --- [           main] c.a.d.i.security.SecurityConfigTest      : Started SecurityConfigTest in 10.342 seconds (process running for 37.069)
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.25 s -- in com.aibert.dosw.infrastructure.security.SecurityConfigTest
+[INFO] Running com.aibert.dosw.misc.EmptyClassesInstantiationTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.aibert.dosw.misc.EmptyClassesInstantiationTest
+[INFO] Running com.aibert.dosw.recommendation.application.service.CriticalRecommendationsServiceImplTest
+2026-05-20T15:54:19.508-05:00 ERROR 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : No se pudo obtener la lista de tareas para 's1': Service unavailable
+
+java.lang.RuntimeException: Service unavailable
+	at com.aibert.dosw.recommendation.application.service.CriticalRecommendationsServiceImpl.resolveTaskList(CriticalRecommendationsServiceImpl.java:103) ~[classes/:na]
+	at com.aibert.dosw.recommendation.application.service.CriticalRecommendationsServiceImpl.getRecommendations(CriticalRecommendationsServiceImpl.java:39) ~[classes/:na]
+	at com.aibert.dosw.recommendation.application.service.CriticalRecommendationsServiceImplTest.shouldReturnErrorMessageWhenPrioritizationFails(CriticalRecommendationsServiceImplTest.java:151) ~[test-classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.junit.platform.commons.util.ReflectionUtils.invokeMethod(ReflectionUtils.java:767) ~[junit-platform-commons-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.execution.MethodInvocation.proceed(MethodInvocation.java:60) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$ValidatingInvocation.proceed(InvocationInterceptorChain.java:131) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.intercept(TimeoutExtension.java:156) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestableMethod(TimeoutExtension.java:147) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.extension.TimeoutExtension.interceptTestMethod(TimeoutExtension.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker$ReflectiveInterceptorCall.lambda$ofVoidMethod$0(InterceptingExecutableInvoker.java:103) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.lambda$invoke$0(InterceptingExecutableInvoker.java:93) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain$InterceptedInvocation.proceed(InvocationInterceptorChain.java:106) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.proceed(InvocationInterceptorChain.java:64) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.chainAndInvoke(InvocationInterceptorChain.java:45) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InvocationInterceptorChain.invoke(InvocationInterceptorChain.java:37) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:92) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.execution.InterceptingExecutableInvoker.invoke(InterceptingExecutableInvoker.java:86) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$invokeTestMethod$8(TestMethodTestDescriptor.java:217) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.invokeTestMethod(TestMethodTestDescriptor.java:213) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:138) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.execute(TestMethodTestDescriptor.java:68) ~[junit-jupiter-engine-5.11.4.jar:5.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:156) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596) ~[na:na]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:160) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:146) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:144) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:143) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:100) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54) ~[junit-platform-engine-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47) ~[junit-platform-launcher-1.11.4.jar:1.11.4]
+	at org.apache.maven.surefire.junitplatform.LazyLauncher.execute(LazyLauncher.java:56) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.execute(JUnitPlatformProvider.java:184) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invokeAllTests(JUnitPlatformProvider.java:148) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.junitplatform.JUnitPlatformProvider.invoke(JUnitPlatformProvider.java:122) ~[surefire-junit-platform-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:385) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.execute(ForkedBooter.java:162) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.run(ForkedBooter.java:507) ~[surefire-booter-3.5.2.jar:3.5.2]
+	at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:495) ~[surefire-booter-3.5.2.jar:3.5.2]
+
+2026-05-20T15:54:19.520-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 0
+2026-05-20T15:54:19.527-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 0 resultado(s) (0 mostradas)
+2026-05-20T15:54:19.531-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 3
+2026-05-20T15:54:19.532-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 3 resultado(s) (3 mostradas)
+2026-05-20T15:54:19.535-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 3
+2026-05-20T15:54:19.535-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 2 resultado(s) (2 mostradas)
+2026-05-20T15:54:19.539-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 2
+2026-05-20T15:54:19.540-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 1 resultado(s) (1 mostradas)
+2026-05-20T15:54:19.543-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 2
+2026-05-20T15:54:19.543-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 1 resultado(s) (1 mostradas)
+2026-05-20T15:54:19.547-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 5
+2026-05-20T15:54:19.548-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 5 resultado(s) (3 mostradas)
+2026-05-20T15:54:19.551-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 2
+2026-05-20T15:54:19.551-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 0 resultado(s) (0 mostradas)
+2026-05-20T15:54:19.556-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Evaluando recomendaciones críticas para el estudiante 's1' — total de tareas recibidas: 5
+2026-05-20T15:54:19.557-05:00  INFO 16876 --- [           main] r.a.s.CriticalRecommendationsServiceImpl : Recomendaciones críticas generadas para 's1': 5 resultado(s) (3 mostradas)
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.057 s -- in com.aibert.dosw.recommendation.application.service.CriticalRecommendationsServiceImplTest
+[INFO] Running com.aibert.dosw.recommendation.entrypoints.rest.controller.CriticalRecommendationsControllerTest
+2026-05-20T15:54:19.580-05:00  INFO 16876 --- [           main] .e.r.c.CriticalRecommendationsController : Solicitud de recomendaciones críticas recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+2026-05-20T15:54:19.585-05:00  INFO 16876 --- [           main] .e.r.c.CriticalRecommendationsController : Solicitud de recomendaciones críticas recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+2026-05-20T15:54:19.591-05:00  INFO 16876 --- [           main] .e.r.c.CriticalRecommendationsController : Solicitud de recomendaciones críticas recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+2026-05-20T15:54:19.599-05:00  INFO 16876 --- [           main] .e.r.c.CriticalRecommendationsController : Solicitud de recomendaciones críticas recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+2026-05-20T15:54:19.608-05:00  INFO 16876 --- [           main] .e.r.c.CriticalRecommendationsController : Solicitud de recomendaciones críticas recibida para el estudiante '550e8400-e29b-41d4-a716-446655440000'
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in com.aibert.dosw.recommendation.entrypoints.rest.controller.CriticalRecommendationsControllerTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 270, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jacoco:0.8.12:report (report) @ engineplaning-service ---
+[INFO] Loading execution data file E:\DOSW\superOscholar-engineplaning-service\target\jacoco.exec
+[INFO] Analyzed bundle 'engineplaning-service' with 77 classes
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  01:12 min
+[INFO] Finished at: 2026-05-20T15:54:22-05:00
+[INFO] ------------------------------------------------------------------------

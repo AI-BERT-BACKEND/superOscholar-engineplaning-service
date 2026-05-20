@@ -66,12 +66,12 @@ public class AdjustEstimationsController {
 
         assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
         log.info("Solicitud de ajuste de estimaciones recibida para el estudiante '{}', tipo de tarea: {}",
-                studentId, request.getTaskType());
+                sl(studentId), request.getTaskType());
 
         AdjustEstimationsResponse result = adjustEstimationsUseCase.adjustEstimations(studentId, request);
 
         log.info("Ajuste completado para '{}': factor={}, tareas actualizadas={}",
-                studentId, result.getAdjustmentFactor(), result.getUpdatedEstimates().size());
+                sl(studentId), result.getAdjustmentFactor(), result.getUpdatedEstimates().size());
 
         return ResponseEntity.ok(ApiResponse.success(result.getMessage(), result));
     }
@@ -86,5 +86,9 @@ public class AdjustEstimationsController {
                 || !authentication.getName().equals(studentId)) {
             throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
         }
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

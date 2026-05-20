@@ -28,7 +28,7 @@ public class PlanningServiceClientFallback implements PlanningServiceClient {
             String studentId, Boolean forceRecalculate) {
         log.warn(
                 "[Fallback] planning-service no disponible al obtener tareas priorizadas del estudiante '{}'.",
-                studentId);
+                sl(studentId));
         return ApiResponse.success("planning-service no disponible — lista vacía", Collections.emptyList());
     }
 
@@ -37,7 +37,7 @@ public class PlanningServiceClientFallback implements PlanningServiceClient {
             String studentId, String weekStartDate) {
         log.warn(
                 "[Fallback] planning-service no disponible al generar distribución para el estudiante '{}'.",
-                studentId);
+                sl(studentId));
         DistributionPlanResponse empty = DistributionPlanResponse.builder()
                 .studentId(studentId)
                 .assignedBlocks(Collections.emptyList())
@@ -56,12 +56,16 @@ public class PlanningServiceClientFallback implements PlanningServiceClient {
             String studentId, CriticalRecommendationsRequest request) {
         log.warn(
                 "[Fallback] planning-service no disponible al obtener recomendaciones críticas del estudiante '{}'.",
-                studentId);
+                sl(studentId));
         CriticalRecommendationsResponse empty = CriticalRecommendationsResponse.builder()
                 .criticalRecommendations(Collections.emptyList())
                 .criticalCount(0)
                 .message("planning-service no disponible — sin recomendaciones críticas")
                 .build();
         return ApiResponse.success(empty.getMessage(), empty);
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

@@ -27,7 +27,7 @@ feign:
   academic-service:
     url: "http://localhost:8083"
   recommendation-service:
-    url: "http://localhost:8086"
+    url: "http://localhost:1505"
   planning-service:
     url: "http://localhost:1505"   # puerto de planning-service
   client:

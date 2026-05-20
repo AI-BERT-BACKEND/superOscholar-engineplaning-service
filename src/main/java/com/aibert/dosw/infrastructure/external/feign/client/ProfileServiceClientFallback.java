@@ -18,20 +18,24 @@ public class ProfileServiceClientFallback implements ProfileServiceClient {
 
     @Override
     public List<DailySchedule> getWeeklySchedule(String studentId) {
-        log.warn("profile-service no disponible al obtener horario semanal del estudiante '{}'.", studentId);
+        log.warn("profile-service no disponible al obtener horario semanal del estudiante '{}'.", sl(studentId));
         return Collections.emptyList();
     }
 
     @Override
     public List<UnavailableBlock> getUnavailableBlocks(String studentId) {
-        log.warn("profile-service no disponible al obtener bloques no disponibles del estudiante '{}'.", studentId);
+        log.warn("profile-service no disponible al obtener bloques no disponibles del estudiante '{}'.", sl(studentId));
         return Collections.emptyList();
     }
 
     @Override
     public int getDailyMaxMinutes(String studentId) {
         log.warn("profile-service no disponible al obtener límite diario del estudiante '{}'. Usando 240 min.",
-                studentId);
+                sl(studentId));
         return 240;
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

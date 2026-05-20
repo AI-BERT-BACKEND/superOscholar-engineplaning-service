@@ -63,7 +63,7 @@ public class RiskDetectionController {
             Authentication authentication) {
 
         assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
-        log.info("Solicitud de detección de alto riesgo recibida para el estudiante '{}'", studentId);
+        log.info("Solicitud de detección de alto riesgo recibida para el estudiante '{}'", sl(studentId));
 
         HighRiskTaskResult result = detectHighRiskTasksUseCase.detectHighRiskTasks(studentId);
         HighRiskDetectionResponse response = toResponse(result);
@@ -109,5 +109,9 @@ public class RiskDetectionController {
                 || !authentication.getName().equals(studentId)) {
             throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
         }
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

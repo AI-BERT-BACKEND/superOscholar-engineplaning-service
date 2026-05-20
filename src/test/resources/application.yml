@@ -1,3 +1,6 @@
+server:
+  port: 1504
+
 spring:
   security:
     user:
@@ -10,9 +13,13 @@ spring:
 
 feign:
   task-service:
-    url: http://localhost
+    url: http://localhost:8084
   profile-service:
-    url: http://localhost
+    url: http://localhost:8082
+  academic-service:
+    url: http://localhost:8083
+  planning-service:
+    url: http://localhost:1505   # recommendation-service (puerto 1505)
 
 jwt:
   secret: test-jwt-secret-for-tests-32-bytes

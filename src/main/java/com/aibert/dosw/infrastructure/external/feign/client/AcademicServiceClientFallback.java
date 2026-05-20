@@ -10,10 +10,14 @@ public class AcademicServiceClientFallback implements AcademicServiceClient {
 
     @Override
     public AcademicWeightResponse getAcademicWeight(String studentId, String subjectId) {
-        log.warn("academic-service no disponible. Usando peso academico 0.0 para subjectId='{}'.", subjectId);
+        log.warn("academic-service no disponible. Usando peso academico 0.0 para subjectId='{}'.", sl(subjectId));
         return AcademicWeightResponse.builder()
                 .subjectId(subjectId)
                 .academicWeight(0.0)
                 .build();
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

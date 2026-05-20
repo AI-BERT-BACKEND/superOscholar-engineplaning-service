@@ -75,7 +75,7 @@ public class BalanceController {
                                 ? weekStartDate
                                 : LocalDate.now().with(java.time.DayOfWeek.MONDAY);
 
-                log.info("Solicitud de balance semanal para el estudiante '{}', semana: {}", studentId,
+                log.info("Solicitud de balance semanal para el estudiante '{}', semana: {}", sl(studentId),
                                 effectiveWeekStart);
 
                 BalanceResult result = balanceWorkloadUseCase.suggestBalance(studentId, effectiveWeekStart);
@@ -138,5 +138,9 @@ public class BalanceController {
                                 || !authentication.getName().equals(studentId)) {
                         throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
                 }
+        }
+
+        private static String sl(String s) {
+                return s == null ? "" : s.replaceAll("[\r\n]", "_");
         }
 }
