@@ -41,6 +41,7 @@ services:
       FEIGN_PROFILE_SERVICE_URL: ${FEIGN_PROFILE_SERVICE_URL}
       FEIGN_ACADEMIC_SERVICE_URL: ${FEIGN_ACADEMIC_SERVICE_URL}
       FEIGN_RECOMMENDATION_SERVICE_URL: ${FEIGN_RECOMMENDATION_SERVICE_URL}
+      FEIGN_PLANNING_SERVICE_URL: ${FEIGN_PLANNING_SERVICE_URL}
 
       JWT_SECRET: ${JWT_SECRET}
 
@@ -55,19 +56,51 @@ volumes:
   engineplaning_mongo_data:
 
 # ─── Red compartida DOSW ───────────────────────────────────────────────────────
-# Para conectar recommendation-service en Docker, añade en su docker-compose.yml:
 #
-#   networks:
-#     dosw-network:
-#       external: true
+# ┌─────────────────────────────────────────────────────────────────────────────┐
+# │  NOMBRE DEL CONTENEDOR DE ESTE SERVICIO: engineplanning-service            │
+# │  PUERTO INTERNO:  1504                                                      │
+# │  RED DOCKER:      dosw-network                                              │
+# └─────────────────────────────────────────────────────────────────────────────┘
 #
-# Y agrega a su servicio:
-#   networks:
-#     - dosw-network
+# ─── Cómo conectar otro servicio a este motor en Docker ──────────────────────
 #
-# En local (sin Docker): recommendation-service llama a http://localhost:8087
-# En Docker: recommendation-service llama a http://engineplanning-service:1504
-# Y usa: PLANNING_SERVICE_URL=http://engineplanning-service:1504
+# 1. En el docker-compose.yml del otro servicio añade al final:
+#
+#      networks:
+#        dosw-network:
+#          external: true
+#
+# 2. En la definición del servicio añade:
+#
+#      networks:
+#        - dosw-network
+#
+# 3. Usa la URL:  http://engineplanning-service:1504
+#    (no localhost — entre contenedores se usa el nombre del contenedor)
+#
+# ─── Variables para planning-service (puerto 1505) ───────────────────────────
+#   planning-service usa estos Feign clients para llamar a este motor:
+#     · PlanningFeignClient  → GET  /planning/prioritization
+#     · PlanningFeignClient  → POST /planning/distribution
+#     · EnginePlanningClient → POST /planning/recommendations/critical
+#
+#   Variable que planning-service debe configurar:
+#     En Docker:  ENGINE_PLANNING_URL=http://engineplanning-service:1504
+#     En local:   ENGINE_PLANNING_URL=http://localhost:1504
+#
+# ─── Variables para recommendation-service (puerto 8086) ─────────────────────
+#   recommendation-service usa estos Feign clients para llamar a este motor:
+#     · PlanningFeignClient  → GET  /planning/prioritization
+#     · PlanningFeignClient  → POST /planning/distribution
+#     · EnginePlanningClient → POST /planning/recommendations/critical
+#
+#   Variable que recommendation-service debe configurar:
+#     En Docker:  ENGINE_PLANNING_URL=http://engineplanning-service:1504
+#     En local:   ENGINE_PLANNING_URL=http://localhost:1504
+#
+#   Nota: FEIGN_RECOMMENDATION_SERVICE_URL en este docker-compose es para
+#   llamadas SALIENTES de este motor hacia recommendation-service (uso futuro).
 networks:
   dosw-network:
     name: dosw-network

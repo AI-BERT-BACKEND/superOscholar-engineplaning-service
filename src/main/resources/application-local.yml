@@ -28,6 +28,8 @@ feign:
     url: "http://localhost:8083"
   recommendation-service:
     url: "http://localhost:8086"
+  planning-service:
+    url: "http://localhost:1505"   # puerto de planning-service
   client:
     config:
       default:
@@ -56,8 +58,12 @@ resilience4j:
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 2
+        register-health-indicator: true      planning-service:
+        sliding-window-size: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
         register-health-indicator: true
-
 # ─── Actuator ─────────────────────────────────────────────────────────────────
 management:
   endpoints:

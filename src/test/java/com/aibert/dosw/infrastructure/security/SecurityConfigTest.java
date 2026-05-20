@@ -11,6 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         "feign.task-service.url=http://localhost:8084",
         "feign.profile-service.url=http://localhost:8082",
         "feign.academic-service.url=http://localhost:8083",
+        "feign.recommendation-service.url=http://localhost:8086",
+        "feign.planning-service.url=http://localhost:1505",
         "jwt.secret=VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24="
 })
 class SecurityConfigTest {

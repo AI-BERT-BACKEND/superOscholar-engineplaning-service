@@ -1,5 +1,5 @@
 server:
-  port: 8087
+  port: ${SERVER_PORT:1504}
 
 spring:
   application:
@@ -17,6 +17,9 @@ feign:
 
   recommendation-service:
     url: ${FEIGN_RECOMMENDATION_SERVICE_URL}
+
+  planning-service:
+    url: ${FEIGN_PLANNING_SERVICE_URL}
 
 jwt:
   secret: ${JWT_SECRET}
