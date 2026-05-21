@@ -2,6 +2,7 @@ package com.aibert.dosw.entrypoints.rest.controller;
 
 import com.aibert.dosw.application.dto.request.TaskChangeNotificationRequest;
 import com.aibert.dosw.application.event.TaskChangeEvent;
+import com.aibert.dosw.domain.model.task.TaskChangeEventType;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
@@ -50,11 +52,22 @@ public class TaskEventController {
     public ResponseEntity<ApiResponse<Void>> notifyTaskChange(
             @Valid @RequestBody TaskChangeNotificationRequest request) {
 
-        eventPublisher.publishEvent(
-                new TaskChangeEvent(this, request.getStudentId(), request.getTaskId(), request.getEventType()));
+        // Explicit sanitization breaks the taint chain detected by static analysis.
+        // @Valid already enforces UUID format and alphanumeric constraints, but parsing
+        // here makes the sanitization visible in the data flow.
+        String studentId = UUID.fromString(request.getStudentId()).toString();
+        String taskId = sanitizeTaskId(request.getTaskId());
+        TaskChangeEventType eventType = request.getEventType();
+
+        eventPublisher.publishEvent(new TaskChangeEvent(this, studentId, taskId, eventType));
 
         return ResponseEntity.accepted()
                 .body(ApiResponse.success(
                         "Evento recibido. Recálculo de prioridades iniciado en segundo plano.", null));
+    }
+
+    /** Keeps only word characters and hyphens (matches the @Pattern on TaskChangeNotificationRequest). */
+    private static String sanitizeTaskId(String taskId) {
+        return taskId == null ? "" : taskId.replaceAll("[^\\w\\-]", "");
     }
 }
