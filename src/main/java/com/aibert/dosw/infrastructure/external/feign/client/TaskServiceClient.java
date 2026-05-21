@@ -1,14 +1,14 @@
 package com.aibert.dosw.infrastructure.external.feign.client;
 
 import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceStatusUpdateRequest;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceUpdateRequest;
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Feign Client para comunicarse con task-service.
@@ -23,17 +23,13 @@ public interface TaskServiceClient {
     @GetMapping("/api/tasks/student/{studentId}")
     List<TaskServiceResponse> getTasksByStudent(@PathVariable("studentId") String studentId);
 
-    // Actualizar prioridades calculadas por el motor
-    @PutMapping("/api/tasks/priorities")
-    void updateTaskPriorities(@RequestBody List<TaskServiceResponse> tasks);
+    // Actualizar campos de una tarea (priority, estimatedDurationMinutes, etc.)
+    @PatchMapping("/api/tasks/{taskId}")
+    void patchTask(@PathVariable("taskId") String taskId, @RequestBody TaskServiceUpdateRequest request);
 
-    // Notificar bloque de estudio fallido
-    @PostMapping("/api/tasks/failure")
-    void reportTaskFailure(
-            @RequestParam("studentId") String studentId,
-            @RequestParam("taskId") String taskId,
-            @RequestParam("hoursMissed") double hoursMissed,
-            @RequestParam("reason") String reason);
+    // Actualizar estado de tarea
+    @PatchMapping("/api/tasks/{taskId}/status")
+    void patchTaskStatus(@PathVariable("taskId") String taskId, @RequestBody TaskServiceStatusUpdateRequest request);
 
     // Obtener tarea por ID (incluye tareas completadas)
     @GetMapping("/api/tasks/{taskId}")
