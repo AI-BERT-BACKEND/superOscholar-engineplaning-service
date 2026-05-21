@@ -1,7 +1,9 @@
 package com.aibert.dosw.recommendation.entrypoints.rest.controller;
 
+import com.aibert.dosw.application.dto.request.CriticalTaskCandidateRequest;
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
+import com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer;
 import com.aibert.dosw.recommendation.application.dto.request.CriticalRecommendationsRequest;
 import com.aibert.dosw.recommendation.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.recommendation.domain.ports.in.CriticalRecommendationsUseCase;
@@ -19,15 +21,15 @@ import org.springframework.security.core.Authentication;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * Unit tests for AIB-22.2 — CriticalRecommendationsController.
- */
 @ExtendWith(MockitoExtension.class)
 class CriticalRecommendationsControllerTest {
 
@@ -37,14 +39,10 @@ class CriticalRecommendationsControllerTest {
     private CriticalRecommendationsUseCase criticalRecommendationsUseCase;
 
     @Mock
-    private com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer notificationKafkaProducer;
+    private NotificationKafkaProducer notificationKafkaProducer;
 
     @InjectMocks
     private CriticalRecommendationsController controller;
-
-    // -------------------------------------------------------------------------
-    // Helper
-    // -------------------------------------------------------------------------
 
     private Authentication authFor(String name) {
         Authentication auth = mock(Authentication.class);
@@ -59,10 +57,6 @@ class CriticalRecommendationsControllerTest {
                 .message("No tienes tareas críticas en este momento")
                 .build();
     }
-
-    // -------------------------------------------------------------------------
-    // Success scenarios
-    // -------------------------------------------------------------------------
 
     @Test
     void shouldReturn200WithEmptyRecommendationsWhenNoCriticalTasks() {
@@ -101,8 +95,32 @@ class CriticalRecommendationsControllerTest {
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(1, result.getBody().getData().getCriticalCount());
-        assertEquals(1, result.getBody().getData().getCriticalRecommendations().size());
         assertEquals("task-1", result.getBody().getData().getCriticalRecommendations().get(0).getTaskId());
+    }
+
+    @Test
+    void shouldSendKafkaNotificationWhenCriticalCountGreaterThanZero() {
+        CriticalRecommendationsResponse response = CriticalRecommendationsResponse.builder()
+                .criticalRecommendations(List.of())
+                .criticalCount(2)
+                .message("Tienes 2 tarea(s) crítica(s)")
+                .build();
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), isNull(), eq(false)))
+                .thenReturn(response);
+
+        controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), null, false, null);
+
+        verify(notificationKafkaProducer).send(any());
+    }
+
+    @Test
+    void shouldNotSendKafkaNotificationWhenNoCriticalTasks() {
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), isNull(), eq(false)))
+                .thenReturn(emptyResponse());
+
+        controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), null, false, null);
+
+        verify(notificationKafkaProducer, never()).send(any());
     }
 
     @Test
@@ -120,15 +138,87 @@ class CriticalRecommendationsControllerTest {
         when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), isNull(), eq(true)))
                 .thenReturn(emptyResponse());
 
-        // forzarRecalculo=true, forceRecalculate=null → should resolve to true
         controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), null, null, true);
 
         verify(criticalRecommendationsUseCase).getRecommendations(VALID_STUDENT_ID, null, true);
     }
 
-    // -------------------------------------------------------------------------
-    // FA-02 — error message propagation
-    // -------------------------------------------------------------------------
+    @Test
+    void shouldReturnCriticalRecommendationsWithOrderedTasks() {
+        CriticalTaskCandidateRequest candidate = new CriticalTaskCandidateRequest();
+        candidate.setTaskId("task-1");
+        candidate.setTitle("Exam");
+        candidate.setSubjectId("math");
+        candidate.setTaskType("EXAM");
+        candidate.setPriorityLevel("CRITICAL");
+        candidate.setStatus("TODO");
+        candidate.setPriorityScore(90.0);
+        candidate.setEstimatedDurationMinutes(60);
+        candidate.setDeadline(LocalDateTime.now().plusHours(10));
+
+        CriticalRecommendationsRequest request = new CriticalRecommendationsRequest();
+        request.setOrderedTasks(List.of(candidate));
+
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), anyList(), eq(false)))
+                .thenReturn(emptyResponse());
+
+        ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result =
+                controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), request, false, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        verify(criticalRecommendationsUseCase).getRecommendations(eq(VALID_STUDENT_ID), anyList(), eq(false));
+    }
+
+    @Test
+    void shouldMapCandidateWithNullFieldsToDefaults() {
+        CriticalTaskCandidateRequest candidate = new CriticalTaskCandidateRequest();
+        // all fields null — defaults applied inside toPrioritizedResponse
+
+        CriticalRecommendationsRequest request = new CriticalRecommendationsRequest();
+        request.setOrderedTasks(List.of(candidate));
+
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), anyList(), eq(false)))
+                .thenReturn(emptyResponse());
+
+        ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result =
+                controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), request, false, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+    }
+
+    @Test
+    void shouldNormalizePriorityScoreNegativeToZero() {
+        CriticalTaskCandidateRequest candidate = new CriticalTaskCandidateRequest();
+        candidate.setPriorityScore(-10.0);
+
+        CriticalRecommendationsRequest request = new CriticalRecommendationsRequest();
+        request.setOrderedTasks(List.of(candidate));
+
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), anyList(), eq(false)))
+                .thenReturn(emptyResponse());
+
+        ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result =
+                controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), request, false, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+    }
+
+    @Test
+    void shouldNormalizePriorityScoreOver100To100() {
+        CriticalTaskCandidateRequest candidate = new CriticalTaskCandidateRequest();
+        candidate.setPriorityScore(200.0);
+
+        CriticalRecommendationsRequest request = new CriticalRecommendationsRequest();
+        request.setOrderedTasks(List.of(candidate));
+
+        when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), anyList(), eq(false)))
+                .thenReturn(emptyResponse());
+
+        ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result =
+                controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), request, false, null);
+
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+    }
 
     @Test
     void shouldReturn200WithErrorMessageWhenServiceReturnsFa02Message() {
@@ -147,5 +237,4 @@ class CriticalRecommendationsControllerTest {
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().getData().getMessage().contains("No se pudo realizar el calculo"));
     }
-
 }

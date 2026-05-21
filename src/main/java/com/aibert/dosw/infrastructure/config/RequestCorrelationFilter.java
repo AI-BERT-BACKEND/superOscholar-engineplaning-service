@@ -43,8 +43,9 @@ public class RequestCorrelationFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        String requestId = StringUtils.hasText(httpRequest.getHeader(REQUEST_ID_HEADER))
-                ? httpRequest.getHeader(REQUEST_ID_HEADER)
+        String incoming = httpRequest.getHeader(REQUEST_ID_HEADER);
+        String requestId = isValidRequestId(incoming)
+                ? incoming
                 : UUID.randomUUID().toString().replace("-", "").substring(0, 12);
 
         MDC.put(MDC_KEY, requestId);
@@ -55,5 +56,10 @@ public class RequestCorrelationFilter implements Filter {
         } finally {
             MDC.remove(MDC_KEY);
         }
+    }
+
+    /** Accepts only alphanumeric characters, hyphens and underscores (max 64 chars). */
+    private boolean isValidRequestId(String id) {
+        return StringUtils.hasText(id) && id.length() <= 64 && id.matches("[a-zA-Z0-9\\-_]+");
     }
 }

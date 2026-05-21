@@ -35,7 +35,7 @@ public class PlanningExceptionHandler {
                         HttpServletRequest request) {
 
                 log.warn("Error de dominio [codigo={}] en {}: {}",
-                                ex.getErrorCode(), request.getRequestURI(), ex.getMessage());
+                                ex.getErrorCode(), sl(request.getRequestURI()), ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.error(
@@ -57,7 +57,7 @@ public class PlanningExceptionHandler {
                                 .map(FieldError::getDefaultMessage)
                                 .toList();
 
-                log.warn("Error de validación de campos en {}: {}", request.getRequestURI(), errors);
+                log.warn("Error de validación de campos en {}: {}", sl(request.getRequestURI()), errors);
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.validationError(
@@ -78,7 +78,7 @@ public class PlanningExceptionHandler {
                                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                                 .toList();
 
-                log.warn("Violación de restricción en {}: {}", request.getRequestURI(), errors);
+                log.warn("Violación de restricción en {}: {}", sl(request.getRequestURI()), errors);
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.validationError(
@@ -97,7 +97,7 @@ public class PlanningExceptionHandler {
                         HttpServletRequest request) {
 
                 log.warn("Header obligatorio ausente en {}: '{}'",
-                                request.getRequestURI(), ex.getHeaderName());
+                                sl(request.getRequestURI()), ex.getHeaderName());
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.error(
@@ -113,7 +113,7 @@ public class PlanningExceptionHandler {
                         HttpMessageNotReadableException ex,
                         HttpServletRequest request) {
 
-                log.warn("Cuerpo de solicitud ilegible en {}: {}", request.getRequestURI(), ex.getMessage());
+                log.warn("Cuerpo de solicitud ilegible en {}: {}", sl(request.getRequestURI()), ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.error(
@@ -131,7 +131,7 @@ public class PlanningExceptionHandler {
 
                 String message = String.format("El parámetro '%s' tiene un formato inválido: '%s'",
                                 ex.getName(), ex.getValue());
-                log.warn("Error de tipo de parámetro en {}: {}", request.getRequestURI(), message);
+                log.warn("Error de tipo de parámetro en {}: {}", sl(request.getRequestURI()), message);
                 return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(ApiResponse.error(message, request.getRequestURI()));
@@ -149,7 +149,7 @@ public class PlanningExceptionHandler {
                         HttpServletRequest request) {
 
                 log.error("Error en llamada a servicio externo [status={}] en {}: {}",
-                                ex.status(), request.getRequestURI(), ex.getMessage());
+                                ex.status(), sl(request.getRequestURI()), ex.getMessage());
 
                 // Negative status (-1) or 5xx from downstream → 502 Bad Gateway
                 HttpStatus status = (ex.status() < 0 || ex.status() >= 500)
@@ -171,7 +171,7 @@ public class PlanningExceptionHandler {
                         AccessDeniedException ex,
                         HttpServletRequest request) {
 
-                log.warn("Acceso denegado en {}: {}", request.getRequestURI(), ex.getMessage());
+                log.warn("Acceso denegado en {}: {}", sl(request.getRequestURI()), ex.getMessage());
                 return ResponseEntity
                                 .status(HttpStatus.FORBIDDEN)
                                 .body(ApiResponse.error(
@@ -188,11 +188,15 @@ public class PlanningExceptionHandler {
                         Exception ex,
                         HttpServletRequest request) {
 
-                log.error("Error inesperado no controlado en {}", request.getRequestURI(), ex);
+                log.error("Error inesperado no controlado en {}", sl(request.getRequestURI()), ex);
                 return ResponseEntity
                                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(ApiResponse.error(
                                                 "Error interno del servidor. Intenta de nuevo.",
                                                 request.getRequestURI()));
+        }
+
+        private static String sl(String s) {
+                return s == null ? "" : s.replaceAll("[\r\n]", "_");
         }
 }
