@@ -3,9 +3,12 @@ package com.aibert.dosw.infrastructure.external.feign.adapter;
 import com.aibert.dosw.domain.model.task.PlanningTask;
 import com.aibert.dosw.domain.ports.out.TaskProviderPort;
 import com.aibert.dosw.infrastructure.external.feign.client.TaskServiceClient;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceStatusUpdateRequest;
 import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceUpdateRequest;
 import com.aibert.dosw.infrastructure.external.feign.mapper.TaskResponseMapper;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -43,15 +46,20 @@ public class TaskServiceAdapter implements TaskProviderPort {
 
     @Override
     public void updateTaskPriorities(List<PlanningTask> tasks) {
-        List<TaskServiceResponse> responses = tasks.stream()
-                .map(this::toTaskServiceResponse)
-                .toList();
-        taskServiceClient.updateTaskPriorities(responses);
+        tasks.stream()
+                .filter(Objects::nonNull)
+                .filter(task -> task.getId() != null && !task.getId().isBlank())
+                .forEach(task -> taskServiceClient.patchTask(task.getId(), toTaskServiceUpdateRequest(task)));
     }
 
     @Override
     public void reportTaskFailure(String studentId, String taskId, double hoursMissed, String reason) {
-        taskServiceClient.reportTaskFailure(studentId, taskId, hoursMissed, reason);
+        if (taskId == null || taskId.isBlank()) {
+            return;
+        }
+        taskServiceClient.patchTaskStatus(
+                taskId,
+                TaskServiceStatusUpdateRequest.builder().status("TODO").build());
     }
 
     @Override
@@ -63,42 +71,12 @@ public class TaskServiceAdapter implements TaskProviderPort {
         return Optional.of(taskResponseMapper.toPlanningTask(response));
     }
 
-    private TaskServiceResponse toTaskServiceResponse(PlanningTask task) {
-        var deadline = task.getDueDateTime();
-        if (deadline == null && task.getDueDate() != null) {
-            deadline = task.getDueDate().atTime(23, 59);
-        }
-
-        var scheduled = task.getScheduledDateTime();
-        if (scheduled == null && task.getScheduledDate() != null) {
-            scheduled = task.getScheduledDate().atStartOfDay();
-        }
-
-        return TaskServiceResponse.builder()
-                .id(task.getId())
-                .studentId(task.getUserId())
-                .title(task.getTitle())
-                .description(task.getDescription())
+    private TaskServiceUpdateRequest toTaskServiceUpdateRequest(PlanningTask task) {
+        return TaskServiceUpdateRequest.builder()
                 .estimatedDurationMinutes(
                         task.getCorrectedEstimatedMinutes() != null ? task.getCorrectedEstimatedMinutes()
                                 : task.getEstimatedHours() > 0 ? (int) (task.getEstimatedHours() * 60) : null)
-                .deadline(deadline)
-                .scheduledDate(scheduled)
                 .priority(task.getPriorityLevel() != null ? task.getPriorityLevel().name() : null)
-                .type(task.getType() != null ? task.getType().name() : null)
-                .status(convertStatusToTaskService(task))
                 .build();
-    }
-
-    private String convertStatusToTaskService(PlanningTask task) {
-        if (task.getStatus() == null)
-            return "TODO";
-        return switch (task.getStatus()) {
-            case TODO -> "TODO";
-            case IN_PROGRESS -> "IN_PROGRESS";
-            case COMPLETED -> "COMPLETED";
-            case SCHEDULED -> "SCHEDULED";
-            case OVERLOADED -> "TODO";
-        };
     }
 }

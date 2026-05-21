@@ -21,11 +21,11 @@ planning:
 # ─── URLs de servicios externos (locales) ────────────────────────────────────
 feign:
   task-service:
-    url: "http://localhost:8084"
+    url: "http://localhost:1503"
   profile-service:
     url: "http://localhost:8082"
   academic-service:
-    url: "http://localhost:8083"
+    url: "http://localhost:1502"
   recommendation-service:
     url: "http://localhost:1505"
   client:

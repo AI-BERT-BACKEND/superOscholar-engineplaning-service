@@ -1,10 +1,15 @@
 package com.aibert.dosw.infrastructure.external.feign.client;
 
 import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceResponse;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceStatusUpdateRequest;
+import com.aibert.dosw.infrastructure.external.feign.dto.TaskServiceUpdateRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TaskServiceClientFallbackTest {
 
@@ -18,14 +23,20 @@ class TaskServiceClientFallbackTest {
     }
 
     @Test
-    void updateTaskPriorities_doesNotThrow() {
-        List<TaskServiceResponse> tasks = List.of(TaskServiceResponse.builder().id("1").build());
-        assertDoesNotThrow(() -> fallback.updateTaskPriorities(tasks));
+    void patchTask_doesNotThrow() {
+        TaskServiceUpdateRequest request = TaskServiceUpdateRequest.builder()
+                .priority("HIGH")
+                .estimatedDurationMinutes(90)
+                .build();
+        assertDoesNotThrow(() -> fallback.patchTask("task-1", request));
     }
 
     @Test
-    void reportTaskFailure_doesNotThrow() {
-        assertDoesNotThrow(() -> fallback.reportTaskFailure("st1", "t1", 2.0, "reason"));
+    void patchTaskStatus_doesNotThrow() {
+        TaskServiceStatusUpdateRequest request = TaskServiceStatusUpdateRequest.builder()
+                .status("TODO")
+                .build();
+        assertDoesNotThrow(() -> fallback.patchTaskStatus("task-1", request));
     }
 
     @Test
