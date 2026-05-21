@@ -6,6 +6,10 @@ import com.aibert.dosw.recommendation.application.dto.request.CriticalRecommenda
 import com.aibert.dosw.recommendation.application.dto.response.CriticalRecommendationsResponse;
 import com.aibert.dosw.recommendation.domain.ports.in.CriticalRecommendationsUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
+import com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationEvent;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationEventType;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationSeverity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,13 +21,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import com.aibert.dosw.entrypoints.support.StudentIdValidator;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CriticalRecommendationsController {
 
     private final CriticalRecommendationsUseCase criticalRecommendationsUseCase;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     /**
      * Returns up to 3 critical task recommendations for the authenticated student.
@@ -64,13 +65,12 @@ public class CriticalRecommendationsController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     public ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> getCriticalRecommendations(
-            @Parameter(description = "Student identifier", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
+            Authentication authentication,
             @RequestBody(required = false) CriticalRecommendationsRequest request,
             @Parameter(description = "Forces recalculation of priority scores when no task list is supplied", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
-            @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,
-            Authentication authentication) {
+            @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo) {
 
-        assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+        String studentId = authentication.getName();
         log.info("Solicitud de recomendaciones críticas recibida para el estudiante '{}'", sl(studentId));
 
         boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
@@ -80,6 +80,17 @@ public class CriticalRecommendationsController {
 
         CriticalRecommendationsResponse response = criticalRecommendationsUseCase
                 .getRecommendations(studentId, orderedTasks, shouldRecalculate);
+
+        if (response.getCriticalCount() > 0) {
+            notificationKafkaProducer.send(NotificationEvent.builder()
+                    .userId(studentId)
+                    .type(NotificationEventType.STUDY_SUGGESTION)
+                    .title("Sugerencia de estudio")
+                    .message(response.getMessage())
+                    .severity(NotificationSeverity.HIGH)
+                    .relatedEntityId(studentId)
+                    .build());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
@@ -133,14 +144,6 @@ public class CriticalRecommendationsController {
             return 0;
         }
         return Math.min(rounded, 100);
-    }
-
-    private void assertStudentIdMatchesAuthenticatedUser(Authentication authentication, String studentId) {
-        StudentIdValidator.validate(studentId);
-        if (authentication == null || !StringUtils.hasText(authentication.getName())
-                || !authentication.getName().equals(studentId)) {
-            throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-        }
     }
 
     private static String sl(String s) {

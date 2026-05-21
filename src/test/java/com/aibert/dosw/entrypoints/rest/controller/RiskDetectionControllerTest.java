@@ -3,7 +3,6 @@ package com.aibert.dosw.entrypoints.rest.controller;
 import com.aibert.dosw.application.dto.response.HighRiskDetectionResponse;
 import com.aibert.dosw.application.dto.response.RiskSummaryResponse;
 import com.aibert.dosw.application.dto.response.RiskTaskDetailResponse;
-import com.aibert.dosw.domain.exceptions.PlanningDomainException;
 import com.aibert.dosw.domain.model.risk.HighRiskTaskResult;
 import com.aibert.dosw.domain.model.risk.RiskLevel;
 import com.aibert.dosw.domain.model.risk.RiskSummary;
@@ -18,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +37,9 @@ class RiskDetectionControllerTest {
 
     @Mock
     private DetectHighRiskTasksUseCase detectHighRiskTasksUseCase;
+
+    @Mock
+    private com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer notificationKafkaProducer;
 
     @InjectMocks
     private RiskDetectionController controller;
@@ -70,8 +71,8 @@ class RiskDetectionControllerTest {
         when(detectHighRiskTasksUseCase.detectHighRiskTasks(VALID_STUDENT_ID))
                 .thenReturn(emptyResult("No se detectaron tareas en riesgo."));
 
-        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller.detectHighRiskTasks(VALID_STUDENT_ID,
-                authFor(VALID_STUDENT_ID));
+        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller
+                .detectHighRiskTasks(authFor(VALID_STUDENT_ID));
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
@@ -99,8 +100,8 @@ class RiskDetectionControllerTest {
         when(detectHighRiskTasksUseCase.detectHighRiskTasks(VALID_STUDENT_ID))
                 .thenReturn(serviceResult);
 
-        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller.detectHighRiskTasks(VALID_STUDENT_ID,
-                authFor(VALID_STUDENT_ID));
+        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller
+                .detectHighRiskTasks(authFor(VALID_STUDENT_ID));
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(1, result.getBody().getData().getHighRiskTasks().size());
@@ -115,7 +116,7 @@ class RiskDetectionControllerTest {
         when(detectHighRiskTasksUseCase.detectHighRiskTasks(VALID_STUDENT_ID))
                 .thenReturn(emptyResult("No se detectaron tareas en riesgo."));
 
-        controller.detectHighRiskTasks(VALID_STUDENT_ID, authFor(VALID_STUDENT_ID));
+        controller.detectHighRiskTasks(authFor(VALID_STUDENT_ID));
 
         verify(detectHighRiskTasksUseCase).detectHighRiskTasks(VALID_STUDENT_ID);
     }
@@ -129,8 +130,8 @@ class RiskDetectionControllerTest {
         when(detectHighRiskTasksUseCase.detectHighRiskTasks(VALID_STUDENT_ID))
                 .thenReturn(emptyResult("Configura tu disponibilidad para activar la detección de riesgos."));
 
-        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller.detectHighRiskTasks(VALID_STUDENT_ID,
-                authFor(VALID_STUDENT_ID));
+        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller
+                .detectHighRiskTasks(authFor(VALID_STUDENT_ID));
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().getData().getMessage().contains("disponibilidad"));
@@ -146,41 +147,12 @@ class RiskDetectionControllerTest {
                 .thenReturn(emptyResult(
                         "No se pudo realizar el calculo de prioridad por favor espere o intente mas tarde"));
 
-        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller.detectHighRiskTasks(VALID_STUDENT_ID,
-                authFor(VALID_STUDENT_ID));
+        ResponseEntity<ApiResponse<HighRiskDetectionResponse>> result = controller
+                .detectHighRiskTasks(authFor(VALID_STUDENT_ID));
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().getData().getMessage()
                 .contains("No se pudo realizar el calculo de prioridad"));
     }
 
-    // -------------------------------------------------------------------------
-    // Security / authorization
-    // -------------------------------------------------------------------------
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthenticationIsNull() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.detectHighRiskTasks(VALID_STUDENT_ID, null));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenStudentIdMismatch() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.detectHighRiskTasks(VALID_STUDENT_ID, authFor("different-user")));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthNameIsEmpty() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.detectHighRiskTasks(VALID_STUDENT_ID, authFor("")));
-    }
-
-    @Test
-    void shouldThrowPlanningDomainExceptionForNonUuidStudentId() {
-        // StudentIdValidator throws before getName() is called — no stub needed
-        Authentication auth = mock(Authentication.class);
-        assertThrows(PlanningDomainException.class,
-                () -> controller.detectHighRiskTasks("not-a-uuid", auth));
-    }
 }

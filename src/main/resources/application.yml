@@ -4,6 +4,17 @@ server:
 spring:
   application:
     name: engineplanning-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+kafka:
+  topics:
+    notifications: planning.notifications
 
 feign:
   task-service:
@@ -17,9 +28,6 @@ feign:
 
   recommendation-service:
     url: ${FEIGN_RECOMMENDATION_SERVICE_URL}
-
-  planning-service:
-    url: ${FEIGN_PLANNING_SERVICE_URL}
 
 jwt:
   secret: ${JWT_SECRET}

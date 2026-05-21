@@ -18,9 +18,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import com.aibert.dosw.entrypoints.support.StudentIdValidator;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -61,12 +59,11 @@ public class PrioritizationController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<List<PrioritizedTaskResponse>>> getPrioritizedTasks(
-                        @Parameter(description = "Student identifier used to fetch prioritized tasks", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
+                        Authentication authentication,
                         @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
-                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,
-                        Authentication authentication) {
+                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo) {
 
-                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+                String studentId = authentication.getName();
 
                 // 1. Execute the use case
                 boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
@@ -97,13 +94,12 @@ public class PrioritizationController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> getCriticalRecommendations(
-                        @Parameter(description = "Student identifier used to fetch critical recommendations", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
+                        Authentication authentication,
                         @RequestBody(required = false) CriticalRecommendationsRequest request,
                         @Parameter(description = "Forces recalculation of priority scores instead of using cached values", example = "false") @RequestParam(name = "forceRecalculate", required = false) Boolean forceRecalculate,
-                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo,
-                        Authentication authentication) {
+                        @RequestParam(name = "forzarRecalculo", required = false) Boolean forzarRecalculo) {
 
-                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+                String studentId = authentication.getName();
 
                 boolean shouldRecalculate = Boolean.TRUE.equals(forceRecalculate)
                                 || Boolean.TRUE.equals(forzarRecalculo);
@@ -167,13 +163,4 @@ public class PrioritizationController {
                 return Math.min(rounded, 100);
         }
 
-        private void assertStudentIdMatchesAuthenticatedUser(
-                        Authentication authentication,
-                        String studentId) {
-                StudentIdValidator.validate(studentId);
-                if (authentication == null || !StringUtils.hasText(authentication.getName())
-                                || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-                }
-        }
 }

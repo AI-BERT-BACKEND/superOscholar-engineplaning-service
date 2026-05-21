@@ -1,4 +1,4 @@
-spring:
+1spring:
   config:
     activate:
       on-profile: dev
@@ -6,6 +6,8 @@ spring:
     openfeign:
       circuitbreaker:
         enabled: true  # activa los fallbacks
+  kafka:
+    bootstrap-servers: localhost:9092
 
 jwt:
   secret: "VmVyeVNlY3JldEtleUZvckFJQmVydEFwcGxpY2F0aW9uQXV0aGVudGljYXRpb24="
@@ -19,8 +21,6 @@ feign:
     url: "http://localhost:8083"    # puerto de academic-service
   recommendation-service:
     url: "http://localhost:8086"    # puerto de recommendation-service
-  planning-service:
-    url: "http://localhost:1505"    # puerto de planning-service
   client:
     config:
       default:
@@ -45,11 +45,6 @@ resilience4j:
         permitted-number-of-calls-in-half-open-state: 2
         register-health-indicator: true
       academic-service:
-        sliding-window-size: 5
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 10s
-        permitted-number-of-calls-in-half-open-state: 2
-        register-health-indicator: true      planning-service:
         sliding-window-size: 5
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s

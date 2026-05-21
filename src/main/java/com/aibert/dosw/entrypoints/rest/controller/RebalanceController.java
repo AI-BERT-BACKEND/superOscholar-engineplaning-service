@@ -21,7 +21,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,10 +51,14 @@ public class RebalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<DistributionPlanResponse>> reportFailure(
-                        @Parameter(description = "Failure report details including studentId, taskId, failed date, hours missed, and reason", required = true) @Valid @RequestBody FailureReportRequest request,
-                        Authentication authentication) {
+                        Authentication authentication,
+                        @Parameter(description = "Failure report details including studentId, taskId, failed date, hours missed, and reason", required = true) @Valid @RequestBody FailureReportRequest request) {
 
-                assertStudentIdMatchesAuthenticatedUser(authentication, request.getStudentId());
+                if (authentication == null || !StringUtils.hasText(authentication.getName())
+                                || !authentication.getName().equals(request.getStudentId())) {
+                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
+                }
+                StudentIdValidator.validate(request.getStudentId());
                 log.info("Reporte de fallo recibido para estudiante={} tarea={}", sl(request.getStudentId()),
                                 sl(request.getTaskId()));
 
@@ -85,10 +88,9 @@ public class RebalanceController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<DistributionPlanResponse>> reorganize(
-                        @Parameter(description = "Student identifier used to reorganize the remaining weekly schedule", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
                         Authentication authentication) {
 
-                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+                String studentId = authentication.getName();
                 log.info("Reorganización manual del plan semanal para estudiante={}", sl(studentId));
 
                 var updatedPlan = rebalanceTasksUseCase.reorganizePlan(studentId);
@@ -96,16 +98,6 @@ public class RebalanceController {
                 var response = planningTaskMapper.toDistributionPlanResponse(updatedPlan);
                 return ResponseEntity.ok(
                                 ApiResponse.success(response.getMessage(), response));
-        }
-
-        private void assertStudentIdMatchesAuthenticatedUser(
-                        Authentication authentication,
-                        String studentId) {
-                StudentIdValidator.validate(studentId);
-                if (authentication == null || !StringUtils.hasText(authentication.getName())
-                                || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-                }
         }
 
         private static String sl(String s) {

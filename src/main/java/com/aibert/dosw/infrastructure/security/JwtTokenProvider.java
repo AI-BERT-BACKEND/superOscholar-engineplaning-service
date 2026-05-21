@@ -47,7 +47,8 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Extracts the subject (usually studentId or username) from the token.
+     * Extracts the userId (UUID) from the token — the gateway stores it in the
+     * "userId" claim, which matches the X-User-Id header forwarded to this service.
      */
     public String getUsernameFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
@@ -55,6 +56,7 @@ public class JwtTokenProvider {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getSubject();
+        String userId = claims.get("userId", String.class);
+        return userId != null ? userId : claims.getSubject();
     }
 }

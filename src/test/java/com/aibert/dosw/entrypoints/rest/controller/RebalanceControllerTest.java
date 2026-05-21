@@ -45,7 +45,7 @@ class RebalanceControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reportFailure(req, authentication);
+        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reportFailure(authentication, req);
         assertNotNull(response.getBody());
     }
 
@@ -59,8 +59,7 @@ class RebalanceControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
-        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller
-                .reorganize("00000000-0000-0000-0000-000000000001", authentication);
+        ResponseEntity<ApiResponse<DistributionPlanResponse>> response = controller.reorganize(authentication);
         assertNotNull(response.getBody());
     }
 
@@ -69,7 +68,7 @@ class RebalanceControllerTest {
         FailureReportRequest req = new FailureReportRequest();
         req.setStudentId("00000000-0000-0000-0000-000000000001");
 
-        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(req, null));
+        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(null, req));
     }
 
     @Test
@@ -80,21 +79,6 @@ class RebalanceControllerTest {
         Authentication authentication = mock(Authentication.class);
         when(authentication.getName()).thenReturn("other-user");
 
-        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(req, authentication));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedOnReorganizeWhenAuthNull() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.reorganize("00000000-0000-0000-0000-000000000001", null));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedOnReorganizeWhenNameMismatch() {
-        Authentication authentication = mock(Authentication.class);
-        when(authentication.getName()).thenReturn("other-user");
-
-        assertThrows(AccessDeniedException.class,
-                () -> controller.reorganize("00000000-0000-0000-0000-000000000001", authentication));
+        assertThrows(AccessDeniedException.class, () -> controller.reportFailure(authentication, req));
     }
 }

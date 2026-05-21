@@ -12,13 +12,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Secondary adapter that implements {@link TaskProviderPort} using Feign.
- *
- * <p>
- * Converts {@link TaskServiceResponse} (external DTO) to {@link PlanningTask}
- * (domain model) using {@link TaskResponseMapper} to resolve field name and
- * type
- * incompatibilities between the two microservices.
- * </p>
+ * Calls GET /api/tasks/student/{studentId} and filters by status locally,
+ * since task-service does not expose separate /pending or /scheduled endpoints.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,14 +24,21 @@ public class TaskServiceAdapter implements TaskProviderPort {
 
     @Override
     public List<PlanningTask> getPendingTasksByUser(String studentId) {
-        List<TaskServiceResponse> responses = taskServiceClient.getPendingTasks(studentId);
-        return taskResponseMapper.toPlanningTasks(responses);
+        List<TaskServiceResponse> all = taskServiceClient.getTasksByStudent(studentId);
+        List<TaskServiceResponse> pending = all.stream()
+                .filter(t -> "TODO".equalsIgnoreCase(t.getStatus())
+                        || "IN_PROGRESS".equalsIgnoreCase(t.getStatus()))
+                .toList();
+        return taskResponseMapper.toPlanningTasks(pending);
     }
 
     @Override
     public List<PlanningTask> getScheduledTasksByUser(String studentId) {
-        List<TaskServiceResponse> responses = taskServiceClient.getScheduledTasks(studentId);
-        return taskResponseMapper.toPlanningTasks(responses);
+        List<TaskServiceResponse> all = taskServiceClient.getTasksByStudent(studentId);
+        List<TaskServiceResponse> scheduled = all.stream()
+                .filter(t -> "SCHEDULED".equalsIgnoreCase(t.getStatus()))
+                .toList();
+        return taskResponseMapper.toPlanningTasks(scheduled);
     }
 
     @Override
@@ -61,13 +63,6 @@ public class TaskServiceAdapter implements TaskProviderPort {
         return Optional.of(taskResponseMapper.toPlanningTask(response));
     }
 
-    // ─────────────────────────────────────────────────────────────────
-    // Private helpers
-    // ─────────────────────────────────────────────────────────────────
-
-    /**
-     * Converts a PlanningTask back to TaskServiceResponse for outbound updates.
-     */
     private TaskServiceResponse toTaskServiceResponse(PlanningTask task) {
         var deadline = task.getDueDateTime();
         if (deadline == null && task.getDueDate() != null) {
@@ -95,11 +90,6 @@ public class TaskServiceAdapter implements TaskProviderPort {
                 .build();
     }
 
-    /**
-     * Converts the internal TaskStatus to the task-service canonical string.
-     * SCHEDULED and OVERLOADED are planning-service internals; OVERLOADED maps back
-     * to TODO.
-     */
     private String convertStatusToTaskService(PlanningTask task) {
         if (task.getStatus() == null)
             return "TODO";
@@ -108,7 +98,7 @@ public class TaskServiceAdapter implements TaskProviderPort {
             case IN_PROGRESS -> "IN_PROGRESS";
             case COMPLETED -> "COMPLETED";
             case SCHEDULED -> "SCHEDULED";
-            case OVERLOADED -> "TODO"; // task-service has no OVERLOADED
+            case OVERLOADED -> "TODO";
         };
     }
 }

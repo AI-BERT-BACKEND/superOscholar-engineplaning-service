@@ -2,6 +2,7 @@ package com.aibert.dosw.infrastructure.external.feign.adapter;
 
 import com.aibert.dosw.domain.valueobjects.AcademicWeight;
 import com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClient;
+import com.aibert.dosw.infrastructure.external.feign.dto.AcademicApiResponse;
 import com.aibert.dosw.infrastructure.external.feign.dto.AcademicWeightResponse;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,8 @@ class AcademicServiceAdapterTest {
 
     @Test
     void shouldReturnAcademicWeight() {
-        AcademicWeightResponse response = AcademicWeightResponse.builder()
-                .subjectId("subj-1").academicWeight(0.8).build();
+        AcademicApiResponse response = new AcademicApiResponse("ok",
+                AcademicWeightResponse.builder().academicWeight(0.8).build());
         when(academicServiceClient.getAcademicWeight("stu-1", "subj-1")).thenReturn(response);
 
         Optional<AcademicWeight> result = adapter.getAcademicWeight("stu-1", "subj-1");
@@ -56,6 +57,16 @@ class AcademicServiceAdapterTest {
         when(academicServiceClient.getAcademicWeight("stu-1", "subj-2")).thenReturn(null);
 
         Optional<AcademicWeight> result = adapter.getAcademicWeight("stu-1", "subj-2");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyWhenDataIsNull() {
+        when(academicServiceClient.getAcademicWeight("stu-1", "subj-3"))
+                .thenReturn(new AcademicApiResponse("ok", null));
+
+        Optional<AcademicWeight> result = adapter.getAcademicWeight("stu-1", "subj-3");
 
         assertTrue(result.isEmpty());
     }

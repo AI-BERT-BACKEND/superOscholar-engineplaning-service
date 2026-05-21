@@ -17,7 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,8 +67,7 @@ class BalanceControllerTest {
                 when(authentication.getName()).thenReturn("00000000-0000-0000-0000-000000000001");
 
                 ResponseEntity<ApiResponse<WorkloadBalanceResponse>> response = controller.getBalanceSuggestions(
-                                "00000000-0000-0000-0000-000000000001",
-                                null, authentication);
+                                authentication, null);
 
                 ApiResponse<WorkloadBalanceResponse> body = Objects.requireNonNull(response.getBody());
                 assertEquals(1, body.getData().getBalanceSuggestions().size());
@@ -78,19 +76,4 @@ class BalanceControllerTest {
                 assertFalse(body.getData().getWeeklyLoadAnalysis().isEmpty());
         }
 
-        @Test
-        void shouldThrowAccessDeniedWhenAuthNull() {
-                assertThrows(AccessDeniedException.class, () -> controller
-                                .getBalanceSuggestions("00000000-0000-0000-0000-000000000001", null, null));
-        }
-
-        @Test
-        void shouldThrowAccessDeniedWhenNameMismatch() {
-                Authentication authentication = mock(Authentication.class);
-                when(authentication.getName()).thenReturn("other-user");
-
-                assertThrows(AccessDeniedException.class,
-                                () -> controller.getBalanceSuggestions("00000000-0000-0000-0000-000000000001", null,
-                                                authentication));
-        }
 }

@@ -1,6 +1,6 @@
 package com.aibert.dosw.infrastructure.external.feign.client;
 
-import com.aibert.dosw.infrastructure.external.feign.dto.AcademicWeightResponse;
+import com.aibert.dosw.infrastructure.external.feign.dto.AcademicApiResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,27 +11,30 @@ class AcademicServiceClientFallbackTest {
 
     @Test
     void getAcademicWeight_returnsDefaultWeightWithSubjectId() {
-        AcademicWeightResponse response = fallback.getAcademicWeight("student1", "MATH101");
+        AcademicApiResponse response = fallback.getAcademicWeight("student1", "MATH101");
 
         assertNotNull(response);
-        assertEquals("MATH101", response.getSubjectId());
-        assertEquals(0.0, response.getAcademicWeight());
+        assertNotNull(response.getData());
+        assertEquals("MATH101", response.getData().getSubjectId());
+        assertEquals(0.0, response.getData().getAcademicWeight());
     }
 
     @Test
     void getAcademicWeight_preservesSubjectIdInResponse() {
-        AcademicWeightResponse response = fallback.getAcademicWeight("student1", "CS202");
+        AcademicApiResponse response = fallback.getAcademicWeight("student1", "CS202");
 
         assertNotNull(response);
-        assertEquals("CS202", response.getSubjectId());
+        assertNotNull(response.getData());
+        assertEquals("CS202", response.getData().getSubjectId());
     }
 
     @Test
     void getAcademicWeight_withNullSubjectId_returnsNullSubjectId() {
-        AcademicWeightResponse response = fallback.getAcademicWeight("student1", null);
+        AcademicApiResponse response = fallback.getAcademicWeight("student1", null);
 
         assertNotNull(response);
-        assertNull(response.getSubjectId());
-        assertEquals(0.0, response.getAcademicWeight());
+        assertNotNull(response.getData());
+        assertNull(response.getData().getSubjectId());
+        assertEquals(0.0, response.getData().getAcademicWeight());
     }
 }

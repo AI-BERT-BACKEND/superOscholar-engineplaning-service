@@ -28,8 +28,8 @@ public class OpenApiConfig {
 
                                                                 **Local testing without authentication:**
                                                                 Start with the `local` profile (`--spring.profiles.active=local`).
-                                                                No JWT token required. Just include the `X-Student-Id` header
-                                                                with any student identifier (e.g. `100095379`).
+                                                                No JWT token required. Just include the `X-User-Id` header
+                                                                with any student UUID (e.g. `550e8400-e29b-41d4-a716-446655440000`).
                                                                 """)
                                                 .contact(new Contact().name("AI-BERT Backend")))
                                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
@@ -43,7 +43,7 @@ public class OpenApiConfig {
         }
 
         /**
-         * Injects an example value into the X-Student-Id header of every operation
+         * Injects an example value into the X-User-Id header of every operation
          * so Swagger UI pre-fills it and simplifies local testing.
          */
         @Bean
@@ -51,8 +51,8 @@ public class OpenApiConfig {
                 return (operation, handlerMethod) -> {
                         if (operation.getParameters() != null) {
                                 operation.getParameters().stream()
-                                                .filter(p -> "X-Student-Id".equals(p.getName()))
-                                                .forEach(p -> p.setExample("100095379"));
+                                                .filter(p -> "X-User-Id".equals(p.getName()))
+                                                .forEach(p -> p.setExample("550e8400-e29b-41d4-a716-446655440000"));
                         }
                         return operation;
                 };

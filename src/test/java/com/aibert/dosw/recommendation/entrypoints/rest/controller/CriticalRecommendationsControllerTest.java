@@ -1,7 +1,6 @@
 package com.aibert.dosw.recommendation.entrypoints.rest.controller;
 
 import com.aibert.dosw.application.dto.response.PrioritizedTaskResponse;
-import com.aibert.dosw.domain.exceptions.PlanningDomainException;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
 import com.aibert.dosw.recommendation.application.dto.request.CriticalRecommendationsRequest;
 import com.aibert.dosw.recommendation.application.dto.response.CriticalRecommendationsResponse;
@@ -15,16 +14,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -41,6 +35,9 @@ class CriticalRecommendationsControllerTest {
 
     @Mock
     private CriticalRecommendationsUseCase criticalRecommendationsUseCase;
+
+    @Mock
+    private com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer notificationKafkaProducer;
 
     @InjectMocks
     private CriticalRecommendationsController controller;
@@ -73,7 +70,7 @@ class CriticalRecommendationsControllerTest {
                 .thenReturn(emptyResponse());
 
         ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result = controller.getCriticalRecommendations(
-                VALID_STUDENT_ID, null, false, null, authFor(VALID_STUDENT_ID));
+                authFor(VALID_STUDENT_ID), null, false, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertNotNull(result.getBody());
@@ -100,7 +97,7 @@ class CriticalRecommendationsControllerTest {
                 .thenReturn(serviceResponse);
 
         ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result = controller.getCriticalRecommendations(
-                VALID_STUDENT_ID, null, false, null, authFor(VALID_STUDENT_ID));
+                authFor(VALID_STUDENT_ID), null, false, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals(1, result.getBody().getData().getCriticalCount());
@@ -113,8 +110,7 @@ class CriticalRecommendationsControllerTest {
         when(criticalRecommendationsUseCase.getRecommendations(eq(VALID_STUDENT_ID), isNull(), eq(true)))
                 .thenReturn(emptyResponse());
 
-        controller.getCriticalRecommendations(
-                VALID_STUDENT_ID, null, true, null, authFor(VALID_STUDENT_ID));
+        controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), null, true, null);
 
         verify(criticalRecommendationsUseCase).getRecommendations(VALID_STUDENT_ID, null, true);
     }
@@ -125,8 +121,7 @@ class CriticalRecommendationsControllerTest {
                 .thenReturn(emptyResponse());
 
         // forzarRecalculo=true, forceRecalculate=null → should resolve to true
-        controller.getCriticalRecommendations(
-                VALID_STUDENT_ID, null, null, true, authFor(VALID_STUDENT_ID));
+        controller.getCriticalRecommendations(authFor(VALID_STUDENT_ID), null, null, true);
 
         verify(criticalRecommendationsUseCase).getRecommendations(VALID_STUDENT_ID, null, true);
     }
@@ -147,45 +142,10 @@ class CriticalRecommendationsControllerTest {
                 .thenReturn(errorResponse);
 
         ResponseEntity<ApiResponse<CriticalRecommendationsResponse>> result = controller.getCriticalRecommendations(
-                VALID_STUDENT_ID, null, false, null, authFor(VALID_STUDENT_ID));
+                authFor(VALID_STUDENT_ID), null, false, null);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertTrue(result.getBody().getData().getMessage().contains("No se pudo realizar el calculo"));
     }
 
-    // -------------------------------------------------------------------------
-    // Security / authorization
-    // -------------------------------------------------------------------------
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthenticationIsNull() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.getCriticalRecommendations(
-                        VALID_STUDENT_ID, null, false, null, null));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenStudentIdMismatch() {
-        Authentication auth = authFor("other-user-id");
-        assertThrows(AccessDeniedException.class,
-                () -> controller.getCriticalRecommendations(
-                        VALID_STUDENT_ID, null, false, null, auth));
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthNameIsEmpty() {
-        Authentication auth = authFor("");
-        assertThrows(AccessDeniedException.class,
-                () -> controller.getCriticalRecommendations(
-                        VALID_STUDENT_ID, null, false, null, auth));
-    }
-
-    @Test
-    void shouldThrowPlanningDomainExceptionForInvalidStudentId() {
-        // StudentIdValidator throws before getName() is ever called — no stub needed
-        Authentication auth = mock(Authentication.class);
-        assertThrows(PlanningDomainException.class,
-                () -> controller.getCriticalRecommendations(
-                        "not-a-uuid", null, false, null, auth));
-    }
 }

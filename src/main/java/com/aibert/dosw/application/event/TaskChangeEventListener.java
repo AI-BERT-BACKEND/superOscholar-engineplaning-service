@@ -31,15 +31,19 @@ public class TaskChangeEventListener {
     public void onTaskChange(TaskChangeEvent event) {
         log.info("AIB-22.1: Evento '{}' recibido para el estudiante '{}' (taskId='{}')."
                 + " Iniciando recálculo automático de prioridades.",
-                event.getEventType(), event.getStudentId(), event.getTaskId());
+                event.getEventType(), sl(event.getStudentId()), sl(event.getTaskId()));
 
         try {
             prioritizeTasksUseCase.prioritize(event.getStudentId(), true);
             log.info("AIB-22.1: Recálculo automático completado para el estudiante '{}'.",
-                    event.getStudentId());
+                    sl(event.getStudentId()));
         } catch (Exception ex) {
             log.error("AIB-22.1: Error durante el recálculo automático para el estudiante '{}': {}",
-                    event.getStudentId(), ex.getMessage(), ex);
+                    sl(event.getStudentId()), ex.getMessage(), ex);
         }
+    }
+
+    private static String sl(String s) {
+        return s == null ? "" : s.replaceAll("[\r\n]", "_");
     }
 }

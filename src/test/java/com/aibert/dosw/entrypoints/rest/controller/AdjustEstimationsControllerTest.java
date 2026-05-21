@@ -13,7 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -56,7 +55,7 @@ class AdjustEstimationsControllerTest {
                 .build();
         when(adjustEstimationsUseCase.adjustEstimations(eq(STUDENT_ID), any())).thenReturn(response);
 
-        ResponseEntity<ApiResponse<AdjustEstimationsResponse>> result = controller.adjustEstimations(STUDENT_ID,
+        ResponseEntity<ApiResponse<AdjustEstimationsResponse>> result = controller.adjustEstimations(
                 auth(STUDENT_ID), request());
 
         assertEquals(200, result.getStatusCode().value());
@@ -73,31 +72,11 @@ class AdjustEstimationsControllerTest {
                 .build();
         when(adjustEstimationsUseCase.adjustEstimations(eq(STUDENT_ID), any())).thenReturn(response);
 
-        ResponseEntity<ApiResponse<AdjustEstimationsResponse>> result = controller.adjustEstimations(STUDENT_ID,
+        ResponseEntity<ApiResponse<AdjustEstimationsResponse>> result = controller.adjustEstimations(
                 auth(STUDENT_ID), request());
 
         assertEquals(200, result.getStatusCode().value());
         assertTrue(result.getBody().getData().getUpdatedEstimates().isEmpty());
     }
 
-    @Test
-    void shouldThrowAccessDeniedWhenAuthIsNull() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.adjustEstimations(STUDENT_ID, null, request()));
-        verifyNoInteractions(adjustEstimationsUseCase);
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthNameMismatch() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.adjustEstimations(STUDENT_ID, auth("other-user"), request()));
-        verifyNoInteractions(adjustEstimationsUseCase);
-    }
-
-    @Test
-    void shouldThrowAccessDeniedWhenAuthNameEmpty() {
-        assertThrows(AccessDeniedException.class,
-                () -> controller.adjustEstimations(STUDENT_ID, auth(""), request()));
-        verifyNoInteractions(adjustEstimationsUseCase);
-    }
 }

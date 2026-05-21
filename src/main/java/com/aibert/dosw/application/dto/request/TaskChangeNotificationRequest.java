@@ -25,6 +25,7 @@ public class TaskChangeNotificationRequest {
     private String studentId;
 
     @NotBlank
+    @Pattern(regexp = "^[\\w\\-]{1,100}$", message = "taskId must contain only alphanumeric characters, hyphens, or underscores")
     @Schema(description = "Identifier of the task that changed", example = "task-456")
     private String taskId;
 

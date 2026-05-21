@@ -2,6 +2,8 @@ server:
   port: 1504
 
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
   security:
     user:
       name: test

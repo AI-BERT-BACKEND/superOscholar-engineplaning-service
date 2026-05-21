@@ -14,13 +14,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import com.aibert.dosw.entrypoints.support.StudentIdValidator;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -60,11 +56,10 @@ public class AdjustEstimationsController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     public ResponseEntity<ApiResponse<AdjustEstimationsResponse>> adjustEstimations(
-            @Parameter(description = "Student identifier", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
             Authentication authentication,
             @Valid @RequestBody AdjustEstimationsRequest request) {
 
-        assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+        String studentId = authentication.getName();
         log.info("Solicitud de ajuste de estimaciones recibida para el estudiante '{}', tipo de tarea: {}",
                 sl(studentId), request.getTaskType());
 
@@ -79,14 +74,6 @@ public class AdjustEstimationsController {
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
-
-    private void assertStudentIdMatchesAuthenticatedUser(Authentication authentication, String studentId) {
-        StudentIdValidator.validate(studentId);
-        if (authentication == null || !StringUtils.hasText(authentication.getName())
-                || !authentication.getName().equals(studentId)) {
-            throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-        }
-    }
 
     private static String sl(String s) {
         return s == null ? "" : s.replaceAll("[\r\n]", "_");

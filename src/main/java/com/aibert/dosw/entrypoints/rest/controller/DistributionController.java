@@ -15,12 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import com.aibert.dosw.entrypoints.support.StudentIdValidator;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,11 +57,10 @@ public class DistributionController {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
         })
         public ResponseEntity<ApiResponse<DistributionPlanResponse>> generateDistribution(
-                        @Parameter(description = "Student identifier, provided via X-Student-Id request header", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
-                        @Parameter(description = "Week start date (Monday) in ISO format; defaults to current week if omitted", example = "2026-05-12") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate,
-                        Authentication authentication) {
+                        Authentication authentication,
+                        @Parameter(description = "Week start date (Monday) in ISO format; defaults to current week if omitted", example = "2026-05-12") @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStartDate) {
 
-                assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+                String studentId = authentication.getName();
 
                 LocalDate effectiveWeekStart = weekStartDate != null
                                 ? weekStartDate
@@ -79,16 +74,6 @@ public class DistributionController {
                 DistributionPlanResponse response = planningTaskMapper.toDistributionPlanResponse(distributionPlan);
 
                 return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
-        }
-
-        private void assertStudentIdMatchesAuthenticatedUser(
-                        Authentication authentication,
-                        String studentId) {
-                StudentIdValidator.validate(studentId);
-                if (authentication == null || !StringUtils.hasText(authentication.getName())
-                                || !authentication.getName().equals(studentId)) {
-                        throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-                }
         }
 
         private static String sl(String s) {

@@ -5,8 +5,13 @@ import com.aibert.dosw.application.dto.response.RiskSummaryResponse;
 import com.aibert.dosw.application.dto.response.RiskTaskDetailResponse;
 import com.aibert.dosw.domain.model.risk.HighRiskTaskResult;
 import com.aibert.dosw.domain.model.risk.RiskTaskDetail;
+import com.aibert.dosw.domain.model.risk.RiskLevel;
 import com.aibert.dosw.domain.ports.in.DetectHighRiskTasksUseCase;
 import com.aibert.dosw.entrypoints.rest.response.ApiResponse;
+import com.aibert.dosw.infrastructure.messaging.NotificationKafkaProducer;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationEvent;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationEventType;
+import com.aibert.dosw.infrastructure.messaging.dto.NotificationSeverity;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,12 +22,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import com.aibert.dosw.entrypoints.support.StudentIdValidator;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RiskDetectionController {
 
     private final DetectHighRiskTasksUseCase detectHighRiskTasksUseCase;
+    private final NotificationKafkaProducer notificationKafkaProducer;
 
     /**
      * Returns tasks where available minutes until the deadline are insufficient
@@ -59,14 +61,26 @@ public class RiskDetectionController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     public ResponseEntity<ApiResponse<HighRiskDetectionResponse>> detectHighRiskTasks(
-            @Parameter(description = "Student identifier", required = true, example = "100095379") @RequestHeader("X-Student-Id") String studentId,
             Authentication authentication) {
 
-        assertStudentIdMatchesAuthenticatedUser(authentication, studentId);
+        String studentId = authentication.getName();
         log.info("Solicitud de detección de alto riesgo recibida para el estudiante '{}'", sl(studentId));
 
         HighRiskTaskResult result = detectHighRiskTasksUseCase.detectHighRiskTasks(studentId);
         HighRiskDetectionResponse response = toResponse(result);
+
+        if (!result.getHighRiskTasks().isEmpty()) {
+            boolean hasHighRisk = result.getHighRiskTasks().stream()
+                    .anyMatch(t -> t.getRiskLevel() == RiskLevel.HIGH);
+            notificationKafkaProducer.send(NotificationEvent.builder()
+                    .userId(studentId)
+                    .type(NotificationEventType.OVERLOAD_ALERT)
+                    .title("Tareas en riesgo académico detectadas")
+                    .message(result.getMessage())
+                    .severity(hasHighRisk ? NotificationSeverity.HIGH : NotificationSeverity.MEDIUM)
+                    .relatedEntityId(studentId)
+                    .build());
+        }
 
         return ResponseEntity.ok(ApiResponse.success(response.getMessage(), response));
     }
@@ -101,14 +115,6 @@ public class RiskDetectionController {
                 .estimatedDurationMinutes(detail.getEstimatedDurationMinutes())
                 .academicWeight(detail.getAcademicWeight())
                 .build();
-    }
-
-    private void assertStudentIdMatchesAuthenticatedUser(Authentication authentication, String studentId) {
-        StudentIdValidator.validate(studentId);
-        if (authentication == null || !StringUtils.hasText(authentication.getName())
-                || !authentication.getName().equals(studentId)) {
-            throw new AccessDeniedException("El studentId no coincide con el usuario autenticado");
-        }
     }
 
     private static String sl(String s) {

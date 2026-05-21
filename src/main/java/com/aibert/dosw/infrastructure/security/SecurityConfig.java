@@ -20,17 +20,15 @@ import org.springframework.util.StringUtils;
  * Global Security Configuration for the planning-service.
  *
  * <p>
- * When {@code planning.security.enabled=true} (default), all
- * {@code /planning/**}
+ * When {@code planning.security.enabled=true} (default), all {@code /planning/**}
  * endpoints require a valid JWT in the {@code Authorization} header.
  *
  * <p>
  * When {@code planning.security.enabled=false} (local/test profile only),
  * JWT validation is skipped and a synthetic {@code Authentication} is derived
- * from the {@code X-Student-Id} request header so that controller-level
- * ownership
- * checks still pass without a real token. <b>Never set this to {@code false} in
- * production or QA environments.</b>
+ * from the {@code X-User-Id} request header so that {@code authentication.getName()}
+ * returns the userId correctly without a real token.
+ * <b>Never set this to {@code false} in production or QA environments.</b>
  */
 @Configuration
 @EnableWebSecurity
@@ -49,13 +47,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // CSRF is intentionally disabled: this service is a stateless REST API
+        // authenticated via JWT Bearer tokens (not cookies), so CSRF attacks do not apply.
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
         if (!securityEnabled) {
-            // Local-only: derive authentication from X-Student-Id header so that
-            // assertStudentIdMatchesAuthenticatedUser checks still pass in Swagger.
+            // Local-only: derive authentication from X-User-Id header so that
+            // authentication.getName() returns the userId correctly in Swagger testing.
             http
                     .addFilterBefore(this::localStudentIdAuthFilter, UsernamePasswordAuthenticationFilter.class)
                     .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
@@ -73,9 +73,10 @@ public class SecurityConfig {
     }
 
     /**
-     * Inline filter used ONLY when security is disabled (local profile).
-     * Sets a synthetic Authentication whose name equals the X-Student-Id header
-     * value so controller ownership checks succeed without a real JWT.
+     * Inline filter used ONLY when security is disabled (local/test profile).
+     * Sets a synthetic Authentication whose {@code getName()} returns the
+     * {@code X-User-Id} header value so controllers can call
+     * {@code authentication.getName()} without a real JWT.
      */
     private void localStudentIdAuthFilter(
             jakarta.servlet.ServletRequest request,
@@ -83,9 +84,9 @@ public class SecurityConfig {
             jakarta.servlet.FilterChain chain) throws java.io.IOException, jakarta.servlet.ServletException {
 
         HttpServletRequest httpReq = (HttpServletRequest) request;
-        String studentId = httpReq.getHeader("X-Student-Id");
-        if (StringUtils.hasText(studentId)) {
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(studentId, null,
+        String userId = httpReq.getHeader("X-User-Id");
+        if (StringUtils.hasText(userId)) {
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(userId, null,
                     List.of());
             SecurityContextHolder.getContext().setAuthentication(auth);
         }

@@ -41,7 +41,6 @@ services:
       FEIGN_PROFILE_SERVICE_URL: ${FEIGN_PROFILE_SERVICE_URL}
       FEIGN_ACADEMIC_SERVICE_URL: ${FEIGN_ACADEMIC_SERVICE_URL}
       FEIGN_RECOMMENDATION_SERVICE_URL: ${FEIGN_RECOMMENDATION_SERVICE_URL}
-      FEIGN_PLANNING_SERVICE_URL: ${FEIGN_PLANNING_SERVICE_URL}
 
       JWT_SECRET: ${JWT_SECRET}
 
@@ -79,15 +78,15 @@ volumes:
 # 3. Usa la URL:  http://engineplanning-service:1504
 #    (no localhost — entre contenedores se usa el nombre del contenedor)
 #
-# ─── Variables para planning-service (puerto 1505) ───────────────────────────
-#   planning-service usa estos Feign clients para llamar a este motor:
-#     · PlanningFeignClient  → GET  /planning/prioritization
-#     · PlanningFeignClient  → POST /planning/distribution
-#     · EnginePlanningClient → POST /planning/recommendations/critical
-#
-#   Variable que planning-service debe configurar:
-#     En Docker:  ENGINE_PLANNING_URL=http://engineplanning-service:1504
-#     En local:   ENGINE_PLANNING_URL=http://localhost:1504
+# ─── Nota sobre planning-service ───────────────────────────────────────────────
+#   engineplanning-service expone internamente los endpoints:
+#     · GET  /planning/prioritization
+#     · POST /planning/distribution
+#     · POST /planning/recommendations/critical
+#   
+#   Estos endpoints pueden ser consumidos directamente por otros servicios
+#   apuntando a: http://engineplanning-service:1504 en Docker
+#                 http://localhost:1504 en local
 #
 # ─── Variables para recommendation-service (puerto 8086) ─────────────────────
 #   recommendation-service usa estos Feign clients para llamar a este motor:

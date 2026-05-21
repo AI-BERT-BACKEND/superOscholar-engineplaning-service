@@ -89,7 +89,7 @@ public class PlanningExceptionHandler {
 
         /**
          * Handles missing required request headers (400 Bad Request).
-         * Triggered when X-Student-Id or any required header is absent.
+         * Triggered when X-User-Id or any required header is absent.
          */
         @ExceptionHandler(MissingRequestHeaderException.class)
         public ResponseEntity<ApiResponse<Void>> handleMissingHeader(

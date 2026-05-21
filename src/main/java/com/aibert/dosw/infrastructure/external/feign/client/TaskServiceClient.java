@@ -12,27 +12,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Feign Client para comunicarse con task-service.
- * Retorna TaskServiceResponse (DTO) — la conversión a PlanningTask se hace en
- * el adaptador.
- * El fallback se activa si task-service no responde o el circuit breaker está
- * abierto.
+ * El interceptor global (FeignClientInterceptor) propaga automáticamente
+ * Authorization y X-User-Id, por lo que no se declaran como parámetros.
  */
 @FeignClient(name = "task-service", url = "${feign.task-service.url}", fallback = TaskServiceClientFallback.class)
 public interface TaskServiceClient {
 
-    // R14 / R16 — Obtener tareas pendientes (TODO e IN_PROGRESS)
-    @GetMapping("/api/tasks/student/{studentId}/pending")
-    List<TaskServiceResponse> getPendingTasks(@PathVariable("studentId") String studentId);
+    // Obtener todas las tareas del estudiante (TODO, IN_PROGRESS, SCHEDULED, etc.)
+    // El filtro por estado se aplica localmente en TaskServiceAdapter.
+    @GetMapping("/api/tasks/student/{studentId}")
+    List<TaskServiceResponse> getTasksByStudent(@PathVariable("studentId") String studentId);
 
-    // R15 — Obtener tareas ya programadas (SCHEDULED)
-    @GetMapping("/api/tasks/student/{studentId}/scheduled")
-    List<TaskServiceResponse> getScheduledTasks(@PathVariable("studentId") String studentId);
-
-    // R14 — Actualizar prioridades calculadas por el motor
+    // Actualizar prioridades calculadas por el motor
     @PutMapping("/api/tasks/priorities")
     void updateTaskPriorities(@RequestBody List<TaskServiceResponse> tasks);
 
-    // R17 — Notificar bloque de estudio fallido
+    // Notificar bloque de estudio fallido
     @PostMapping("/api/tasks/failure")
     void reportTaskFailure(
             @RequestParam("studentId") String studentId,
@@ -40,7 +35,7 @@ public interface TaskServiceClient {
             @RequestParam("hoursMissed") double hoursMissed,
             @RequestParam("reason") String reason);
 
-    // AIB-22.4 — Obtener tarea por ID (incluye tareas completadas)
+    // Obtener tarea por ID (incluye tareas completadas)
     @GetMapping("/api/tasks/{taskId}")
     TaskServiceResponse getTaskById(@PathVariable("taskId") String taskId);
 }

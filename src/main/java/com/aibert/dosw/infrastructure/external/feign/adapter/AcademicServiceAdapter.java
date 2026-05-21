@@ -3,7 +3,7 @@ package com.aibert.dosw.infrastructure.external.feign.adapter;
 import com.aibert.dosw.domain.ports.out.AcademicWeightProviderPort;
 import com.aibert.dosw.domain.valueobjects.AcademicWeight;
 import com.aibert.dosw.infrastructure.external.feign.client.AcademicServiceClient;
-import com.aibert.dosw.infrastructure.external.feign.dto.AcademicWeightResponse;
+import com.aibert.dosw.infrastructure.external.feign.dto.AcademicApiResponse;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,10 +19,10 @@ public class AcademicServiceAdapter implements AcademicWeightProviderPort {
         if (subjectId == null || subjectId.isBlank()) {
             return Optional.empty();
         }
-        AcademicWeightResponse response = academicServiceClient.getAcademicWeight(studentId, subjectId);
-        if (response == null) {
+        AcademicApiResponse response = academicServiceClient.getAcademicWeight(studentId, subjectId);
+        if (response == null || response.getData() == null) {
             return Optional.empty();
         }
-        return Optional.of(AcademicWeight.of(response.getSubjectId(), response.getAcademicWeight()));
+        return Optional.of(AcademicWeight.of(subjectId, response.getData().getAcademicWeight()));
     }
 }
