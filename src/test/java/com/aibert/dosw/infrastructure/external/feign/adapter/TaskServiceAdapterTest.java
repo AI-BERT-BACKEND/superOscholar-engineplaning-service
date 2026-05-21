@@ -44,7 +44,7 @@ class TaskServiceAdapterTest {
                 .status(TaskStatus.TODO)
                 .build();
 
-        when(taskServiceClient.getPendingTasks("st1")).thenReturn(List.of(response));
+        when(taskServiceClient.getTasksByStudent("st1")).thenReturn(List.of(response));
         when(taskResponseMapper.toPlanningTasks(List.of(response))).thenReturn(List.of(expected));
 
         List<PlanningTask> result = adapter.getPendingTasksByUser("st1");
@@ -52,7 +52,7 @@ class TaskServiceAdapterTest {
         assertEquals(1, result.size());
         assertEquals("1", result.get(0).getId());
         assertEquals("st1", result.get(0).getUserId());
-        verify(taskServiceClient).getPendingTasks("st1");
+        verify(taskServiceClient).getTasksByStudent("st1");
         verify(taskResponseMapper).toPlanningTasks(List.of(response));
     }
 
@@ -65,13 +65,13 @@ class TaskServiceAdapterTest {
                 .build();
         PlanningTask expected = PlanningTask.builder().id("2").userId("st1").build();
 
-        when(taskServiceClient.getScheduledTasks("st1")).thenReturn(List.of(response));
+        when(taskServiceClient.getTasksByStudent("st1")).thenReturn(List.of(response));
         when(taskResponseMapper.toPlanningTasks(List.of(response))).thenReturn(List.of(expected));
 
         List<PlanningTask> result = adapter.getScheduledTasksByUser("st1");
 
         assertEquals(1, result.size());
-        verify(taskServiceClient).getScheduledTasks("st1");
+        verify(taskServiceClient).getTasksByStudent("st1");
         verify(taskResponseMapper).toPlanningTasks(List.of(response));
     }
 

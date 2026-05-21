@@ -11,15 +11,8 @@ class TaskServiceClientFallbackTest {
     private final TaskServiceClientFallback fallback = new TaskServiceClientFallback();
 
     @Test
-    void getPendingTasks_returnsEmptyList() {
-        List<TaskServiceResponse> result = fallback.getPendingTasks("student1");
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void getScheduledTasks_returnsEmptyList() {
-        List<TaskServiceResponse> result = fallback.getScheduledTasks("student1");
+    void getTasksByStudent_returnsEmptyList() {
+        List<TaskServiceResponse> result = fallback.getTasksByStudent("student1");
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
