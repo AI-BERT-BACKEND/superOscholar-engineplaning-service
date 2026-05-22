@@ -1,4 +1,4 @@
-1spring:
+spring:
   config:
     activate:
       on-profile: dev
