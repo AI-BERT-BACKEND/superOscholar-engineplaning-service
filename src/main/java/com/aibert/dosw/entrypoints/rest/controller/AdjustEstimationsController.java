@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/estimations")
 @RequiredArgsConstructor
-@Tag(name = "Estimation Adjustment", description = "Endpoints for learning from completed tasks and automatically adjusting pending task duration estimates")
+@Tag(name = "Estimation Adjustment", description = "Manage estimation adjustment: learn from completed tasks and automatically update pending task duration estimates using a per-student correction factor. (AIB-22.4)")
 public class AdjustEstimationsController {
 
     private final AdjustEstimationsUseCase adjustEstimationsUseCase;

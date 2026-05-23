@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/planning/distribution")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Distribution", description = "Endpoints for generating and managing the automatic distribution of study tasks across available time slots")
+@Tag(name = "Distribution", description = "Manage automatic task distribution: assign all pending study tasks into available weekly time slots respecting daily caps and priority order. (AIB-24, R16)")
 public class DistributionController {
 
         private final DistributeTasksUseCase distributeTasksUseCase;
@@ -46,12 +46,13 @@ public class DistributionController {
          * @return HTTP 200 OK with the full distribution plan
          */
         @PostMapping
-        @Operation(summary = "Generate Weekly Task Distribution (AIB-24)", description = "Automatically distributes all pending study tasks into available time blocks for the week, "
+        @Operation(summary = "Generate weekly task distribution", description = "Automatically distributes all pending study tasks into available time blocks for the week (AIB-24), "
                         +
                         "respecting MAX_MINUTES_PER_DAY = 240 and applying priority ordering (CRITICAL/HIGH first). " +
                         "Returns assigned blocks and any tasks that could not be scheduled.")
         @ApiResponses(value = {
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Weekly distribution plan generated", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))),
+                        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Invalid distribution request parameters"),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Unauthorized"),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Forbidden - studentId does not match authenticated user"),
                         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Unexpected server error")

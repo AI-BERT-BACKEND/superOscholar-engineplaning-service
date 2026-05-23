@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/recommendations")
 @RequiredArgsConstructor
-@Tag(name = "Recommendations", description = "Endpoints for retrieving critical task recommendations based on priority, status and deadline proximity")
+@Tag(name = "Recommendations", description = "Manage critical task recommendations: filter by priority, status and deadline proximity, and return up to 3 urgent tasks. (AIB-22.2)")
 public class CriticalRecommendationsController {
 
     private final CriticalRecommendationsUseCase criticalRecommendationsUseCase;

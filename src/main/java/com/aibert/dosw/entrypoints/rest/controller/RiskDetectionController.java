@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/risk")
 @RequiredArgsConstructor
-@Tag(name = "Risk Detection", description = "Endpoints for detecting tasks with insufficient available time relative to their estimated duration")
+@Tag(name = "Risk Detection", description = "Manage academic risk detection: identify tasks where available time is critically or moderately insufficient relative to estimated duration. (AIB-22.3)")
 public class RiskDetectionController {
 
     private final DetectHighRiskTasksUseCase detectHighRiskTasksUseCase;

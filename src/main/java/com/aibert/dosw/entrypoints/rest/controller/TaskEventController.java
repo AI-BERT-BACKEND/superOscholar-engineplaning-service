@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/events")
 @RequiredArgsConstructor
-@Tag(name = "Task Events", description = "Internal endpoint for receiving task change notifications that trigger automatic background prioritization (AIB-22.1)")
+@Tag(name = "Task Events", description = "Manage task change events: receive lifecycle notifications from the task-service and trigger automatic background reprioritization. (AIB-22.1)")
 public class TaskEventController {
 
     private final ApplicationEventPublisher eventPublisher;

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/planning/prioritization")
 @RequiredArgsConstructor
-@Tag(name = "Prioritization", description = "Endpoints for retrieving and managing prioritized lists of study tasks based on calculated priority scores")
+@Tag(name = "Prioritization", description = "Manage the prioritized task list: retrieve and recalculate priority scores ordered by level and nearest deadline. (AIB-22)")
 public class PrioritizationController {
 
         private final PrioritizeTasksUseCase prioritizeTasksUseCase;

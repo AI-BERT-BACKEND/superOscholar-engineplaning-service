@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/planning/rebalance")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Rebalance", description = "Endpoints for handling dynamic rebalancing of study schedules when failures or changes occur")
+@Tag(name = "Rebalance", description = "Manage dynamic rebalancing: report missed study blocks and trigger automatic redistribution of pending tasks. (R17)")
 public class RebalanceController {
 
         private final RebalanceTasksUseCase rebalanceTasksUseCase;

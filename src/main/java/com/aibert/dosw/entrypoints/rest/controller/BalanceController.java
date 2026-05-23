@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/planning/balance")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Balance", description = "Endpoints for analyzing weekly workload balance and receiving suggestions to optimize study time distribution")
+@Tag(name = "Balance", description = "Manage the weekly workload balance: analyze daily occupancy, detect overloaded and empty days, and suggest task redistribution. (AIB-23, R15)")
 public class BalanceController {
 
         private final BalanceWorkloadUseCase balanceWorkloadUseCase;

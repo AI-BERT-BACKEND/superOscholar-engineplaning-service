@@ -21,7 +21,7 @@ public class TaskChangeNotificationRequest {
 
     @NotBlank
     @Pattern(regexp = "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", message = "studentId must be a valid UUID")
-    @Schema(description = "Student identifier whose tasks need to be reprioritized", example = "100095379")
+    @Schema(description = "Student identifier whose tasks need to be reprioritized", example = "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
     private String studentId;
 
     @NotBlank
